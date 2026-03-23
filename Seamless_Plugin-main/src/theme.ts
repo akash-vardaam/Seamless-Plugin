@@ -62,13 +62,13 @@ export const FONTS = {
 } as const;
 
 export const FONT_SIZES = {
-    xs: '0.75rem',
-    sm: '0.875rem',
-    base: '1rem',
-    lg: '1.125rem',
-    xl: '1.25rem',
-    '2xl': '1.5rem',
-    '3xl': '1.875rem',
+    xs: '12px',
+    sm: '14px',
+    base: '16px',
+    lg: '18px',
+    xl: '20px',
+    '2xl': '24px',
+    '3xl': '30px',
 } as const;
 
 // ── Transitions ───────────────────────────────────────────────────────────────

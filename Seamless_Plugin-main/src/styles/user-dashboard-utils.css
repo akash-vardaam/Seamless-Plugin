@@ -1,7 +1,7 @@
 ﻿/* Dashboard utility classes mapped from inline styles */
 :host .seamless-pricing-breakdown-hdr {
     margin-bottom: 16px !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
 }
 
 :host .seamless-pricing-diff.seamless-color-upgrade {
@@ -95,7 +95,7 @@
     text-align: left !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 16px !important;
+    gap: 5px !important;
     width: 100% !important;
 }
 
@@ -107,9 +107,15 @@
 
 :host .seamless-card-content .seamless-card-title {
     margin: 0 !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 600 !important;
     text-align: start !important;
+}
+
+:host .seamless-dashboard-membership {
+    display: flex !important;
+    gap: 25px !important;
+    justify-content: space-between !important;
 }
 
 :host .seamless-position-relative {
@@ -137,7 +143,7 @@
     display: flex !important;
     gap: 24px !important;
     color: #64748b !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-mt-0 {

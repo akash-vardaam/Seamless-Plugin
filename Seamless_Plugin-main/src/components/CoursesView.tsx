@@ -68,7 +68,7 @@ export const CoursesView: React.FC = () => {
         return (
             <div className="seamless-courses-container">
                 <div className="seamless-error-container" style={{ textAlign: 'center', padding: '40px', color: '#ef4444' }}>
-                    <p className="seamless-error-title" style={{ fontSize: '1.25rem', fontWeight: 600 }}>Error loading courses</p>
+                    <p className="seamless-error-title" style={{ fontSize: 'var(--seamless-font-size-xl)', fontWeight: 600 }}>Error loading courses</p>
                     <p className="seamless-error-message">{error}</p>
                 </div>
             </div>
@@ -226,7 +226,7 @@ export const CoursesView: React.FC = () => {
                 {/* Grid */}
                 {!loading && courses.length === 0 ? (
                     <div className="seamless-empty-state" style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
-                        <p style={{ fontSize: '1.125rem' }}>No courses found matching your criteria.</p>
+                        <p style={{ fontSize: 'var(--seamless-font-size-lg)' }}>No courses found matching your criteria.</p>
                     </div>
                 ) : (
                     <div className="seamless-courses-grid">

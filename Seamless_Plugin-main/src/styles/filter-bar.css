@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    SEAMLESS EVENT DISPLAY - FILTER BAR STYLES
    ============================================ */
 
@@ -42,7 +42,7 @@
 :host .seamless-filter-label {
   font-size: var(--seamless-font-size-base) !important;
   font-weight: 400 !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   color: var(--seamless-color-gray-700) !important;
   white-space: nowrap !important;
   font-family: var(--seamless-font-family-montserrat) !important;

@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    SEAMLESS EVENT DISPLAY - CARD STYLES
    ============================================ */
 
@@ -50,7 +50,7 @@
   display: block !important;
   font-weight: 500 !important;
   font-size: var(--seamless-font-size-lg) !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   color: var(--seamless-color-primary) !important;
   transition: color var(--seamless-transition-fast) !important;
   font-family: var(--seamless-font-family-serif) !important;
@@ -63,7 +63,7 @@
 :host .seamless-card-date {
   margin-bottom: var(--seamless-spacing-1) !important;
   font-size: var(--seamless-font-size-base) !important;
-  line-height: 1.25 !important;
+  line-height: var(--seamless-line-height-1-25) !important;
   font-weight: 700 !important;
   color: var(--seamless-color-primary) !important;
 }
@@ -71,7 +71,7 @@
 :host .seamless-card-time {
   margin-bottom: var(--seamless-spacing-4) !important;
   font-size: var(--seamless-font-size-base) !important;
-  line-height: 1 !important;
+  line-height: var(--seamless-line-height-1) !important;
   font-weight: 400 !important;
   color: var(--seamless-color-primary) !important;
 }
@@ -139,9 +139,9 @@
 :host .seamless-card-list-details .seamless-card-list-title {
   display: block !important;
   margin-bottom: var(--seamless-spacing-3) !important;
-  font-size: 20px !important;
+  font-size: var(--seamless-font-size-20) !important;
   text-decoration: underline !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   font-weight: 500 !important;
   color: var(--seamless-color-primary) !important;
   transition: color var(--seamless-transition-fast) !important;
@@ -166,12 +166,12 @@
 
 :host .seamless-card-list-meta p {
   margin: 0 !important;
-  line-height: 18px !important;
+  line-height: var(--seamless-line-height-18) !important;
 }
 
 :host .seamless-card-list-meta-item {
   font-size: var(--seamless-font-size-base) !important;
-  line-height: 1 !important;
+  line-height: var(--seamless-line-height-1) !important;
   font-weight: 400 !important;
   color: var(--seamless-color-primary) !important;
 }
@@ -182,7 +182,7 @@
 
 :host .seamless-card-list-description {
   font-size: var(--seamless-font-size-base) !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   font-weight: 400 !important;
   color: var(--seamless-color-gray-600) !important;
   margin-bottom: var(--seamless-spacing-4) !important;

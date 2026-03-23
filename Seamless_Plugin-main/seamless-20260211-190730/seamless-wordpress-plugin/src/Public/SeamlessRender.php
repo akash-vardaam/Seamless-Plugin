@@ -39,6 +39,11 @@ class SeamlessRender
 		add_action('wp_ajax_seamless_get_dashboard_memberships', [$this, 'ajax_get_dashboard_memberships']);
 		add_action('wp_ajax_seamless_get_dashboard_courses', [$this, 'ajax_get_dashboard_courses']);
 		add_action('wp_ajax_seamless_get_dashboard_orders', [$this, 'ajax_get_dashboard_orders']);
+		add_action('wp_ajax_seamless_get_dashboard_organization', [$this, 'ajax_get_dashboard_organization']);
+		add_action('wp_ajax_seamless_resend_group_invite', [$this, 'ajax_resend_group_invite']);
+		add_action('wp_ajax_seamless_add_group_members', [$this, 'ajax_add_group_members']);
+		add_action('wp_ajax_seamless_remove_group_member', [$this, 'ajax_remove_group_member']);
+		add_action('wp_ajax_seamless_change_member_role', [$this, 'ajax_change_member_role']);
 		add_action('wp_ajax_seamless_api_proxy', [$this, 'ajax_api_proxy']);
 
 		add_action('wp_head', [$this, 'enqueue_dynamic_styles']);
@@ -317,22 +322,350 @@ class SeamlessRender
 
 	private function register_shortcodes(): void
 	{
-		// React-powered shortcodes (replace old JS view layer)
+		// React-powered shortcodes
 		add_shortcode('seamless_events_list', [$this, 'shortcode_react_events_list']);
-		add_shortcode('seamless_single_event', [$this, 'shortcode_react_single_event']);
 		add_shortcode('seamless_memberships', [$this, 'shortcode_react_memberships']);
 		add_shortcode('seamless_courses', [$this, 'shortcode_react_courses']);
 		add_shortcode('seamless_dashboard', [$this, 'shortcode_react_dashboard']);
+		add_shortcode('seamless_react_single_event', [$this, 'shortcode_react_single_event']);
+		add_shortcode('seamless_react_dashboard', [$this, 'shortcode_react_dashboard']);
+		add_shortcode('seamless_react_memberships', [$this, 'shortcode_react_memberships']);
+		add_shortcode('seamless_react_courses', [$this, 'shortcode_react_courses']);
+		add_shortcode('seamless_react_events_list', [$this, 'shortcode_react_events_list']);
 
-		// Legacy aliases kept for backward compatibility
-		add_shortcode('seamless_event_list', [$this, 'shortcode_react_events_list']);
-		add_shortcode('seamless_user_dashboard', [$this, 'shortcode_react_dashboard']);
-		add_shortcode('seamless_events', [$this, 'shortcode_react_events_list']);
+		// Legacy shortcode contract used by seamless-addon and older page builds
+		add_shortcode('seamless_event_list', [$this, 'shortcode_event_list']);
+		add_shortcode('seamless_single_event', [$this, 'shortcode_single_event']);
+		add_shortcode('seamless_user_dashboard', [$this, 'shortcode_user_dashboard']);
+		add_shortcode('seamless_events', [$this, 'shortcode_custom_events']);
 	}
 
 	private function seamless_get_template($template_name): string
 	{
 		return locate_template($template_name) ?: plugin_dir_path(__FILE__) . 'templates/' . $template_name;
+	}
+
+	public function shortcode_event_list($atts = []): string
+	{
+		if (!$this->auth->is_authenticated()) {
+			return $this->get_authentication_required_message();
+		}
+
+		$atts = shortcode_atts([
+			'template' => 'default',
+		], $atts, 'seamless_event_list');
+
+		$template = strtolower((string) $atts['template']);
+		$template_file = 'tpl-event-wrapper.php';
+		if ($template === 'without-dropdown') {
+			$template_file = 'tpl-event-wrapper-without-dropdown.php';
+		}
+
+		$instance_id = uniqid('seamless-events-', false);
+
+		ob_start();
+		include $this->seamless_get_template($template_file);
+		return ob_get_clean();
+	}
+
+	public function shortcode_single_event($atts): string
+	{
+		if (!$this->auth->is_authenticated()) {
+			return $this->get_authentication_required_message();
+		}
+		$atts = shortcode_atts([
+			'slug' => '',
+			'type' => 'event',
+		], $atts, 'seamless_single_event');
+
+		$slug = $atts['slug'];
+		$type = $atts['type'];
+
+		$lid = substr(md5(uniqid('sl', true)), 0, 6);
+		$loader_html = '<div class="loader-container"><div id="Seamlessloader" class="seamless-plugin-loader hidden" role="status" aria-label="Loading"><svg xmlns="http://www.w3.org/2000/svg"  class="sync-wheel-svg" viewBox="62 64 282 282" aria-hidden="true"><defs><linearGradient id="swg1-' . $lid . '" x1="135.2" y1="221.8" x2="271.3" y2="221.8" gradientTransform="translate(0 420) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0fd"/><stop offset=".2" stop-color="#2ac9e4"/><stop offset=".4" stop-color="#6383ed"/><stop offset=".6" stop-color="#904bf5"/><stop offset=".8" stop-color="#b022fa"/><stop offset=".9" stop-color="#c40afd"/><stop offset="1" stop-color="#cc01ff"/></linearGradient><linearGradient id="swg2-' . $lid . '" x1="62.7" y1="214.6" x2="343.9" y2="214.6" gradientTransform="translate(0 420) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0fd"/><stop offset=".2" stop-color="#2ac9e4"/><stop offset=".4" stop-color="#6383ed"/><stop offset=".6" stop-color="#904bf5"/><stop offset=".8" stop-color="#b022fa"/><stop offset=".9" stop-color="#c40afd"/><stop offset="1" stop-color="#cc01ff"/></linearGradient><linearGradient id="swg3-' . $lid . '" x1="99.4" y1="214.7" x2="314.3" y2="214.7" gradientTransform="translate(0 420) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0fd"/><stop offset=".2" stop-color="#2ac9e4"/><stop offset=".4" stop-color="#6383ed"/><stop offset=".6" stop-color="#904bf5"/><stop offset=".8" stop-color="#b022fa"/><stop offset=".9" stop-color="#c40afd"/><stop offset="1" stop-color="#cc01ff"/></linearGradient></defs><g class="sl-ring-outer"><path fill="url(#swg2-' . $lid . ')" d="M203,64.7c-77.5.2-140.5,63.4-140.3,140.9,0,34.4,12.6,65.9,33.2,90.3-1.6,3.2-2.6,6.8-2.6,10.6,0,12.6,10.3,22.9,23,22.9s9.6-1.6,13.3-4.3c21.5,13.3,46.9,21,74,20.9,77.5-.2,140.5-63.4,140.3-140.9-.2-77.5-63.4-140.5-140.9-140.3h0ZM116.3,316c-5.2,0-9.5-4.2-9.5-9.5s4.2-9.5,9.5-9.5,9.5,4.2,9.5,9.5-4.2,9.5-9.5,9.5ZM203.6,332.5c-24.1,0-46.6-6.6-65.8-18.2.9-2.5,1.4-5.1,1.4-7.9,0-12.6-10.3-22.9-23-22.9s-7.7,1-10.9,2.8c-18.2-21.9-29.1-50-29.2-80.7-.2-70.1,56.8-127.3,126.9-127.5s127.3,56.8,127.5,126.9-56.8,127.3-126.9,127.5Z"/></g><g class="sl-ring-mid"><path fill="url(#swg3-' . $lid . ')" d="M305.1,226.9c1.5-7,2.3-14.2,2.3-21.6,0-57.4-46.7-104-104-104s-104,46.7-104,104,46.7,104,104,104,64.3-16.4,83.3-41.7c1.5.3,3.1.5,4.7.5,12.6,0,22.9-10.3,22.9-22.9s-3.6-14.1-9.2-18.3h0ZM203.3,296c-50,0-90.6-40.7-90.6-90.6s40.7-90.6,90.6-90.6,90.6,40.7,90.6,90.6-.6,11.5-1.6,17h-1c-12.6,0-22.9,10.3-22.9,22.9s2.4,11.7,6.4,15.8c-16.6,21.2-42.4,34.9-71.4,34.9h0ZM291.4,254.7c-5.2,0-9.5-4.3-9.5-9.5s4.3-9.5,9.5-9.5,9.5,4.3,9.5,9.5-4.3,9.5-9.5,9.5Z"/></g><g class="sl-ring-inner"><path fill="url(#swg1-' . $lid . ')" d="M225.6,141.1c-2.2-10.4-11.5-18.2-22.5-18.1-11,0-20.2,7.9-22.4,18.3-26.5,9.4-45.5,34.7-45.5,64.3s30.7,68,68.2,67.9c37.5,0,68-30.7,67.9-68.2,0-29.7-19.2-54.9-45.8-64.1h0ZM203.2,136.3c5.2,0,9.5,4.2,9.5,9.5s-4.2,9.5-9.5,9.5-9.5-4.2-9.5-9.5,4.2-9.5,9.5-9.5ZM203.5,260c-30.1,0-54.7-24.4-54.8-54.5,0-22.7,13.8-42.2,33.5-50.5,3.5,8.1,11.7,13.8,21.1,13.8s17.5-5.7,21-13.9c19.7,8.2,33.7,27.7,33.7,50.3s-24.4,54.7-54.5,54.8Z"/></g></svg></div></div>';
+
+		return '<div id="singleEventWrapper" class="single_event_container">' . $loader_html . '<div id="event_detail" data-event-slug="' . esc_attr($slug) . '" data-event-type="' . esc_attr($type) . '"></div></div>';
+	}
+
+	public function shortcode_custom_events($atts = []): string
+	{
+		if (!$this->auth->is_authenticated()) {
+			return $this->get_authentication_required_message();
+		}
+
+		$atts = shortcode_atts([
+			'view' => 'list',
+			'category' => '',
+			'featured_image' => 'true',
+			'limit' => 0,
+			'sort' => 'all',
+		], $atts, 'seamless_events');
+
+		$view = in_array($atts['view'], ['list', 'grid'], true) ? $atts['view'] : 'list';
+		$show_featured_image = filter_var($atts['featured_image'], FILTER_VALIDATE_BOOLEAN);
+		$shortcode_atts = $atts;
+
+		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
+		$api_url = add_query_arg(['per_page' => 1000], $client_domain . '/api/events');
+
+		$response = wp_remote_get($api_url, [
+			'timeout' => 30,
+			'sslverify' => false,
+		]);
+
+		$events = [];
+		if (!is_wp_error($response)) {
+			$body = json_decode(wp_remote_retrieve_body($response), true);
+
+			if (is_array($body)) {
+				if (isset($body['data']['events']) && is_array($body['data']['events'])) {
+					$events = $body['data']['events'];
+				} elseif (isset($body['data']) && is_array($body['data'])) {
+					$events = $body['data'];
+				}
+			}
+		}
+
+		$events = array_filter($events, function ($event) {
+			$status = strtolower($event['status'] ?? '');
+			return $status === 'published';
+		});
+
+		if (!empty($atts['category'])) {
+			$category_slug = $atts['category'];
+			$events = array_filter($events, function ($event) use ($category_slug) {
+				if (empty($event['categories']) || !is_array($event['categories'])) {
+					return false;
+				}
+
+				foreach ($event['categories'] as $cat) {
+					if (isset($cat['slug']) && $cat['slug'] === $category_slug) {
+						return true;
+					}
+				}
+
+				return false;
+			});
+		}
+
+		if (!empty($atts['sort']) && $atts['sort'] !== 'all') {
+			$today = strtotime('today midnight');
+
+			$events = array_filter($events, function ($event) use ($atts, $today) {
+				$event_type = $event['event_type'] ?? 'event';
+				$start_str = $event_type === 'group_event'
+					? ($event['formatted_start_date'] ?? '')
+					: ($event['start_date'] ?? '');
+				$end_str = $event_type === 'group_event'
+					? ($event['formatted_end_date'] ?? '')
+					: ($event['end_date'] ?? '');
+
+				if (empty($start_str)) {
+					return false;
+				}
+
+				$event_start = strtotime($start_str);
+				$event_end = !empty($end_str) ? strtotime($end_str) : $event_start;
+				$event_start_day = strtotime(date('Y-m-d', $event_start) . ' midnight');
+				$event_end_day = strtotime(date('Y-m-d', $event_end) . ' 23:59:59');
+
+				switch ($atts['sort']) {
+					case 'upcoming':
+						return $event_start_day > $today;
+					case 'current':
+						return $event_start_day <= $today && $event_end_day >= $today;
+					case 'past':
+						return $event_end_day < $today;
+				}
+
+				return false;
+			});
+
+			if ($atts['sort'] === 'upcoming') {
+				usort($events, function ($a, $b) {
+					$a_type = $a['event_type'] ?? 'event';
+					$b_type = $b['event_type'] ?? 'event';
+					$a_start = $a_type === 'group_event' ? ($a['formatted_start_date'] ?? '') : ($a['start_date'] ?? '');
+					$b_start = $b_type === 'group_event' ? ($b['formatted_start_date'] ?? '') : ($b['start_date'] ?? '');
+					$a_time = !empty($a_start) ? strtotime($a_start) : PHP_INT_MAX;
+					$b_time = !empty($b_start) ? strtotime($b_start) : PHP_INT_MAX;
+
+					return $a_time - $b_time;
+				});
+			} elseif ($atts['sort'] === 'past') {
+				usort($events, function ($a, $b) {
+					$a_type = $a['event_type'] ?? 'event';
+					$b_type = $b['event_type'] ?? 'event';
+					$a_end = $a_type === 'group_event'
+						? ($a['formatted_end_date'] ?? $a['formatted_start_date'] ?? '')
+						: ($a['end_date'] ?? $a['start_date'] ?? '');
+					$b_end = $b_type === 'group_event'
+						? ($b['formatted_end_date'] ?? $b['formatted_start_date'] ?? '')
+						: ($b['end_date'] ?? $b['start_date'] ?? '');
+					$a_time = !empty($a_end) ? strtotime($a_end) : 0;
+					$b_time = !empty($b_end) ? strtotime($b_end) : 0;
+
+					return $b_time - $a_time;
+				});
+			}
+		}
+
+		if ($atts['limit'] > 0) {
+			$events = array_slice($events, 0, (int) $atts['limit']);
+		}
+
+		$events = array_values($events);
+		$template_override_hook = 'seamless_events_shortcode_' . $view . '_template_override';
+
+		if (has_action($template_override_hook)) {
+			ob_start();
+			do_action($template_override_hook, $events, $atts);
+			return ob_get_clean();
+		}
+
+		$template_file = 'tpl-events-shortcode-' . $view . '.php';
+		$template_path = $this->seamless_get_template($template_file);
+
+		if (!file_exists($template_path)) {
+			return '<p class="seamless-error">Template file not found: ' . esc_html($template_file) . '</p>';
+		}
+
+		ob_start();
+		include $template_path;
+		return ob_get_clean();
+	}
+
+	public function shortcode_user_dashboard($atts = []): string
+	{
+		if (!is_user_logged_in()) {
+			return do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn"]');
+		}
+
+		$uid = get_current_user_id();
+		$access_token = get_user_meta($uid, 'seamless_access_token', true);
+		if (empty($access_token) && method_exists($this->sso, 'seamless_refresh_token_if_needed')) {
+			$access_token = $this->sso->seamless_refresh_token_if_needed($uid) ?: '';
+		}
+
+		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
+		if (empty($client_domain)) {
+			return '<div class="seamless-user-dashboard-error">Client domain is not configured.</div>';
+		}
+
+		$headers = [
+			'headers' => [
+				'Accept' => 'application/json',
+			],
+			'timeout' => 20,
+			'sslverify' => false,
+		];
+		if (!empty($access_token)) {
+			$headers['headers']['Authorization'] = 'Bearer ' . $access_token;
+		}
+
+		$user = wp_get_current_user();
+		$email = $user && !empty($user->user_email) ? $user->user_email : '';
+		$profile = [
+			'name' => wp_get_current_user()->display_name,
+			'email' => wp_get_current_user()->user_email,
+		];
+		$current_memberships = [];
+		$membership_history = [];
+		$orders = [];
+
+		if (!empty($access_token)) {
+			$response = wp_remote_get($client_domain . '/api/user', $headers);
+			if (!is_wp_error($response)) {
+				$body = json_decode(wp_remote_retrieve_body($response), true);
+				if (is_array($body)) {
+					$profile = $body['data']['user'] ?? ($body['data'] ?? $body);
+				}
+			}
+
+			$memUrl = $client_domain . '/api/users/membership-plans' . ($email ? ('?email=' . rawurlencode($email)) : '');
+			$memRes = wp_remote_get($memUrl, $headers);
+			if (is_wp_error($memRes) && $email) {
+				$memUrlAlt = $client_domain . '/api/users/membership-plans?user_email=' . rawurlencode($email);
+				$memRes = wp_remote_get($memUrlAlt, $headers);
+			}
+			if (!is_wp_error($memRes)) {
+				$memBody = json_decode(wp_remote_retrieve_body($memRes), true);
+				$memData = is_array($memBody) ? ($memBody['data'] ?? $memBody) : [];
+				if (is_array($memData) && isset($memData[0]['user'])) {
+					foreach ($memData as $row) {
+						if (!empty($row['user']['email']) && $row['user']['email'] === $email) {
+							$memData = $row['memberships'] ?? [];
+							break;
+						}
+					}
+				}
+				if (isset($memData['current'])) {
+					$current_memberships = $memData['current'];
+					$membership_history = $memData['history'] ?? [];
+				} elseif (isset($memData['active_memberships'])) {
+					$current_memberships = $memData['active_memberships'] ?? [];
+					$membership_history = $memData['membership_history'] ?? [];
+				} elseif (is_array($memData)) {
+					foreach ($memData as $m) {
+						if (!empty($m['status']) && $m['status'] === 'active') {
+							$current_memberships[] = $m;
+						} else {
+							$membership_history[] = $m;
+						}
+					}
+				}
+			}
+
+			$orderUrl = $client_domain . '/api/users/order-history' . ($email ? ('?email=' . rawurlencode($email)) : '');
+			$ordRes = wp_remote_get($orderUrl, $headers);
+			if (is_wp_error($ordRes) && $email) {
+				$orderUrlAlt = $client_domain . '/api/users/order-history?user_email=' . rawurlencode($email);
+				$ordRes = wp_remote_get($orderUrlAlt, $headers);
+			}
+			if (!is_wp_error($ordRes)) {
+				$ordBody = json_decode(wp_remote_retrieve_body($ordRes), true);
+				$ordersData = is_array($ordBody) ? ($ordBody['data'] ?? $ordBody) : [];
+				if (isset($ordersData[0]['user'])) {
+					foreach ($ordersData as $row) {
+						if (!empty($row['user']['email']) && $row['user']['email'] === $email) {
+							$orders = $row['orders'] ?? [];
+							break;
+						}
+					}
+				} else {
+					$orders = $ordersData;
+				}
+			}
+		}
+
+		$active_filtered = [];
+		$history_combined = is_array($membership_history) ? $membership_history : [];
+		$now = time();
+		foreach ((array) $current_memberships as $m) {
+			$status = $m['status'] ?? '';
+			$expiry = $m['expiry_date'] ?? ($m['expires_at'] ?? null);
+			$is_expired = false;
+			if (!empty($expiry)) {
+				$ts = strtotime((string) $expiry);
+				if ($ts !== false && $ts < $now) {
+					$is_expired = true;
+				}
+			}
+			if (strtolower((string) $status) === 'active' && !$is_expired) {
+				$active_filtered[] = $m;
+			} else {
+				$history_combined[] = $m;
+			}
+		}
+
+		ob_start();
+		$__seamless_client_domain = $client_domain;
+		$__seamless_profile = $profile;
+		$__seamless_current_memberships = $active_filtered;
+		$__seamless_membership_history = $history_combined;
+		$__seamless_orders = $orders;
+		include $this->seamless_get_template('tpl-user-dashboard.php');
+		return ob_get_clean();
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────────
@@ -972,6 +1305,149 @@ class SeamlessRender
 		$html = ob_get_clean();
 
 		wp_send_json_success(['html' => $html]);
+	}
+
+	public function ajax_get_dashboard_organization()
+	{
+		check_ajax_referer('seamless_nonce', 'nonce');
+
+		if (!is_user_logged_in()) {
+			wp_send_json_error(['message' => 'User not logged in']);
+		}
+
+		$user = wp_get_current_user();
+		$email = $user->user_email;
+
+		$user_profile = new \Seamless\Operations\UserProfile();
+		$orgResult = $user_profile->get_user_organization($email);
+
+		$organization = [];
+		$group_memberships = [];
+		$my_memberships = [];
+
+		if ($orgResult['success'] && !empty($orgResult['data'])) {
+			$organization = $orgResult['data']['organization'] ?? [];
+			$group_memberships = $orgResult['data']['group_memberships'] ?? [];
+			$my_memberships = $orgResult['data']['my_memberships'] ?? [];
+		}
+
+		ob_start();
+		include $this->seamless_get_template('tpl-dashboard-organization.php');
+		$html = ob_get_clean();
+
+		wp_send_json_success(['html' => $html]);
+	}
+
+	public function ajax_resend_group_invite()
+	{
+		check_ajax_referer('seamless_resend_invite', 'nonce');
+
+		if (!is_user_logged_in()) {
+			wp_send_json_error(['message' => 'User not logged in']);
+		}
+
+		$membership_id = sanitize_text_field($_POST['membership_id'] ?? '');
+		$member_id = sanitize_text_field($_POST['member_id'] ?? '');
+
+		if (empty($membership_id) || empty($member_id)) {
+			wp_send_json_error(['message' => 'Missing membership or member ID']);
+		}
+
+		$user_profile = new \Seamless\Operations\UserProfile();
+		$result = $user_profile->resend_group_invite($membership_id, $member_id);
+
+		if ($result['success']) {
+			wp_send_json_success(['message' => $result['message'], 'data' => $result['data']]);
+		} else {
+			wp_send_json_error(['message' => $result['message']]);
+		}
+	}
+
+	public function ajax_add_group_members()
+	{
+		check_ajax_referer('seamless_add_group_members', 'nonce');
+
+		if (!is_user_logged_in()) {
+			wp_send_json_error(['message' => 'User not logged in']);
+		}
+
+		$membership_id = sanitize_text_field($_POST['membership_id'] ?? '');
+		$members_json = stripslashes($_POST['members'] ?? '[]');
+		$members = json_decode($members_json, true);
+
+		if (empty($membership_id) || !is_array($members) || empty($members)) {
+			wp_send_json_error(['message' => 'Missing data or invalid members format']);
+		}
+
+		$sanitized_members = [];
+		foreach ($members as $member) {
+			$sanitized_members[] = [
+				'email' => sanitize_email($member['email'] ?? ''),
+				'first_name' => sanitize_text_field($member['first_name'] ?? ''),
+				'last_name' => sanitize_text_field($member['last_name'] ?? ''),
+				'role' => sanitize_text_field($member['role'] ?? 'member'),
+			];
+		}
+
+		$user_profile = new \Seamless\Operations\UserProfile();
+		$result = $user_profile->add_group_members($membership_id, $sanitized_members);
+
+		if ($result['success']) {
+			wp_send_json_success(['message' => $result['message'], 'data' => $result['data']]);
+		} else {
+			wp_send_json_error(['message' => $result['message']]);
+		}
+	}
+
+	public function ajax_remove_group_member()
+	{
+		check_ajax_referer('seamless_remove_group_member', 'nonce');
+
+		if (!is_user_logged_in()) {
+			wp_send_json_error(['message' => 'User not logged in']);
+		}
+
+		$membership_id = sanitize_text_field($_POST['membership_id'] ?? '');
+		$member_id = sanitize_text_field($_POST['member_id'] ?? '');
+
+		if (empty($membership_id) || empty($member_id)) {
+			wp_send_json_error(['message' => 'Missing membership or member ID']);
+		}
+
+		$user_profile = new \Seamless\Operations\UserProfile();
+		$result = $user_profile->remove_group_member($membership_id, $member_id);
+
+		if ($result['success']) {
+			wp_send_json_success(['message' => $result['message'], 'data' => $result['data']]);
+		} else {
+			wp_send_json_error(['message' => $result['message']]);
+		}
+	}
+
+	public function ajax_change_member_role()
+	{
+		check_ajax_referer('seamless_change_member_role', 'nonce');
+
+		if (!is_user_logged_in()) {
+			wp_send_json_error(['message' => 'User not logged in']);
+		}
+
+		$membership_id = sanitize_text_field($_POST['membership_id'] ?? '');
+		$member_id = sanitize_text_field($_POST['member_id'] ?? '');
+		$role = sanitize_text_field($_POST['role'] ?? '');
+
+		if (empty($membership_id) || empty($member_id) || empty($role)) {
+			wp_send_json_error(['message' => 'Missing required fields']);
+		}
+
+		$user_profile = new \Seamless\Operations\UserProfile();
+		$result = $user_profile->change_member_role($membership_id, $member_id, $role);
+
+		if ($result['success']) {
+			wp_send_json_success(['message' => $result['message']]);
+		} else {
+			wp_send_json_error(['message' => $result['message']]);
+		}
 	}
 
 	/**

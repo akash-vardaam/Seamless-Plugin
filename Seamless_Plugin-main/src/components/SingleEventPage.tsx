@@ -399,7 +399,7 @@ export const SingleEventPage: React.FC = () => {
                                         </p>
                                     )}
                                     {(event?.venue?.address_line_1 || event?.venue?.city) && (
-                                        <div className="seamless-detail-subvalue" style={{ lineHeight: '1.4', marginTop: '4px', display: 'flex', flexDirection: 'column' }}>
+                                        <div className="seamless-detail-subvalue" style={{ lineHeight: 'var(--seamless-line-height-1-4)', marginTop: '4px', display: 'flex', flexDirection: 'column' }}>
                                             <span>{event?.venue.address_line_1 ? `${event?.venue.address_line_1} ${event?.venue.name || ''},` : ''}</span>
                                             <span>{event?.venue.city ? `(${event?.venue.city}, ${event?.venue.state})` : ''}</span>
                                         </div>

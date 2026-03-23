@@ -1,4 +1,4 @@
-﻿/* Single Event Page Container */
+/* Single Event Page Container */
 :host .seamless-single-event-container {
     margin: 0 auto !important;
     padding: 20px !important;
@@ -8,7 +8,7 @@
 
 /* Breadcrumbs */
 :host .seamless-breadcrumbs {
-    font-size: 0.9rem !important;
+    font-size: var(--seamless-font-size-0-9) !important;
     color: var(--seamless-color-gray-600) !important;
     margin-bottom: 20px !important;
 }
@@ -76,28 +76,28 @@
 }
 
 :host .seamless-event-title {
-    font-size: 32px !important;
+    font-size: var(--seamless-font-size-32) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-primary) !important;
     margin: 0 0 10px 0 !important;
 }
 
 :host .seamless-event-description {
-    line-height: 1.6 !important;
+    line-height: var(--seamless-line-height-1-6) !important;
     margin-bottom: 30px !important;
 }
 
 :host .seamless-event-description h3 {
     font-family: var(--seamless-font-family-default) !important;
-    font-size: 26px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-26) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     color: var(--seamless-color-primary) !important;
 }
 
 :host p {
     font-family: var(--seamless-font-family-default) !important;
-    font-size: 16px !important;
-    line-height: 1.8 !important;
+    font-size: var(--seamless-font-size-16) !important;
+    line-height: var(--seamless-line-height-1-8) !important;
     color: var(--seamless-color-font) !important;
     margin-bottom: 15px !important;
 }
@@ -123,7 +123,7 @@
     color: var(--seamless-color-white) !important;
     text-transform: uppercase !important;
     font-weight: 700 !important;
-    font-size: 16px !important;
+    font-size: var(--seamless-font-size-16) !important;
     padding: 15px 20px !important;
     text-align: left !important;
     border: none !important;
@@ -138,7 +138,7 @@
     vertical-align: top !important;
     border: none !important;
     color: var(--seamless-color-gray-700) !important;
-    line-height: 1.6 !important;
+    line-height: var(--seamless-line-height-1-6) !important;
 }
 
 /* Sidebar */
@@ -175,11 +175,11 @@
     padding: 12px 20px !important;
     color: var(--seamless-color-gray-700) !important;
     text-decoration: none !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-tickets-box .seamless-tickets-title {
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 400 !important;
     color: var(--seamless-color-primary) !important;
     margin: 0 0 10px 0 !important;

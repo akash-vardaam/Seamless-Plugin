@@ -26,12 +26,12 @@
 }
 
 :host .seamless-user-dashboard-profile-name {
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 600 !important;
 }
 
 :host .seamless-user-dashboard-profile-email {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
 }
 
 /* Navigation */
@@ -58,8 +58,8 @@
     border-radius: 12px !important;
     border-left: 3px solid transparent !important;
     cursor: pointer !important;
-    font-size: 15px !important;
-    line-height: 1.8 !important;
+    font-size: var(--seamless-font-size-15) !important;
+    line-height: var(--seamless-line-height-1-8) !important;
     font-weight: 400 !important;
     transition: all 0.2s ease !important;
     text-decoration: none !important;
@@ -110,7 +110,7 @@
 
 :host .seamless-user-dashboard-view .seamless-user-dashboard-view-title {
     margin: 0 0 20px 0 !important;
-    font-size: 21px !important;
+    font-size: var(--seamless-font-size-21) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
@@ -133,7 +133,7 @@
     border: none !important;
     padding: 8px 18px !important;
     border-radius: 6px !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 500 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
@@ -153,15 +153,15 @@
 }
 
 :host .seamless-user-dashboard-summary-card .seamless-user-dashboard-summary-value {
-    font-size: 42px !important;
+    font-size: var(--seamless-font-size-42) !important;
     font-weight: 700 !important;
     color: #1a1a1a !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
     margin-bottom: 8px !important;
 }
 
 :host .seamless-user-dashboard-summary-card .seamless-user-dashboard-summary-label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #6b7280 !important;
     font-weight: 500 !important;
 }
@@ -198,8 +198,8 @@
 
 :host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-current-membership-header h3 {
     margin: 0 !important;
-    font-size: 21px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-21) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     font-weight: 700 !important;
     color: #ffffff !important;
 }
@@ -217,16 +217,16 @@
     font-weight: 600 !important;
     text-transform: capitalize !important;
     letter-spacing: 0.5px !important;
-    font-size: 12px !important;
-    line-height: 15px !important;
+    font-size: var(--seamless-font-size-12) !important;
+    line-height: var(--seamless-line-height-15) !important;
 }
 
 /* Upgraded Card - Premium Gold Design */
 
 :host .upgraded .seamless-user-dashboard-current-membership-header h3 {
     color: #1a1a1a !important;
-    font-size: 24px !important;
-    line-height: 36px !important;
+    font-size: var(--seamless-font-size-24) !important;
+    line-height: var(--seamless-line-height-36) !important;
     font-weight: 800 !important;
     letter-spacing: 0.5px !important;
 }
@@ -250,7 +250,7 @@
 }
 
 :host .seamless-upgraded-badge .seamless-badge-text {
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 700 !important;
     color: #c5a028 !important;
     text-transform: uppercase !important;
@@ -258,7 +258,7 @@
     display: inline-block !important;
     position: relative !important;
     z-index: 2 !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 /* Sparkle Animation */
@@ -331,8 +331,8 @@
     font-weight: 600 !important;
     text-transform: capitalize !important;
     letter-spacing: 0.5px !important;
-    font-size: 12px !important;
-    line-height: 1 !important;
+    font-size: var(--seamless-font-size-12) !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 :host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-body {
@@ -344,7 +344,7 @@
 }
 
 :host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: rgba(255, 255, 255, 0.9) !important;
     font-weight: 500 !important;
 }
@@ -356,7 +356,7 @@
 :host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry strong {
     color: #ffffff !important;
     font-weight: 700 !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
 }
 
 :host .seamless-user-dashboard-current-membership-card.upgraded .seamless-user-dashboard-current-membership-expiry span {
@@ -384,7 +384,7 @@
 
 :host .seamless-user-dashboard-empty-membership .seamless-user-dashboard-summary-message strong {
     display: block !important;
-    font-size: 16px !important;
+    font-size: var(--seamless-font-size-16) !important;
     color: #4a5568 !important;
     margin-bottom: 4px !important;
     font-weight: 600 !important;
@@ -392,7 +392,7 @@
 
 :host .seamless-user-dashboard-empty-membership .seamless-user-dashboard-summary-message p {
     margin: 0 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #718096 !important;
 }
 
@@ -423,7 +423,7 @@
     border: none !important;
     border-bottom: 2px solid transparent !important;
     cursor: pointer !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     font-weight: 500 !important;
     color: #6b7280 !important;
     transition: all 0.2s ease !important;
@@ -449,7 +449,7 @@
     background: #e5e7eb !important;
     color: #374151 !important;
     border-radius: 10px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
 }
 
@@ -509,7 +509,7 @@
     width: auto !important;
     flex: 1 !important;
     margin: 0 !important;
-    font-size: 21px !important;
+    font-size: var(--seamless-font-size-21) !important;
     font-weight: 700 !important;
     color: #1a1a1a !important;
 }
@@ -521,17 +521,17 @@
     font-weight: 600 !important;
     text-transform: capitalize !important;
     letter-spacing: 0.5px !important;
-    font-size: 12px !important;
-    line-height: 15px !important;
+    font-size: var(--seamless-font-size-12) !important;
+    line-height: var(--seamless-line-height-15) !important;
 }
 
 :host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-title {
     width: 93% !important;
     margin: 0 !important;
-    font-size: 21px !important;
+    font-size: var(--seamless-font-size-21) !important;
     font-weight: 700 !important;
     color: #1a1a1a !important;
-    line-height: 30px !important;
+    line-height: var(--seamless-line-height-30) !important;
 }
 
 :host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-actions {
@@ -553,7 +553,7 @@
 }
 
 :host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #4a5568 !important;
     display: flex !important;
     gap: 8px !important;
@@ -569,18 +569,18 @@
 }
 
 :host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta span {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge {
     padding: 3px 12px !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     text-transform: capitalize !important;
     letter-spacing: 0.5px !important;
     border: none !important;
-    line-height: 20px !important;
+    line-height: var(--seamless-line-height-20) !important;
 }
 
 :host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-active {
@@ -674,7 +674,7 @@
     padding: 10px 14px !important;
     background: none !important;
     border: none !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 500 !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
@@ -724,8 +724,8 @@
     gap: 10px !important;
     border-radius: 8px !important;
     color: #fff !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-14) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-membership-cancelled-notice svg {
@@ -743,8 +743,8 @@
     display: flex !important;
     align-items: flex-start !important;
     gap: 10px !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-14) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-membership-scheduled-notice svg {
@@ -760,7 +760,7 @@
     border-radius: 12px !important;
     cursor: pointer !important;
     border: none !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     padding: 6px 14px !important;
 }
 
@@ -779,7 +779,7 @@
 }
 
 :host .seamless-user-dashboard-scheduled-date {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     opacity: 0.9 !important;
 }
 
@@ -794,7 +794,7 @@
     color: white !important;
     border: none !important;
     border-radius: 6px !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 500 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
@@ -816,8 +816,8 @@
     padding: 4px 12px !important;
     border: 1px solid #cbd5e0 !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
-    line-height: 20px !important;
+    font-size: var(--seamless-font-size-12) !important;
+    line-height: var(--seamless-line-height-20) !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
@@ -861,7 +861,7 @@
     color: #1a1a1a !important;
     border: none !important;
     padding: 8px 16px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     text-decoration: none !important;
     border-radius: 8px !important;
 }
@@ -891,7 +891,7 @@
 }
 
 :host .seamless-user-dashboard-section .seamless-user-dashboard-section-title {
-    font-size: 21px !important;
+    font-size: var(--seamless-font-size-21) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
     margin: 0px 0px 20px 0px !important;
@@ -949,10 +949,10 @@
 
 :host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-content .seamless-user-dashboard-course-title {
     margin: 0 0 10px 0 !important;
-    font-size: 16px !important;
+    font-size: var(--seamless-font-size-16) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
-    line-height: 1.4 !important;
+    line-height: var(--seamless-line-height-1-4) !important;
 }
 
 /* Course Progress Section */
@@ -964,13 +964,13 @@
 }
 
 :host .seamless-user-dashboard-progress-label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
 
 :host .seamless-user-dashboard-progress-text {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #6b7280 !important;
     font-weight: 500 !important;
 }
@@ -1006,7 +1006,7 @@
     position: relative !important;
     overflow: hidden !important;
     min-height: 130px !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-current-course-card::before {
@@ -1030,16 +1030,16 @@
 
 :host .seamless-user-dashboard-current-course-header h3 {
     margin: 0 !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 700 !important;
     color: #ffffff !important;
-    line-height: 1.3 !important;
+    line-height: var(--seamless-line-height-1-3) !important;
 }
 
 :host .seamless-user-dashboard-course-status {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #fff !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 :host .seamless-user-dashboard-current-course-header a.seamless-user-dashboard-course-continue-btn {
@@ -1052,8 +1052,8 @@
     color: #fff !important;
     border: 1px solid rgba(154, 154, 154, 0.3) !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-12) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     font-weight: 600 !important;
     text-decoration: none !important;
     transition: all 0.2s ease !important;
@@ -1098,7 +1098,7 @@
 :host .seamless-user-dashboard-empty-course-content {
     text-align: center !important;
     color: #9ca3af !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 :host .seamless-user-dashboard-empty-course-content svg {
@@ -1110,7 +1110,7 @@
 
 :host .seamless-user-dashboard-empty-course-content p {
     margin: 0 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     color: #6b7280 !important;
 }
@@ -1127,7 +1127,7 @@
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     color: #6b7280 !important;
     font-weight: 500 !important;
 }
@@ -1155,27 +1155,27 @@
 }
 
 :host .seamless-user-dashboard-renew-header .seamless-user-dashboard-renew-plan-name {
-    font-size: 16px !important;
-    line-height: 30px !important;
+    font-size: var(--seamless-font-size-16) !important;
+    line-height: var(--seamless-line-height-30) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
     margin: 0 !important;
 }
 
 :host .seamless-user-dashboard-renew-plan-price {
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 700 !important;
     color: #667eea !important;
 }
 
 :host .seamless-user-dashboard-renew-plan-price .plan-period {
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 500 !important;
 }
 
 :host span.seamless-user-dashboard-renew-total {
     color: #059669 !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 700 !important;
 }
 
@@ -1213,7 +1213,7 @@
     border: 1px solid #e5e7eb !important;
     padding: 6px 12px !important;
     border-radius: 6px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     white-space: normal !important;
     opacity: 0 !important;
     pointer-events: none !important;
@@ -1250,7 +1250,7 @@
     background: none !important;
     border: none !important;
     color: #155dfc !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     text-decoration: none !important;
     cursor: pointer !important;
@@ -1266,7 +1266,7 @@
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     color: #059669 !important;
     text-decoration: none !important;
@@ -1289,7 +1289,7 @@
     padding: 40px 20px !important;
     text-align: center !important;
     color: #6b7280 !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     background: #f9fafb !important;
     border-radius: 8px !important;
     border: 1px solid #e5e7eb !important;
@@ -1319,7 +1319,7 @@
     align-content: center !important;
     text-align: left !important;
     font-weight: 600 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #374151 !important;
 }
 
@@ -1339,7 +1339,7 @@
 :host .seamless-user-dashboard-orders-container table.seamless-user-dashboard-order-table td {
     border: none !important;
     padding: 16px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #1a1a1a !important;
     vertical-align: middle !important;
 }
@@ -1383,14 +1383,14 @@
 }
 
 :host .seamless-user-dashboard-col-items .seamless-user-dashboard-count-badge {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
 }
 
 :host .seamless-user-dashboard-col-status .seamless-user-dashboard-chip {
     display: inline-block !important;
     padding: 4px 12px !important;
     border-radius: 12px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     text-transform: capitalize !important;
 }
@@ -1426,7 +1426,7 @@
 }
 
 :host .seamless-user-dashboard-col-total .seamless-user-dashboard-refunded {
-    font-size: 11px !important;
+    font-size: var(--seamless-font-size-11) !important;
     color: #dc2626 !important;
 }
 
@@ -1464,7 +1464,7 @@
     border: 1px solid #d1d5db !important;
     border-radius: 8px !important;
     cursor: pointer !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     color: #374151 !important;
     transition: all 0.2s ease !important;
@@ -1482,7 +1482,7 @@
 }
 
 :host .seamless-user-dashboard-pagination .seamless-user-dashboard-pagination-info {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #6b7280 !important;
 }
 
@@ -1517,7 +1517,7 @@
 
 :host .seamless-user-dashboard-profile-header .seamless-user-dashboard-section-title {
     margin: 0 !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
@@ -1529,7 +1529,7 @@
     border: 1px solid var(--seamless-color-primary) !important;
     padding: 8px 20px !important;
     border-radius: 12px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     letter-spacing: 0.5px !important;
     cursor: pointer !important;
@@ -1565,14 +1565,14 @@
 }
 
 :host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-field label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 500 !important;
     color: #6b7280 !important;
 }
 
 :host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-field .seamless-user-dashboard-profile-value,
 :host .seamless-user-dashboard-profile-edit-mode .seamless-user-dashboard-profile-field .seamless-user-dashboard-profile-value {
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     color: #1a1a1a !important;
 }
 
@@ -1587,7 +1587,7 @@
 :host .seamless-user-dashboard-profile-edit-mode .seamless-user-dashboard-subsection-title {
     margin: 0 !important;
     padding-bottom: 10px !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
@@ -1599,7 +1599,7 @@
 }
 
 :host .seamless-user-dashboard-form-group label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 500 !important;
     color: #374151 !important;
 }
@@ -1613,7 +1613,7 @@
     padding: 10px 14px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 6px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #1a1a1a !important;
     transition: all 0.2s ease !important;
 }
@@ -1643,7 +1643,7 @@
     border: 1px solid #d1d5db !important;
     padding: 10px 24px !important;
     border-radius: 12px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
@@ -1664,7 +1664,7 @@
     border: 1px solid #ef4444 !important;
     padding: 10px 24px !important;
     border-radius: 12px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
@@ -1685,8 +1685,8 @@
     border: 1px solid !important;
     padding: 10px 24px !important;
     border-radius: 12px !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-14) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
@@ -1704,7 +1704,7 @@
 :host .seamless-user-dashboard-form-message {
     padding: 12px 16px !important;
     border-radius: 6px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     margin-bottom: 16px !important;
     display: none !important;
 }
@@ -1752,8 +1752,8 @@
 
 :host .seamless-user-dashboard-modal-header h3 {
     margin: 0 !important;
-    font-size: 20px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-20) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
@@ -1761,7 +1761,7 @@
 :host .seamless-user-dashboard-modal-close {
     background: none !important;
     border: none !important;
-    font-size: 28px !important;
+    font-size: var(--seamless-font-size-28) !important;
     color: #9ca3af !important;
     cursor: pointer !important;
     padding: 0 !important;
@@ -1793,7 +1793,7 @@
 }
 
 :host .seamless-user-dashboard-form-group label {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     color: #374151 !important;
 }
@@ -1808,7 +1808,7 @@
     padding: 10px 14px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 6px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #1a1a1a !important;
     transition: border-color 0.2s ease !important;
 }
@@ -1824,7 +1824,7 @@
     display: none !important;
     padding: 12px 16px !important;
     border-radius: 6px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     margin-top: 10px !important;
 }
 
@@ -1999,7 +1999,7 @@
     }
 
     :host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge {
-        font-size: 10px !important;
+        font-size: var(--seamless-font-size-10) !important;
     }
 
     :host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-actions {
@@ -2013,16 +2013,16 @@
 
     :host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-title {
         width: 70% !important;
-        font-size: 20px !important;
+        font-size: var(--seamless-font-size-20) !important;
     }
 
     :host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta {
-        font-size: 13px !important;
-        line-height: 1.8 !important;
+        font-size: var(--seamless-font-size-13) !important;
+        line-height: var(--seamless-line-height-1-8) !important;
     }
 
     :host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta span {
-        font-size: 13px !important;
+        font-size: var(--seamless-font-size-13) !important;
     }
 
     :host .upgraded .seamless-user-dashboard-badge {
@@ -2031,7 +2031,7 @@
     }
 
     :host .upgraded .seamless-user-dashboard-current-membership-header h3 {
-        font-size: 21px !important;
+        font-size: var(--seamless-font-size-21) !important;
         width: 70% !important;
     }
 
@@ -2040,12 +2040,12 @@
     }
 
     :host .seamless-upgraded-badge .seamless-badge-text {
-        font-size: 10px !important;
+        font-size: var(--seamless-font-size-10) !important;
     }
 
     :host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry,
     :host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry strong {
-        font-size: 12px !important;
+        font-size: var(--seamless-font-size-12) !important;
     }
 }
 
@@ -2071,11 +2071,11 @@
 :host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-cancel {
     cursor: pointer !important;
     border: none !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     padding: 6px 14px !important;
     border-radius: 12px !important;
-    line-height: 1.8 !important;
+    line-height: var(--seamless-line-height-1-8) !important;
     transition: all 0.2s ease !important;
 }
 
@@ -2164,7 +2164,7 @@
 
 :host .seamless-user-dashboard-modal-title {
     margin: 0 !important;
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
@@ -2172,7 +2172,7 @@
 :host .seamless-user-dashboard-modal-close {
     background: none !important;
     border: none !important;
-    font-size: 32px !important;
+    font-size: var(--seamless-font-size-32) !important;
     color: #9ca3af !important;
     cursor: pointer !important;
     width: 36px !important;
@@ -2183,7 +2183,7 @@
     border-radius: 6px !important;
     transition: all 0.2s ease !important;
     padding: 0 !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 :host .seamless-user-dashboard-modal-body {
@@ -2204,8 +2204,8 @@
 }
 
 :host .seamless-user-dashboard-modal-header button.seamless-user-dashboard-modal-close {
-    font-size: 18px !important;
-    line-height: 1 !important;
+    font-size: var(--seamless-font-size-18) !important;
+    line-height: var(--seamless-line-height-1) !important;
     padding: 5px 20px !important;
     border-radius: 12px !important;
     border: 1px solid var(--seamless-color-primary) !important;
@@ -2221,10 +2221,10 @@
 :host .seamless-user-dashboard-modal-left h3,
 :host .seamless-user-dashboard-modal-right h3 {
     margin: 0 0 20px 0 !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
-    line-height: 30px !important;
+    line-height: var(--seamless-line-height-30) !important;
 }
 
 :host .seamless-user-dashboard-plans-list {
@@ -2261,29 +2261,29 @@
 }
 
 :host .seamless-user-dashboard-plan-card-header .seamless-user-dashboard-plan-card-name {
-    font-size: 16px !important;
+    font-size: var(--seamless-font-size-16) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
     margin: 0 !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-plan-card-price {
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 700 !important;
     color: #667eea !important;
 }
 
 :host .seamless-user-dashboard-plan-card-price .plan-period {
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 500 !important;
 }
 
 :host .seamless-user-dashboard-plan-card-description {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #6b7280 !important;
     margin: 0 !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 /* Proration Breakdown */
@@ -2296,8 +2296,8 @@
 
 :host .seamless-user-dashboard-proration h4 {
     margin: 0 0 16px 0 !important;
-    font-size: 16px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-16) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
@@ -2307,7 +2307,7 @@
     justify-content: space-between !important;
     align-items: center !important;
     padding: 12px 0 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #374151 !important;
 }
 
@@ -2319,19 +2319,19 @@
     padding-top: 16px !important;
     border-top: 1px solid #e5e7eb !important;
     font-weight: 600 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-user-dashboard-proration-amount {
     color: #059669 !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 700 !important;
 }
 
 :host .seamless-user-dashboard-proration-note {
     margin: 20px 0 0 0 !important;
-    font-size: 12px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-12) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     color: #6b7280 !important;
     font-style: italic !important;
 }
@@ -2365,7 +2365,7 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 700 !important;
 }
 
@@ -2384,14 +2384,14 @@
 }
 
 :host .seamless-user-dashboard-perk-label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
     color: #374151 !important;
     margin: 0 0 4px 0 !important;
 }
 
 :host .seamless-user-dashboard-perk-value {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #6b7280 !important;
     margin: 0 !important;
 }
@@ -2463,11 +2463,11 @@
 }
 
 :host .seamless-user-dashboard-perk-value {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 400 !important;
     color: #374151 !important;
     margin: 0 !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-perk-item.excluded .seamless-user-dashboard-perk-value {
@@ -2531,9 +2531,9 @@
 
 :host .seamless-user-dashboard-info-message p {
     margin: 0 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #1447e6 !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-modal-actions {
@@ -2545,7 +2545,7 @@
 
 @media (max-width: 768px) {
     :host .seamless-user-dashboard-modal-note {
-        font-size: 12px !important;
+        font-size: var(--seamless-font-size-12) !important;
     }
 
     :host .seamless-user-dashboard-modal-actions {
@@ -2620,7 +2620,7 @@
 
 :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-header h2 {
     margin: 0 !important;
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     font-weight: 600 !important;
     color: #1a1a1a !important;
 }
@@ -2628,7 +2628,7 @@
 :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-close {
     background: none !important;
     border: none !important;
-    font-size: 32px !important;
+    font-size: var(--seamless-font-size-32) !important;
     color: #9ca3af !important;
     cursor: pointer !important;
     width: 36px !important;
@@ -2639,7 +2639,7 @@
     border-radius: 6px !important;
     transition: all 0.2s ease !important;
     padding: 0 !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-close:hover {
@@ -2658,8 +2658,8 @@
 }
 
 :host .seamless-user-dashboard-cancel-question {
-    font-size: 16px !important;
-    line-height: 1.6 !important;
+    font-size: var(--seamless-font-size-16) !important;
+    line-height: var(--seamless-line-height-1-6) !important;
     color: #374151 !important;
     margin-bottom: 24px !important;
 }
@@ -2675,7 +2675,7 @@
 
 :host .seamless-user-dashboard-cancel-refund strong {
     color: #047857 !important;
-    font-size: 16px !important;
+    font-size: var(--seamless-font-size-16) !important;
 }
 
 /* Period End Cancellation */
@@ -2698,8 +2698,8 @@
 
 :host .seamless-user-dashboard-cancel-no-refund p {
     margin: 0 !important;
-    font-size: 14px !important;
-    line-height: 1.6 !important;
+    font-size: var(--seamless-font-size-14) !important;
+    line-height: var(--seamless-line-height-1-6) !important;
     color: #991b1b !important;
     font-weight: 500 !important;
 }
@@ -2725,8 +2725,8 @@
 
 :host .seamless-user-dashboard-cancel-policy h4 {
     margin: 0 0 8px 0 !important;
-    font-size: 15px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-15) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     font-weight: 600 !important;
     color: #193cb8 !important;
 }
@@ -2734,8 +2734,8 @@
 :host .seamless-user-dashboard-cancel-period-end p,
 :host .seamless-user-dashboard-cancel-policy p {
     margin: 0 !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-14) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     color: #1447e6 !important;
 }
 
@@ -2762,9 +2762,9 @@
 }
 
 :host .seamless-user-dashboard-cancel-warning span {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #991b1b !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-footer {
@@ -2806,8 +2806,8 @@
 }
 
 :host .seamless-user-dashboard-modal-warning p {
-    font-size: 16px !important;
-    line-height: 1.6 !important;
+    font-size: var(--seamless-font-size-16) !important;
+    line-height: var(--seamless-line-height-1-6) !important;
     color: #374151 !important;
     margin: 0 !important;
     max-width: 500px !important;
@@ -2820,7 +2820,7 @@
     border: 1px solid #d1d5db !important;
     padding: 12px 24px !important;
     border-radius: 8px !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
@@ -2857,7 +2857,7 @@
     }
 
     :host .seamless-user-dashboard-cancel-question {
-        font-size: 15px !important;
+        font-size: var(--seamless-font-size-15) !important;
     }
 
     :host .seamless-user-dashboard-cancel-warning {
@@ -2892,7 +2892,7 @@
 
 :host .seamless-user-dashboard-section-title {
     margin: 0 !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: bold !important;
 }
 
@@ -2923,7 +2923,7 @@
 
 :host .seamless-user-dashboard-label-text {
     color: #6b7280 !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     margin-bottom: 4px !important;
     display: block !important;
 }
@@ -2941,7 +2941,7 @@
 :host .seamless-user-dashboard-subtitle {
     margin-top: 30px !important;
     margin-bottom: 20px !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 600 !important;
     border-top: 1px solid #e5e7eb !important;
     padding-top: 20px !important;
@@ -2969,6 +2969,29 @@
     cursor: pointer !important;
     font-weight: bold !important;
     border: 1px solid var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-btn-renew {
+    background: var(--seamless-color-primary) !important;
+    color: #ffffff !important;
+    padding: 3px 20px !important;
+    font-weight: 500 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-user-dashboard-btn-renew.seamless-user-dashboard-btn-renew-disabled,
+:host .seamless-user-dashboard-btn-renew:disabled {
+    background: #e2e8f0 !important;
+    color: #64748b !important;
+    border-color: #cbd5e1 !important;
+    cursor: not-allowed !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
 }
 
 :host .seamless-user-dashboard-btn-primary:hover {
@@ -3012,7 +3035,7 @@
 
 :host .seamless-user-dashboard-card-title {
     margin: 0 !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: bold !important;
 }
 
@@ -3021,14 +3044,14 @@
     color: #065f46 !important;
     padding: 4px 10px !important;
     border-radius: 6px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: bold !important;
 }
 
 :host .seamless-user-dashboard-expiry-info {
     margin-top: 12px !important;
     color: #64748b !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-user-dashboard-expiry-info strong {
@@ -3051,14 +3074,14 @@
 
 :host .seamless-user-dashboard-course-title {
     margin: 0 0 10px 0 !important;
-    font-size: 16px !important;
+    font-size: var(--seamless-font-size-16) !important;
     font-weight: bold !important;
     color: #ffffff !important;
 }
 
 :host .seamless-user-dashboard-course-date {
     color: #64748b !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     margin-bottom: 16px !important;
 }
 
@@ -3083,7 +3106,7 @@
     display: flex !important;
     justify-content: space-between !important;
     margin-top: 8px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     color: #ffffff !important;
     font-weight: bold !important;
 }
@@ -3116,7 +3139,7 @@
 
 :host .seamless-user-dashboard-table th {
     padding: 16px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #6b7280 !important;
     font-weight: 600 !important;
 }
@@ -3149,7 +3172,7 @@
     color: #166534 !important;
     padding: 4px 8px !important;
     border-radius: 4px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: bold !important;
 }
 
@@ -3200,7 +3223,7 @@
 }
 
 :host .seamless-user-dashboard-empty-state .seamless-user-dashboard-empty-text {
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     color: #6b7280 !important;
 }
 
@@ -3237,7 +3260,7 @@
 :host .seamless-user-dashboard-table thead tr {
     border-bottom: 1px solid #f3f4f6 !important;
     background-color: #fff !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: var(--seamless-color-heading) !important;
     font-weight: 600 !important;
 }
@@ -3260,13 +3283,13 @@
 
 :host .seamless-user-dashboard-table td.customer-cell {
     color: var(--seamless-color-font) !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+    font-size: var(--seamless-font-size-14) !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-user-dashboard-table td {
     color: var(--seamless-color-font) !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-user-dashboard-table th.text-center,
@@ -3280,13 +3303,13 @@
     color: #059669 !important;
     padding: 6px 14px !important;
     border-radius: 6px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
 }
 
 :host .seamless-user-dashboard-table td.order-total-cell {
     color: #059669 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 700 !important;
 }
 
@@ -3326,7 +3349,7 @@
     border: none !important;
     color: #fff !important;
     cursor: pointer !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
 }
 
 :host .seamless-modal-overlay {
@@ -3365,14 +3388,14 @@
 
 :host .seamless-modal-header h3 {
     margin: 0 !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 600 !important;
 }
 
 :host .seamless-modal-close {
     background: transparent !important;
     border: none !important;
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     cursor: pointer !important;
     color: #666 !important;
 }
@@ -3443,27 +3466,27 @@
 
 :host .seamless-plan-card h4 {
     margin: 0 0 8px 0 !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 600 !important;
 }
 
 :host .seamless-plan-card-price {
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     font-weight: bold !important;
     color: var(--seamless-color-primary) !important;
     margin-bottom: 8px !important;
 }
 
 :host .seamless-plan-card-price span {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #666 !important;
     font-weight: normal !important;
 }
 
 :host .seamless-plan-card-desc {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: #666 !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-btn-upgrade,
@@ -3505,14 +3528,14 @@
 
 :host .seamless-cancel-modal-title {
     margin: 0 0 12px !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     text-align: center !important;
 }
 
 :host .seamless-cancel-modal-text {
     color: #666 !important;
     margin: 0 0 32px !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
     text-align: justify !important;
 }
 
@@ -3555,7 +3578,7 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: bold !important;
     margin-bottom: 12px !important;
 }
@@ -3583,7 +3606,7 @@
 
 :host .seamless-profile-header h3 {
     margin: 0 !important;
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-heading) !important;
 }
@@ -3607,7 +3630,7 @@
 
 :host .seamless-value-label {
     color: #64748b !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     display: block !important;
     margin-bottom: 4px !important;
 }
@@ -3618,7 +3641,7 @@
 
 :host .seamless-section-title {
     margin: 0 0 16px !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-heading) !important;
 }
@@ -3677,7 +3700,7 @@
 
 :host .seamless-member-title-row h3 {
     margin: 0 !important;
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     font-weight: 600 !important;
 }
 
@@ -3686,7 +3709,7 @@
     color: #059669 !important;
     padding: 4px 12px !important;
     border-radius: 20px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
 }
@@ -3696,7 +3719,7 @@
     color: #ef4444 !important;
     padding: 4px 12px !important;
     border-radius: 20px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
 }
@@ -3706,12 +3729,12 @@
     gap: 32px !important;
     flex-wrap: wrap !important;
     color: var(--seamless-color-font) !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-member-detail-label {
     display: block !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     color: #94a3b8 !important;
     text-transform: uppercase !important;
     margin-bottom: 4px !important;
@@ -3808,7 +3831,7 @@
     padding: 16px 24px !important;
     font-weight: 600 !important;
     color: var(--seamless-color-font) !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     text-transform: uppercase !important;
 }
 
@@ -3867,16 +3890,16 @@
 }
 
 :host .seamless-count-card-number {
-    font-size: 32px !important;
+    font-size: var(--seamless-font-size-32) !important;
     font-weight: 700 !important;
     color: var(--seamless-color-primary) !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
     margin: 0 0 12px 0 !important;
 }
 
 :host .seamless-count-card-label {
     color: #64748b !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     margin: 0 !important;
 }
@@ -3918,7 +3941,7 @@
 
 :host .seamless-blue-card-title {
     margin: 0 !important;
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     font-weight: 600 !important;
     letter-spacing: -0.5px !important;
     color: #ffffff !important;
@@ -3926,7 +3949,7 @@
 
 :host .seamless-blue-card-expiry {
     margin: 0 !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     color: #cbd5e1 !important;
 }
 
@@ -3941,7 +3964,7 @@
     color: #fff !important;
     padding: 6px 16px !important;
     border-radius: 20px !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
     text-transform: capitalize !important;
     backdrop-filter: blur(4px) !important;
@@ -3952,7 +3975,7 @@
 :host .seamless-tab-count {
     background: #f1f5f9 !important;
     color: #64748b !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
     padding: 2px 8px !important;
     border-radius: 12px !important;
@@ -3980,7 +4003,7 @@
 }
 
 :host .seamless-modal-title {
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-heading) !important;
     margin: 0 !important;
@@ -4005,7 +4028,7 @@
 }
 
 :host .seamless-modal-subheader {
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 500 !important;
     color: #334155 !important;
     margin: 0 0 16px 0 !important;
@@ -4051,9 +4074,9 @@
     background: #eef2ff !important;
     color: #3730a3 !important;
     border: 1px solid #c7d2fe !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
     border-radius: 12px !important;
 }
 
@@ -4104,7 +4127,7 @@
 }
 
 :host .seamless-plan-select-price span {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 400 !important;
     color: #64748b !important;
 }
@@ -4122,7 +4145,7 @@
     display: flex !important;
     justify-content: space-between !important;
     margin-bottom: 12px !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     color: var(--seamless-color-font) !important;
 }
 
@@ -4138,7 +4161,7 @@
 }
 
 :host .seamless-pricing-prorated-text {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #94a3b8 !important;
     font-style: italic !important;
     margin-top: 8px !important;
@@ -4160,7 +4183,7 @@
 :host .seamless-offerings-empty {
     color: #94a3b8 !important;
     font-style: italic !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
 }
 
 :host .seamless-offerings-list {
@@ -4173,7 +4196,7 @@
 :host .seamless-offerings-list li {
     padding: 12px 0 !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    font-size: 15px !important;
+    font-size: var(--seamless-font-size-15) !important;
     color: #334155 !important;
     text-align: left !important;
 }
@@ -4219,15 +4242,15 @@
 }
 
 :host .seamless-course-stat-number {
-    font-size: 32px !important;
+    font-size: var(--seamless-font-size-32) !important;
     font-weight: 700 !important;
     color: var(--seamless-color-primary) !important;
     margin-bottom: 8px !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 :host .seamless-course-stat-label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #64748b !important;
     font-weight: 500 !important;
 }
@@ -4242,7 +4265,7 @@
     align-items: center !important;
     justify-content: center !important;
     color: #64748b !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 500 !important;
     text-align: center !important;
 }
@@ -4295,18 +4318,18 @@
 }
 
 :host .seamless-course-card-title {
-    font-size: 17px !important;
+    font-size: var(--seamless-font-size-17) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-heading) !important;
     margin: 0 0 16px 0 !important;
-    line-height: 1.3 !important;
+    line-height: var(--seamless-line-height-1-3) !important;
 }
 
 :host .seamless-course-card-meta {
     display: flex !important;
     align-items: center !important;
     gap: 16px !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #64748b !important;
     margin-bottom: 24px !important;
 }
@@ -4319,7 +4342,7 @@
 
 :host .seamless-course-card-action {
     margin-top: auto !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
     color: #6366f1 !important;
     text-decoration: none !important;
@@ -4351,7 +4374,7 @@
 :host .seamless-styled-thead th {
     background: #f8fafc !important;
     padding: 16px 24px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-font) !important;
     border-bottom: 1px solid #e2e8f0 !important;
@@ -4359,10 +4382,10 @@
 }
 
 :host .seamless-styled-tr td {
-    padding: 5px 2px !important;
+    padding: 8px 2px !important;
     border-bottom: 1px solid #f1f5f9 !important;
     color: var(--seamless-color-heading) !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     vertical-align: middle !important;
     text-align: center !important;
 }
@@ -4377,7 +4400,7 @@
     justify-content: center !important;
     padding: 3px 8px !important;
     border-radius: 9999px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     text-transform: capitalize !important;
 }
@@ -4411,9 +4434,9 @@
 :host .seamless-btn-invoice {
     background: var(--seamless-color-primary) !important;
     color: #fff !important;
-    padding: 3px 13px !important;
+    padding: 2px 13px !important;
     border-radius: 6px !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
     text-decoration: none !important;
     display: inline-block !important;
@@ -4468,7 +4491,7 @@
 
 :host .seamless-user-dashboard-org-name {
     margin: 0 0 6px 0 !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;
     color: rgba(255, 255, 255, 0.72) !important;
@@ -4476,8 +4499,8 @@
 
 :host .seamless-user-dashboard-org-title {
     margin: 0 0 8px 0 !important;
-    font-size: 30px !important;
-    line-height: 1.2 !important;
+    font-size: var(--seamless-font-size-30) !important;
+    line-height: var(--seamless-line-height-1-2) !important;
     color: #fff !important;
 }
 
@@ -4498,9 +4521,9 @@
 :host .seamless-user-dashboard-org-role-badge {
     display: inline-flex !important;
     align-items: center !important;
-    padding: 6px 12px !important;
+    padding: 3px 15px !important;
     border-radius: 999px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
 }
 
@@ -4550,7 +4573,7 @@
 
 :host .seamless-user-dashboard-org-plan-title {
     margin: 0 0 10px 0 !important;
-    font-size: 22px !important;
+    font-size: var(--seamless-font-size-22) !important;
     color: #0f172a !important;
 }
 
@@ -4566,7 +4589,7 @@
 
 :host .seamless-user-dashboard-org-plan-scope {
     color: #64748b !important;
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
 }
 
 :host .seamless-user-dashboard-org-stat-active,
@@ -4575,7 +4598,7 @@
     align-items: center !important;
     gap: 6px !important;
     color: #475569 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-user-dashboard-org-plan-toggle {
@@ -4610,14 +4633,14 @@
 }
 
 :host .seamless-user-dashboard-org-capacity-label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #64748b !important;
 }
 
 :host .seamless-user-dashboard-org-capacity-value {
     display: block !important;
     margin-top: 10px !important;
-    font-size: 28px !important;
+    font-size: var(--seamless-font-size-28) !important;
     color: #0f172a !important;
 }
 
@@ -4653,7 +4676,7 @@
     border-radius: 999px !important;
     background: #dbeafe !important;
     color: #1d4ed8 !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 700 !important;
 }
 
@@ -4717,7 +4740,7 @@
 
 :host .seamless-user-dashboard-org-member-email {
     color: #64748b !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-user-dashboard-org-status-badge {
@@ -4726,7 +4749,7 @@
     gap: 6px !important;
     padding: 6px 10px !important;
     border-radius: 999px !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 700 !important;
 }
 
@@ -4757,7 +4780,7 @@
     border: 1px solid #cbd5e1 !important;
     border-radius: 10px !important;
     padding: 10px 12px !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     background: #fff !important;
 }
 
@@ -4786,6 +4809,25 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 20px !important;
+}
+
+:host .seamless-org-inline-notice {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-org-inline-notice-success {
+    background: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+    color: #065f46 !important;
+}
+
+:host .seamless-org-inline-notice-error {
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+    color: #991b1b !important;
 }
 
 :host .seamless-org-import-box,
@@ -4823,7 +4865,7 @@
 
 :host .seamless-org-import-filename {
     color: #64748b !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
 }
 
 :host .seamless-org-pricing-title {
@@ -4832,7 +4874,7 @@
 }
 
 :host .seamless-org-pricing-amount {
-    font-size: 28px !important;
+    font-size: var(--seamless-font-size-28) !important;
     font-weight: 800 !important;
     color: #059669 !important;
 }
@@ -4880,7 +4922,7 @@
 }
 
 :host .seamless-user-dashboard-org-add-field label {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
     color: #334155 !important;
 }

@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    SEAMLESS EVENT DISPLAY - RESET & BASE STYLES
    ============================================
    This file aggressively re-scopes CSS so that
@@ -20,7 +20,7 @@
   font-family: var(--seamless-font-family-default) !important;
   font-size: var(--seamless-font-size-base) !important;
   font-weight: 400 !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   color: var(--seamless-color-font) !important;
   background-color: transparent !important;
   

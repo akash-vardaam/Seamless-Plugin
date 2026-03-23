@@ -1,4 +1,4 @@
-﻿:host .seamless-accordions {
+:host .seamless-accordions {
     border-top: 1px solid #e2e8f0 !important;
     width: 100% !important;
 }
@@ -17,7 +17,7 @@
     border: none !important;
     cursor: pointer !important;
     font-family: inherit !important;
-    font-size: 1.1rem !important;
+    font-size: var(--seamless-font-size-1-1) !important;
     font-weight: 600 !important;
     color: #1a365d !important;
     text-align: left !important;
@@ -42,18 +42,18 @@
 :host .seamless-accordion-content {
     padding: 0 0 25px 38px !important;
     color: #4a5568 !important;
-    line-height: 1.6 !important;
+    line-height: var(--seamless-line-height-1-6) !important;
 }
 
 /* Styles moved from single-event.css */
 :host .seamless-accordion-item .seamless-accordion-content * {
-    font-size: 16px !important;
-    line-height: 29px !important;
+    font-size: var(--seamless-font-size-16) !important;
+    line-height: var(--seamless-line-height-29) !important;
 }
 
 :host .seamless-accordion-item .seamless-accordion-content table * {
-    font-size: 14px !important;
-    line-height: 21px !important;
+    font-size: var(--seamless-font-size-14) !important;
+    line-height: var(--seamless-line-height-21) !important;
 }
 
 :host .seamless-accordion-item .seamless-accordion-content table td {

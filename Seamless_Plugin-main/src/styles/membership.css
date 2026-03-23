@@ -1,4 +1,4 @@
-﻿:host .seamless-membership-container {
+:host .seamless-membership-container {
     margin: 0px auto !important;
     font-family: 'Inter', sans-serif !important;
     color: var(--seamless-color-text, var(--seamless-color-primary)) !important;
@@ -10,14 +10,14 @@
 }
 
 :host .seamless-membership-title {
-    font-size: 2.5rem !important;
+    font-size: var(--seamless-font-size-2-5) !important;
     font-weight: 800 !important;
     color: var(--seamless-color-heading) !important;
     margin-bottom: 16px !important;
 }
 
 :host .seamless-membership-subtitle {
-    font-size: 1.125rem !important;
+    font-size: var(--seamless-font-size-lg) !important;
     color: #64748b !important;
 }
 
@@ -65,15 +65,15 @@
 }
 
 :host .seamless-plan-label {
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     font-weight: 700 !important;
     color: var(--seamless-color-primary) !important;
     margin: 0 0 12px 0 !important;
-    line-height: 28px !important;
+    line-height: var(--seamless-line-height-28) !important;
 }
 
 :host .seamless-plan-label h3 {
-    line-height: 0px !important;
+    line-height: var(--seamless-line-height-0) !important;
 }
 
 :host .seamless-plan-badge {
@@ -81,8 +81,8 @@
     align-items: center !important;
     background-color: #f1f5f9 !important;
     color: var(--seamless-color-font) !important;
-    font-size: 12px !important;
-    line-height: 16px !important;
+    font-size: var(--seamless-font-size-12) !important;
+    line-height: var(--seamless-line-height-16) !important;
     font-weight: 500 !important;
     padding: 4px 8px !important;
     border-radius: 20px !important;
@@ -101,20 +101,20 @@
 }
 
 :host .seamless-currency {
-    font-size: 0.875rem !important;
+    font-size: var(--seamless-font-size-sm) !important;
     margin-top: 4px !important;
     margin-right: 2px !important;
     font-weight: 600 !important;
 }
 
 :host .seamless-amount {
-    font-size: 1.5rem !important;
+    font-size: var(--seamless-font-size-2xl) !important;
     font-weight: 700 !important;
-    line-height: 1 !important;
+    line-height: var(--seamless-line-height-1) !important;
 }
 
 :host .seamless-plan-renewal {
-    font-size: 0.875rem !important;
+    font-size: var(--seamless-font-size-sm) !important;
     color: #64748b !important;
     text-align: right !important;
 }
@@ -138,9 +138,9 @@
 :host .seamless-feature-item {
     display: flex !important;
     align-items: flex-start !important;
-    font-size: 1rem !important;
+    font-size: var(--seamless-font-size-base) !important;
     color: #334155 !important;
-    line-height: 1.5 !important;
+    line-height: var(--seamless-line-height-1-5) !important;
 }
 
 :host .seamless-check {
@@ -164,7 +164,7 @@
     text-align: center !important;
     text-decoration: none !important;
     font-weight: 700 !important;
-    font-size: 0.875rem !important;
+    font-size: var(--seamless-font-size-sm) !important;
     border-radius: 12px !important;
     letter-spacing: 0.05em !important;
     text-transform: uppercase !important;
@@ -185,7 +185,7 @@
 }
 
 :host .seamless-comparison-title {
-    font-size: 1.5rem !important;
+    font-size: var(--seamless-font-size-2xl) !important;
     font-weight: 700 !important;
     color: var(--seamless-color-primary) !important;
     margin-bottom: 30px !important;
@@ -236,12 +236,12 @@
 
 :host .seamless-comparison-plan-name {
     display: block !important;
-    font-size: 1rem !important;
+    font-size: var(--seamless-font-size-base) !important;
     margin-bottom: 4px !important;
 }
 
 :host .seamless-comparison-plan-price {
-    font-size: 0.875rem !important;
+    font-size: var(--seamless-font-size-sm) !important;
     opacity: 0.8 !important;
     font-weight: 400 !important;
 }

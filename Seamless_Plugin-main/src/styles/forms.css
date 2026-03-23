@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    SEAMLESS EVENT DISPLAY - INPUT & FORM STYLES
    ============================================ */
 
@@ -41,7 +41,7 @@
   border-radius: var(--seamless-radius-full) !important;
   font-size: var(--seamless-font-size-sm) !important;
   font-weight: 500 !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   color: var(--seamless-color-gray-700) !important;
   background-color: var(--seamless-color-gray-100) !important;
   transition: all var(--seamless-transition-fast) !important;
@@ -97,7 +97,7 @@
   color: var(--seamless-color-white) !important;
   font-weight: 600 !important;
   font-size: var(--seamless-font-size-base) !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   border-bottom: 2px solid #0052a3 !important;
   font-family: var(--seamless-font-family-montserrat) !important;
   border-radius: 6px 6px 0 0 !important;
@@ -146,7 +146,7 @@
   border-radius: var(--seamless-radius-full) !important;
   font-size: var(--seamless-font-size-sm) !important;
   font-weight: 400 !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   color: var(--seamless-color-gray-700) !important;
   background-color: var(--seamless-color-white) !important;
   transition: border-color var(--seamless-transition-fast) !important;

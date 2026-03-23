@@ -92,6 +92,16 @@ const getMemberDisplay = (member: any) => {
     };
 };
 
+const getRequestErrorMessage = (err: any, fallback: string) => {
+    const responseData = err?.response?.data;
+
+    return responseData?.message
+        || responseData?.data?.message
+        || responseData?.error?.message
+        || err?.message
+        || fallback;
+};
+
 export const UserDashboardView: React.FC = () => {
     const shadowRoot = useShadowRoot();
     // SSO / Login State
@@ -121,6 +131,7 @@ export const UserDashboardView: React.FC = () => {
     const [orgWarningState, setOrgWarningState] = useState<{ open: boolean; members: GroupMemberInput[]; additionalCount: number; totalAdditionalCost: number; remainingSeats: number; } | null>(null);
     const [pendingOrgActionKey, setPendingOrgActionKey] = useState<string | null>(null);
     const [memberRoleDrafts, setMemberRoleDrafts] = useState<Record<string, string>>({});
+    const [orgInlineNotice, setOrgInlineNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     // Action States
     const [actionModal, setActionModal] = useState<MembershipAction | null>(null);
@@ -539,37 +550,6 @@ export const UserDashboardView: React.FC = () => {
         }
     };
 
-    const handleRenewMembership = async (planId: string) => {
-        const email = getDashboardEmail();
-        if (!planId || !email) {
-            setToast({ type: 'error', message: 'Renewal details are missing. Please refresh and try again.' });
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            const response = await api.post(`/dashboard/memberships/renew/${planId}`, { email });
-            const data = response.data;
-            const checkoutUrl = data?.data?.stripe_checkout_url || data?.data?.checkout_url || data?.checkout_url || data?.data?.url;
-
-            if (checkoutUrl) {
-                window.location.href = checkoutUrl;
-                return;
-            }
-
-            if (data?.success || response.status === 200) {
-                setToast({ type: 'success', message: data?.message || 'Membership renewal started successfully.' });
-                reloadMembershipData();
-            } else {
-                setToast({ type: 'error', message: data?.message || 'Failed to renew membership.' });
-            }
-        } catch (err: any) {
-            setToast({ type: 'error', message: err?.response?.data?.message || err?.message || 'An error occurred during renewal.' });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const openModalFor = (type: MembershipAction, id: string) => {
         setSelectedMembershipId(id);
         setActionModal(type);
@@ -590,6 +570,7 @@ export const UserDashboardView: React.FC = () => {
         setGroupMemberRows([{ first_name: '', last_name: '', email: '', role: 'member' }]);
         setSelectedCsvFileName('No file chosen');
         setOrgWarningState(null);
+        setOrgInlineNotice(null);
     };
 
     const closeAddMembersModal = () => {
@@ -597,6 +578,7 @@ export const UserDashboardView: React.FC = () => {
         setGroupMemberRows([{ first_name: '', last_name: '', email: '', role: 'member' }]);
         setSelectedCsvFileName('No file chosen');
         setOrgWarningState(null);
+        setOrgInlineNotice(null);
     };
 
     const updateGroupMemberRow = (index: number, field: keyof GroupMemberInput, value: string) => {
@@ -657,9 +639,11 @@ export const UserDashboardView: React.FC = () => {
         const requestedAdmins = membersToAdd.filter((member) => member.role === 'admin').length;
 
         if (adminSeatLimit > 0 && currentAdminCount + requestedAdmins > adminSeatLimit) {
+            const message = `Could not add admin(s). This plan includes only ${adminSeatLimit} admin seat(s) and you already have ${currentAdminCount}.`;
+            setOrgInlineNotice({ type: 'error', message });
             setToast({
                 type: 'error',
-                message: `Could not add admin(s). This plan includes only ${adminSeatLimit} admin seat(s) and you already have ${currentAdminCount}.`,
+                message,
             });
             return false;
         }
@@ -671,6 +655,7 @@ export const UserDashboardView: React.FC = () => {
         const closeOnSuccess = options?.closeOnSuccess ?? true;
         const reloadOnSuccess = options?.reloadOnSuccess ?? true;
         setIsSubmitting(true);
+        setOrgInlineNotice(null);
         try {
             const response = await api.post(`/dashboard/group/${membershipId}/members`, { members: membersToAdd });
             const data = response.data?.data || response.data || {};
@@ -681,7 +666,9 @@ export const UserDashboardView: React.FC = () => {
                 return true;
             }
 
-            setToast({ type: 'success', message: options?.successMessage || response.data?.message || 'Members added successfully!' });
+            const successMessage = options?.successMessage || response.data?.message || 'Members added successfully!';
+            setOrgInlineNotice({ type: 'success', message: successMessage });
+            setToast({ type: 'success', message: successMessage });
             if (closeOnSuccess) {
                 closeAddMembersModal();
             }
@@ -690,7 +677,9 @@ export const UserDashboardView: React.FC = () => {
             }
             return true;
         } catch (err: any) {
-            setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to add members.' });
+            const errorMessage = getRequestErrorMessage(err, 'Failed to add members.');
+            setOrgInlineNotice({ type: 'error', message: errorMessage });
+            setToast({ type: 'error', message: errorMessage });
             return false;
         } finally {
             setIsSubmitting(false);
@@ -708,7 +697,9 @@ export const UserDashboardView: React.FC = () => {
         })).filter((row) => row.first_name || row.last_name || row.email);
 
         if (membersToAdd.length === 0 || membersToAdd.some((row) => !row.first_name || !row.last_name || !row.email)) {
-            setToast({ type: 'error', message: 'Please fill in all required fields.' });
+            const message = 'Please fill in all required fields.';
+            setOrgInlineNotice({ type: 'error', message });
+            setToast({ type: 'error', message });
             return;
         }
 
@@ -763,11 +754,16 @@ export const UserDashboardView: React.FC = () => {
     const handleResendGroupInvite = async (membershipId: string | number, memberId: string | number) => {
         const actionKey = `resend-${membershipId}-${memberId}`;
         setPendingOrgActionKey(actionKey);
+        setOrgInlineNotice(null);
         try {
-            const response = await api.post(`/dashboard/group/${membershipId}/members/${memberId}/resend-invite`, {});
-            setToast({ type: 'success', message: response.data?.message || 'Invite resent successfully!' });
+            const response = await api.post(`/dashboard/group/${membershipId}/members/${memberId}/resend-invite`);
+            const successMessage = response.data?.message || 'Invite resent successfully!';
+            setOrgInlineNotice({ type: 'success', message: successMessage });
+            setToast({ type: 'success', message: successMessage });
         } catch (err: any) {
-            setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to resend invite.' });
+            const errorMessage = getRequestErrorMessage(err, 'Failed to resend invite.');
+            setOrgInlineNotice({ type: 'error', message: errorMessage });
+            setToast({ type: 'error', message: errorMessage });
         } finally {
             setPendingOrgActionKey(null);
         }
@@ -779,12 +775,17 @@ export const UserDashboardView: React.FC = () => {
         }
         const actionKey = `remove-${membershipId}-${memberId}`;
         setPendingOrgActionKey(actionKey);
+        setOrgInlineNotice(null);
         try {
             const response = await api.delete(`/dashboard/group/${membershipId}/members/${memberId}`);
-            setToast({ type: 'success', message: response.data?.message || 'Member removed successfully!' });
+            const successMessage = response.data?.message || 'Member removed successfully!';
+            setOrgInlineNotice({ type: 'success', message: successMessage });
+            setToast({ type: 'success', message: successMessage });
             await reloadOrganizationData();
         } catch (err: any) {
-            setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to remove member.' });
+            const errorMessage = getRequestErrorMessage(err, 'Failed to remove member.');
+            setOrgInlineNotice({ type: 'error', message: errorMessage });
+            setToast({ type: 'error', message: errorMessage });
         } finally {
             setPendingOrgActionKey(null);
         }
@@ -797,18 +798,25 @@ export const UserDashboardView: React.FC = () => {
         const currentAdminCount = (membership?.group_members || []).filter((candidate: any) => ['accepted', 'pending'].includes(String(candidate?.status || '').toLowerCase()) && ['admin', 'owner'].includes(String(candidate?.role || '').toLowerCase())).length;
 
         if (role === 'admin' && currentRole !== 'admin' && adminSeatLimit > 0 && currentAdminCount >= adminSeatLimit) {
-            setToast({ type: 'error', message: `Could not change role to Admin. This plan includes only ${adminSeatLimit} admin seat(s) and all are occupied.` });
+            const message = `Could not change role to Admin. This plan includes only ${adminSeatLimit} admin seat(s) and all are occupied.`;
+            setOrgInlineNotice({ type: 'error', message });
+            setToast({ type: 'error', message });
             return;
         }
 
         setPendingOrgActionKey(actionKey);
+        setOrgInlineNotice(null);
         try {
             const response = await api.put(`/dashboard/group/${membership?.id}/members/${member?.id}/role`, { role });
-            setToast({ type: 'success', message: response.data?.message || 'Role updated successfully!' });
+            const successMessage = response.data?.message || 'Role updated successfully!';
+            setOrgInlineNotice({ type: 'success', message: successMessage });
+            setToast({ type: 'success', message: successMessage });
             setMemberRoleDrafts((prev) => ({ ...prev, [`${membership?.id}-${member?.id}`]: role }));
             await reloadOrganizationData();
         } catch (err: any) {
-            setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to update role.' });
+            const errorMessage = getRequestErrorMessage(err, 'Failed to update role.');
+            setOrgInlineNotice({ type: 'error', message: errorMessage });
+            setToast({ type: 'error', message: errorMessage });
         } finally {
             setPendingOrgActionKey(null);
         }
@@ -1036,6 +1044,12 @@ export const UserDashboardView: React.FC = () => {
             <Modal isOpen={Boolean(selectedOrgMembership)} onClose={closeAddMembersModal} title="Organization Members Management" className="seamless-modal-lg">
                 {selectedOrgMembership && (
                     <div className="seamless-org-modal-stack">
+                        {orgInlineNotice && (
+                            <div className={`seamless-org-inline-notice seamless-org-inline-notice-${orgInlineNotice.type}`}>
+                                {orgInlineNotice.message}
+                            </div>
+                        )}
+
                         <div className="seamless-org-import-box">
                             <div className="seamless-org-import-header">
                                 <span className="seamless-org-import-title">Bulk Import via CSV</span>
@@ -1443,7 +1457,7 @@ export const UserDashboardView: React.FC = () => {
                                                         return (
                                                         <div key={mem.id} className="seamless-membership-card-box seamless-items-start">
                                                             <div className="seamless-flex-col-gap-16-full">
-                                                                <div className="seamless-flex-col-gap-8">
+                                                                <div className="seamless-flex-col-gap-8 seamless-dashboard-membership">
                                                                     <h3 className="seamless-card-title">{mem.plan?.label || mem.title || mem.name || 'Membership'}</h3>
                                                                     {isGroupMembership && (
                                                                         <span className="seamless-membership-type-tag">
@@ -1452,14 +1466,14 @@ export const UserDashboardView: React.FC = () => {
                                                                         </span>
                                                                     )}
                                                                     {mem?.plan?.id && (
-                                                                        <div>
+                                                                        <div className="seamless-status-tag">
+                                                                            <span className="seamless-expired-badge seamless-capitalize">Expired</span>
                                                                             <button
                                                                                 type="button"
-                                                                                disabled={isSubmitting}
-                                                                                onClick={() => handleRenewMembership(String(mem.plan.id))}
-                                                                                className="seamless-user-dashboard-btn-primary"
+                                                                                disabled
+                                                                                className="seamless-user-dashboard-btn-renew seamless-user-dashboard-btn-renew-disabled"
                                                                             >
-                                                                                {isSubmitting ? 'Processing...' : 'Renew'}
+                                                                                Renew
                                                                             </button>
                                                                         </div>
                                                                     )}
@@ -1510,6 +1524,12 @@ export const UserDashboardView: React.FC = () => {
                                                 {organizationSummary.roleCounts.member > 0 && <span className="seamless-user-dashboard-org-summary-pill seamless-org-role-member">{organizationSummary.roleCounts.member} {organizationSummary.roleCounts.member === 1 ? 'Member Role' : 'Member Roles'}</span>}
                                             </div>
                                         </div>
+
+                                        {orgInlineNotice && (
+                                            <div className={`seamless-org-inline-notice seamless-org-inline-notice-${orgInlineNotice.type}`}>
+                                                {orgInlineNotice.message}
+                                            </div>
+                                        )}
 
                                         {organizationSummary.plans.map((membership) => {
                                             const membershipId = String(membership?.id);

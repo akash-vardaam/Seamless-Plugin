@@ -1,4 +1,4 @@
-﻿
+
 :host .seamless-courses-container {
     margin: 0px auto !important;
     font-family: 'Inter', sans-serif !important;
@@ -11,14 +11,14 @@
 }
 
 :host .seamless-courses-title {
-    font-size: 2.5rem !important;
+    font-size: var(--seamless-font-size-2-5) !important;
     font-weight: 800 !important;
     color: var(--seamless-color-heading) !important;
     margin-bottom: 16px !important;
 }
 
 :host .seamless-courses-subtitle {
-    font-size: 1.125rem !important;
+    font-size: var(--seamless-font-size-lg) !important;
     color: #64748b !important;
 }
 
@@ -73,7 +73,7 @@
 }
 
 :host .seamless-course-price {
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-primary) !important;
 }
@@ -107,7 +107,7 @@
 }
 
 :host .seamless-course-access-badge {
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     padding: 4px 10px !important;
     border-radius: 20px !important;
@@ -130,17 +130,17 @@
 }
 
 :host .seamless-course-title {
-    font-size: 1.25rem !important;
+    font-size: var(--seamless-font-size-xl) !important;
     font-weight: 700 !important;
     color: var(--seamless-color-primary) !important;
     margin: 0 0 12px 0 !important;
-    line-height: 1.4 !important;
+    line-height: var(--seamless-line-height-1-4) !important;
 }
 
 :host .seamless-course-description {
-    font-size: 0.95rem !important;
+    font-size: var(--seamless-font-size-0-95) !important;
     color: #64748b !important;
-    line-height: 1.6 !important;
+    line-height: var(--seamless-line-height-1-6) !important;
     margin-bottom: 20px !important;
     overflow: hidden !important;
     display: -webkit-box !important;
@@ -156,7 +156,7 @@
     margin-top: auto !important;
     margin-bottom: 24px !important;
     color: #64748b !important;
-    font-size: 0.875rem !important;
+    font-size: var(--seamless-font-size-sm) !important;
 }
 
 :host .seamless-course-meta-item {
@@ -180,7 +180,7 @@
     text-align: center !important;
     text-decoration: none !important;
     font-weight: 700 !important;
-    font-size: 0.875rem !important;
+    font-size: var(--seamless-font-size-sm) !important;
     border-radius: 12px !important;
     letter-spacing: 0.05em !important;
     text-transform: uppercase !important;

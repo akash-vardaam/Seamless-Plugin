@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    SEAMLESS EVENT DISPLAY - BUTTON STYLES
    ============================================ */
 
@@ -7,7 +7,7 @@
   padding: var(--seamless-btn-padding-y) var(--seamless-btn-padding-x) !important;
   font-size: var(--seamless-font-size-sm) !important;
   font-weight: var(--seamless-btn-font-weight) !important;
-  line-height: 1.5 !important;
+  line-height: var(--seamless-line-height-1-5) !important;
   border-radius: var(--seamless-radius-full) !important;
   transition: all var(--seamless-transition-normal) !important;
   cursor: pointer !important;

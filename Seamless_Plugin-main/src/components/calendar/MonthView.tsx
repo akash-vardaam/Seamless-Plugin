@@ -218,7 +218,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate, events }) => 
                         borderLeftWidth: '3px',
                         borderLeftStyle: 'solid',
                         padding: '2px 6px',
-                        fontSize: '10px',
+                        fontSize: 'var(--seamless-font-size-10)',
                         fontWeight: '600',
                         margin: '2px 4px',
                         cursor: 'pointer',
@@ -247,7 +247,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate, events }) => 
                       style={{
                         gridColumn: `${dIdx + 1} / span 1`,
                         gridRow: `4`, // level limit
-                        fontSize: '10px',
+                        fontSize: 'var(--seamless-font-size-10)',
                         fontWeight: '600',
                         color: '#64748b',
                         textAlign: 'left',

@@ -1,4 +1,4 @@
-﻿/* CALENDAR MODERN CSS V2 */
+/* CALENDAR MODERN CSS V2 */
 
 :host .seamless-calendar-container {
     background: #ffffff !important;
@@ -36,14 +36,14 @@
 }
 
 :host .seamless-calendar-today-month {
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     font-weight: 700 !important;
     color: #64748b !important;
     text-transform: uppercase !important;
 }
 
 :host .seamless-calendar-today-date {
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 800 !important;
     color: var(--seamless-color-primary) !important;
 }
@@ -54,14 +54,14 @@
 }
 
 :host .seamless-calendar-main-title {
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 700 !important;
     color: var(--seamless-color-primary) !important;
     margin: 0 !important;
 }
 
 :host .seamless-calendar-subtitle {
-    font-size: 13px !important;
+    font-size: var(--seamless-font-size-13) !important;
     color: #94a3b8 !important;
 }
 
@@ -84,7 +84,7 @@
     background: white !important;
     border: none !important;
     padding-bottom: 4px !important;
-    font-size: 24px !important;
+    font-size: var(--seamless-font-size-24) !important;
     cursor: pointer !important;
     font-weight: 600 !important;
     color: #64748b !important;
@@ -99,7 +99,7 @@
     border-left: 1px solid #e2e8f0 !important;
     border-right: 1px solid #e2e8f0 !important;
     color: var(--seamless-color-primary) !important;
-    font-size: 18px !important;
+    font-size: var(--seamless-font-size-18) !important;
     padding: 0px 6px !important;
 }
 
@@ -116,7 +116,7 @@
     background: transparent !important;
     border: none !important;
     padding: 8px 14px !important;
-    font-size: 16px !important;
+    font-size: var(--seamless-font-size-16) !important;
     font-weight: 600 !important;
     color: #64748b !important;
     border-radius: 18px !important;
@@ -179,7 +179,7 @@
     border-right: 1px solid #e2e8f0 !important;
     border-bottom: 1px solid #e2e8f0 !important;
     background: #fcfcfc !important;
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 700 !important;
     color: #000000 !important;
     text-align: center !important;
@@ -209,7 +209,7 @@
 }
 
 :host .seamless-month-date-num {
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
     color: #000000 !important;
 }
@@ -251,7 +251,7 @@
 
 :host .seamless-popup-header {
     font-weight: 700 !important;
-    font-size: 14px !important;
+    font-size: var(--seamless-font-size-14) !important;
     color: var(--seamless-color-primary) !important;
     padding: 12px !important;
     border-bottom: 1px solid #f1f5f9 !important;
@@ -270,7 +270,7 @@
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
-    font-size: 11px !important;
+    font-size: var(--seamless-font-size-11) !important;
     padding: 8px 10px !important;
     border-radius: 8px !important;
     border: 1px solid #e2e8f0 !important;
@@ -319,7 +319,7 @@
     position: absolute !important;
     bottom: 8px !important;
     right: 8px !important;
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     color: #64748b !important;
 }
 
@@ -340,13 +340,13 @@
 }
 
 :host .seamless-week-date-num {
-    font-size: 20px !important;
+    font-size: var(--seamless-font-size-20) !important;
     font-weight: 500 !important;
     margin-right: 8px !important;
 }
 
 :host .seamless-week-day-name {
-    font-size: 12px !important;
+    font-size: var(--seamless-font-size-12) !important;
     text-transform: uppercase !important;
     color: #64748b !important;
 }
@@ -378,7 +378,7 @@
 }
 
 :host .seamless-week-allday-event {
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     padding: 4px 8px !important;
     border-radius: 4px !important;
     border-left: 2px solid !important;
@@ -407,7 +407,7 @@
     height: 60px !important;
     text-align: right !important;
     padding-right: 8px !important;
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     color: #94a3b8 !important;
     box-sizing: border-box !important;
     display: flex !important;
@@ -467,7 +467,7 @@
     border-radius: 4px !important;
     border-left: 3px solid !important;
     padding: 4px 6px !important;
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     cursor: pointer !important;
     overflow: hidden !important;
     display: flex !important;
@@ -485,7 +485,7 @@
     font-weight: 700 !important;
     white-space: normal !important;
     word-break: break-word !important;
-    line-height: 1.2 !important;
+    line-height: var(--seamless-line-height-1-2) !important;
 }
 
 
@@ -549,7 +549,7 @@
 }
 
 :host .seamless-month-cell-more {
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     font-weight: 700 !important;
     color: #64748b !important;
     margin-top: auto !important;
@@ -561,7 +561,7 @@
     pointer-events: auto !important;
     display: flex !important;
     align-items: center !important;
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     padding: 2px 4px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -578,7 +578,7 @@
 }
 
 :host .seamless-month-event-time.span-time {
-    font-size: 9px !important;
+    font-size: var(--seamless-font-size-9) !important;
     opacity: 0.6 !important;
 }
 
@@ -721,7 +721,7 @@ Provides pure CSS coloring for categories
     border-radius: 4px !important;
     border-left: 3px solid !important;
     padding: 2px 4px !important;
-    font-size: 10px !important;
+    font-size: var(--seamless-font-size-10) !important;
     cursor: pointer !important;
     overflow: hidden !important;
     display: flex !important;
