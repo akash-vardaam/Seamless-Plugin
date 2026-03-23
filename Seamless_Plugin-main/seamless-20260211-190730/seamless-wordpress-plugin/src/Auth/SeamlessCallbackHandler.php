@@ -21,7 +21,7 @@ class SeamlessCallbackHandler
     public function __construct()
     {
         $domain = get_option('seamless_client_domain', '');
-        if ($domain && !str_starts_with($domain, 'http')) {
+        if ($domain && strpos($domain, 'http') !== 0) {
             $domain = 'https://' . $domain;
         }
         $this->client_domain = rtrim($domain, '/');
@@ -34,7 +34,7 @@ class SeamlessCallbackHandler
      * @param WP_REST_Request $req
      * @return WP_Error|WP_User
      */
-    public function handle(WP_REST_Request $req): WP_Error|WP_User
+    public function handle(WP_REST_Request $req)
     {
 
         $state = $req->get_param('state');
@@ -98,7 +98,7 @@ class SeamlessCallbackHandler
      * @param string $verifier
      * @return array|WP_Error
      */
-    private function exchange_code_for_token(string $code, string $verifier): array|WP_Error
+    private function exchange_code_for_token(string $code, string $verifier)
     {
         $redirect_uri = rest_url(SeamlessSSO::REST_NAMESPACE . '/callback');
         $token_url = "{$this->client_domain}/oauth/token";
@@ -146,7 +146,7 @@ class SeamlessCallbackHandler
      * @param string $access_token
      * @return array|WP_Error
      */
-    private function fetch_user_profile(string $access_token): array|WP_Error
+    private function fetch_user_profile(string $access_token)
     {
         $user_api_url = "{$this->client_domain}/api/user";
 
@@ -188,7 +188,7 @@ class SeamlessCallbackHandler
      * @param array $tokens
      * @return WP_User|WP_Error
      */
-    private function insert_update_wp_user(array $user_data, array $tokens): WP_User|WP_Error
+    private function insert_update_wp_user(array $user_data, array $tokens)
     {
         $user = $user_data['data']['user'] ?? [];
         $email = sanitize_email($user['email'] ?? '');
