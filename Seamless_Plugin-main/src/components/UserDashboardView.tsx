@@ -102,6 +102,17 @@ const getRequestErrorMessage = (err: any, fallback: string) => {
         || fallback;
 };
 
+const isAwsSesIdentityError = (message: string) => {
+    if (!message) return false;
+
+    return [
+        /aws\s*ses/i,
+        /ses\s*api\s*failed/i,
+        /email\s*address\s*is\s*not\s*verified/i,
+        /identities\s*failed\s*the\s*check/i,
+    ].some((pattern) => pattern.test(message));
+};
+
 export const UserDashboardView: React.FC = () => {
     const shadowRoot = useShadowRoot();
     // SSO / Login State
@@ -755,13 +766,41 @@ export const UserDashboardView: React.FC = () => {
         const actionKey = `resend-${membershipId}-${memberId}`;
         setPendingOrgActionKey(actionKey);
         setOrgInlineNotice(null);
+        const endpoint = `/dashboard/group/${membershipId}/members/${memberId}/resend-invite`;
         try {
-            const response = await api.post(`/dashboard/group/${membershipId}/members/${memberId}/resend-invite`);
+            const response = await api.post(endpoint);
             const successMessage = response.data?.message || 'Invite resent successfully!';
             setOrgInlineNotice({ type: 'success', message: successMessage });
             setToast({ type: 'success', message: successMessage });
         } catch (err: any) {
-            const errorMessage = getRequestErrorMessage(err, 'Failed to resend invite.');
+            const initialErrorMessage = getRequestErrorMessage(err, 'Failed to resend invite.');
+
+            if (isAwsSesIdentityError(initialErrorMessage)) {
+                try {
+                    const fallbackResponse = await api.post(endpoint, {
+                        provider: 'default',
+                        mailer: 'default',
+                        email_provider: 'default',
+                        use_default_mailer: true,
+                        use_wp_mail: true,
+                    });
+
+                    const fallbackSuccessMessage = fallbackResponse.data?.message || 'Invite resent successfully using the default mail system.';
+                    setOrgInlineNotice({ type: 'success', message: fallbackSuccessMessage });
+                    setToast({ type: 'success', message: fallbackSuccessMessage });
+                    return;
+                } catch (fallbackErr: any) {
+                    const fallbackErrorMessage = getRequestErrorMessage(
+                        fallbackErr,
+                        'Failed to resend invite. Please check your default mail system configuration.',
+                    );
+                    setOrgInlineNotice({ type: 'error', message: fallbackErrorMessage });
+                    setToast({ type: 'error', message: fallbackErrorMessage });
+                    return;
+                }
+            }
+
+            const errorMessage = initialErrorMessage;
             setOrgInlineNotice({ type: 'error', message: errorMessage });
             setToast({ type: 'error', message: errorMessage });
         } finally {
