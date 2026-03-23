@@ -267,7 +267,7 @@ class SeamlessRender
 		}
 	}
 
-	public function add_module_type_attribute($tag, $handle, $src): mixed
+	public function add_module_type_attribute($tag, $handle, $src)
 	{
 		if (!wp_script_is($handle, 'registered') && !wp_script_is($handle, 'enqueued')) {
 			return $tag;
@@ -374,7 +374,7 @@ class SeamlessRender
 
 		// Enqueue CSS
 		foreach ($files as $file) {
-			if (strpos($file, 'index-') === 0 && str_ends_with($file, '.css')) {
+			if (strpos($file, 'index-') === 0 && $this->ends_with($file, '.css')) {
 				$css_path = $assets_folder . $file;
 				wp_enqueue_style(
 					'seamless-react-css',
@@ -388,7 +388,7 @@ class SeamlessRender
 
 		// Enqueue JS (loaded as module so React 19 ESM bundles work)
 		foreach ($files as $file) {
-			if (strpos($file, 'index-') === 0 && str_ends_with($file, '.js')) {
+			if (strpos($file, 'index-') === 0 && $this->ends_with($file, '.js')) {
 				$js_path = $assets_folder . $file;
 				wp_enqueue_script(
 					'seamless-react-js',
@@ -402,7 +402,7 @@ class SeamlessRender
 		}
 
 		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
-		if ($client_domain && !str_starts_with($client_domain, 'http')) {
+		if ($client_domain && strpos($client_domain, 'http') !== 0) {
 			$client_domain = 'https://' . $client_domain;
 		}
 
@@ -454,6 +454,16 @@ class SeamlessRender
 			esc_attr($uid),
 			$data_attrs
 		);
+	}
+
+	private function ends_with($value, $suffix): bool
+	{
+		$suffix_length = strlen($suffix);
+		if ($suffix_length === 0) {
+			return true;
+		}
+
+		return substr($value, -$suffix_length) === $suffix;
 	}
 
 	// ── Shortcode: Events Listing ────────────────────────────────────────────

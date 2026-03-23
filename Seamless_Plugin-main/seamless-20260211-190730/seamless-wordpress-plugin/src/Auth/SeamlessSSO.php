@@ -28,7 +28,7 @@ class SeamlessSSO
     public function __construct()
     {
         $domain = get_option('seamless_client_domain', '');
-        if ($domain && !str_starts_with($domain, 'http')) {
+        if ($domain && strpos($domain, 'http') !== 0) {
             $domain = 'https://' . $domain;
         }
         $this->client_domain = rtrim($domain, '/');
@@ -341,7 +341,7 @@ class SeamlessSSO
     // --- Token Refresh ---
 
 
-    public function seamless_refresh_token_if_needed(int $user_id): string|false
+    public function seamless_refresh_token_if_needed(int $user_id)
     {
         $expires_at = (int) get_user_meta($user_id, 'seamless_token_expires', true);
         $access_token = get_user_meta($user_id, 'seamless_access_token', true);
