@@ -92,6 +92,48 @@ const getMemberDisplay = (member: any) => {
     };
 };
 
+const getRoleTagClassName = (role: string) => {
+    const normalizedRole = String(role || 'member').toLowerCase();
+
+    if (normalizedRole === 'owner') return 'seamless-org-role-owner';
+    if (normalizedRole === 'admin') return 'seamless-org-role-admin';
+    return 'seamless-org-role-member';
+};
+
+const getRoleDisplayLabel = (role: string) => {
+    const normalizedRole = String(role || 'member').toLowerCase();
+
+    if (normalizedRole === 'owner') return 'Owner';
+    if (normalizedRole === 'admin') return 'Admin';
+    return 'User';
+};
+
+const getMemberStatusMeta = (status: string) => {
+    const normalizedStatus = String(status || 'pending').toLowerCase();
+
+    if (normalizedStatus === 'accepted') {
+        return {
+            label: 'Accepted',
+            className: 'seamless-org-status-accepted',
+            icon: <Check size={12} />,
+        };
+    }
+
+    if (normalizedStatus === 'declined') {
+        return {
+            label: 'Declined',
+            className: 'seamless-org-status-declined',
+            icon: <X size={12} />,
+        };
+    }
+
+    return {
+        label: 'Pending',
+        className: 'seamless-org-status-pending',
+        icon: <Clock3 size={12} />,
+    };
+};
+
 const getRequestErrorMessage = (err: any, fallback: string) => {
     const responseData = err?.response?.data;
 
@@ -149,12 +191,13 @@ export const UserDashboardView: React.FC = () => {
     const [selectedMembershipId, setSelectedMembershipId] = useState<string | null>(null);
     const [selectedPlanForSwap, setSelectedPlanForSwap] = useState<any | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [renewingPlanId, setRenewingPlanId] = useState<string | null>(null);
     const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
 
-    const getSiteUrl = (): string => {
+    const getAuthenticatedCourseBaseUrl = (): string => {
         const cfg = (window as any).seamlessReactConfig;
-        return cfg?.siteUrl || window.location.origin;
+        return cfg?.clientDomain || cfg?.siteUrl || window.location.origin;
     };
 
     const getDashboardEmail = (): string => profile?.email || '';
@@ -172,6 +215,16 @@ export const UserDashboardView: React.FC = () => {
         fetchApiEndpoint('/dashboard/memberships', setMemberships);
         fetchApiEndpoint('/dashboard/memberships/history', setExpiredMemberships);
     };
+
+    useEffect(() => {
+        if (!orgInlineNotice) return;
+
+        const timer = window.setTimeout(() => {
+            setOrgInlineNotice(null);
+        }, 4000);
+
+        return () => window.clearTimeout(timer);
+    }, [orgInlineNotice]);
 
     const reloadOrganizationData = async () => {
         const email = getDashboardEmail();
@@ -558,6 +611,37 @@ export const UserDashboardView: React.FC = () => {
             setToast({ type: 'error', message: err?.response?.data?.message || 'An error occurred during action.' });
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleRenewMembership = async (planId: string) => {
+        const email = getDashboardEmail();
+        if (!planId || !email) {
+            setToast({ type: 'error', message: 'Renewal details are missing. Please refresh and try again.' });
+            return;
+        }
+
+        setRenewingPlanId(planId);
+        try {
+            const response = await api.post(`/dashboard/memberships/renew/${planId}`, { email });
+            const data = response.data;
+            const checkoutUrl = data?.data?.stripe_checkout_url || data?.data?.checkout_url || data?.checkout_url || data?.data?.url;
+
+            if (checkoutUrl) {
+                window.location.href = checkoutUrl;
+                return;
+            }
+
+            if (data?.success || response.status === 200) {
+                setToast({ type: 'success', message: data?.message || 'Membership renewal started successfully.' });
+                reloadMembershipData();
+            } else {
+                setToast({ type: 'error', message: data?.message || 'Failed to renew membership.' });
+            }
+        } catch (err: any) {
+            setToast({ type: 'error', message: getRequestErrorMessage(err, 'An error occurred during renewal.') });
+        } finally {
+            setRenewingPlanId(null);
         }
     };
 
@@ -1509,10 +1593,11 @@ export const UserDashboardView: React.FC = () => {
                                                                             <span className="seamless-expired-badge seamless-capitalize">Expired</span>
                                                                             <button
                                                                                 type="button"
-                                                                                disabled
-                                                                                className="seamless-user-dashboard-btn-renew seamless-user-dashboard-btn-renew-disabled"
+                                                                                disabled={renewingPlanId === String(mem.plan.id)}
+                                                                                onClick={() => handleRenewMembership(String(mem.plan.id))}
+                                                                                className="seamless-user-dashboard-btn-renew"
                                                                             >
-                                                                                Renew
+                                                                                {renewingPlanId === String(mem.plan.id) ? 'Processing...' : 'Renew'}
                                                                             </button>
                                                                         </div>
                                                                     )}
@@ -1644,6 +1729,7 @@ export const UserDashboardView: React.FC = () => {
                                                                         const memberDisplay = getMemberDisplay(member);
                                                                         const memberRole = String(member?.role || 'member').toLowerCase();
                                                                         const memberStatus = String(member?.status || 'pending').toLowerCase();
+                                                                        const memberStatusMeta = getMemberStatusMeta(memberStatus);
                                                                         const roleDraftKey = `${membershipId}-${member?.id}`;
                                                                         const selectedRole = memberRoleDrafts[roleDraftKey] || memberRole;
                                                                         const roleChanged = selectedRole !== memberRole;
@@ -1656,22 +1742,18 @@ export const UserDashboardView: React.FC = () => {
                                                                                     <div className="seamless-user-dashboard-org-member-details">
                                                                                         <span className="seamless-user-dashboard-org-member-name">
                                                                                             {memberDisplay.name}
-                                                                                            {memberRole === 'owner' && <span className="seamless-user-dashboard-org-role-badge seamless-org-role-owner">Owner</span>}
-                                                                                            {memberRole === 'admin' && <span className="seamless-user-dashboard-org-role-badge seamless-org-role-admin">Admin</span>}
+                                                                                            <span className={`seamless-user-dashboard-org-role-badge ${getRoleTagClassName(memberRole)}`}>
+                                                                                                {getRoleDisplayLabel(memberRole)}
+                                                                                            </span>
                                                                                         </span>
                                                                                         <span className="seamless-user-dashboard-org-member-email">{memberDisplay.email}</span>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div className="seamless-user-dashboard-org-member-actions">
-                                                                                    {memberStatus === 'accepted' && (
-                                                                                        <span className="seamless-user-dashboard-org-status-badge seamless-org-status-accepted"><Check size={12} /> Accepted</span>
-                                                                                    )}
-                                                                                    {memberStatus === 'pending' && (
-                                                                                        <span className="seamless-user-dashboard-org-status-badge seamless-org-status-pending"><Clock3 size={12} /> Pending</span>
-                                                                                    )}
-                                                                                    {memberStatus === 'declined' && (
-                                                                                        <span className="seamless-user-dashboard-org-status-badge seamless-org-status-declined"><X size={12} /> Declined</span>
-                                                                                    )}
+                                                                                    <span className={`seamless-user-dashboard-org-status-badge ${memberStatusMeta.className}`}>
+                                                                                        {memberStatusMeta.icon}
+                                                                                        {memberStatusMeta.label}
+                                                                                    </span>
 
                                                                                     {(isOwner || isAdmin) && memberRole !== 'owner' && memberStatus === 'accepted' && (
                                                                                         <div className="seamless-user-dashboard-org-role-change-wrap" data-current-role={memberRole}>
@@ -1680,7 +1762,7 @@ export const UserDashboardView: React.FC = () => {
                                                                                                 value={selectedRole}
                                                                                                 onChange={(e) => setMemberRoleDrafts((prev) => ({ ...prev, [roleDraftKey]: e.target.value }))}
                                                                                             >
-                                                                                                <option value="member">Member</option>
+                                                                                                <option value="member">User</option>
                                                                                                 <option value="admin">Admin</option>
                                                                                             </select>
                                                                                             {roleChanged && (
@@ -1784,7 +1866,7 @@ export const UserDashboardView: React.FC = () => {
                                                                         <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg> {p?.total_lessons || course?.lessons_count || 0} lessons</span>
                                                                         <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg> {course?.duration_minutes || 0} minutes</span>
                                                                     </div>
-                                                                    <a href={`${getSiteUrl()}/courses/${course?.slug || course?.id}`} className="seamless-course-card-action">
+                                                                    <a href={`${getAuthenticatedCourseBaseUrl().replace(/\/$/, '')}/courses/${course?.slug || course?.id}`} className="seamless-course-card-action">
                                                                         Start Course <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
                                                                     </a>
                                                                 </div>
@@ -1814,7 +1896,7 @@ export const UserDashboardView: React.FC = () => {
                                                                         <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg> {p?.total_lessons || course?.lessons_count || 0} lessons</span>
                                                                         <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg> {course?.duration_minutes || 0} minutes</span>
                                                                     </div>
-                                                                    <a href={`${getSiteUrl()}/courses/${course?.slug || course?.id}`} className="seamless-course-card-action">
+                                                                    <a href={`${getAuthenticatedCourseBaseUrl().replace(/\/$/, '')}/courses/${course?.slug || course?.id}`} className="seamless-course-card-action">
                                                                         Start Course <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
                                                                     </a>
                                                                 </div>

@@ -105,6 +105,11 @@
     align-items: center !important;
 }
 
+:host .seamless-status-tag {
+    display: flex !important;
+    gap: 20px !important;
+}
+
 :host .seamless-card-content .seamless-card-title {
     margin: 0 !important;
     font-size: var(--seamless-font-size-20) !important;

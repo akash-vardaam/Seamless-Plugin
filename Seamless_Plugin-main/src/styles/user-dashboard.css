@@ -4362,7 +4362,8 @@
     background: #fff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
-    overflow: auto !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
 }
 
 :host .seamless-styled-table {
@@ -4585,6 +4586,10 @@
     align-items: center !important;
     gap: 10px !important;
     flex-wrap: wrap !important;
+}
+
+:host .seamless-user-dashboard-org-plan-stats {
+    padding-top: 5px !important;
 }
 
 :host .seamless-user-dashboard-org-plan-scope {
