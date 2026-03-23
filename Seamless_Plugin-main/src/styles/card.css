@@ -1,0 +1,222 @@
+﻿/* ============================================
+   SEAMLESS EVENT DISPLAY - CARD STYLES
+   ============================================ */
+
+/* Grid card layout */
+:host .seamless-card {
+  background-color: var(--seamless-color-white) !important;
+  border-radius: var(--seamless-radius-lg) !important;
+  overflow: hidden !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #f1f5f9 !important;
+}
+
+:host .seamless-card:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01) !important;
+}
+
+:host .seamless-card-image-container {
+  width: 100% !important;
+  height: 265px !important;
+  background-color: #f8fafc !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+:host .seamless-card-image {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  max-height: 265px !important;
+  transition: transform var(--seamless-transition-normal) !important;
+}
+
+:host .seamless-card-content {
+  padding: var(--seamless-spacing-6) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+}
+
+:host .seamless-card-content .seamless-card-title {
+  margin-bottom: var(--seamless-spacing-4) !important;
+  display: block !important;
+  font-weight: 500 !important;
+  font-size: var(--seamless-font-size-lg) !important;
+  line-height: 1.5 !important;
+  color: var(--seamless-color-primary) !important;
+  transition: color var(--seamless-transition-fast) !important;
+  font-family: var(--seamless-font-family-serif) !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+:host .seamless-card-date {
+  margin-bottom: var(--seamless-spacing-1) !important;
+  font-size: var(--seamless-font-size-base) !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-card-time {
+  margin-bottom: var(--seamless-spacing-4) !important;
+  font-size: var(--seamless-font-size-base) !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+  color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-card-see-details {
+  margin-top: auto !important;
+  font-weight: 600 !important;
+  font-size: var(--seamless-font-size-sm) !important;
+  transition: all var(--seamless-transition-normal) !important;
+  color: var(--seamless-color-secondary) !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+}
+
+:host .seamless-card-see-details:hover {
+  color: var(--seamless-color-primary) !important;
+}
+
+/* List card layout */
+:host .seamless-card-list {
+  border-bottom: 1px solid var(--seamless-color-secondary) !important;
+  padding: var(--seamless-spacing-6) 0 !important;
+  overflow: hidden !important;
+}
+
+:host .seamless-card-list-content {
+  display: flex !important;
+  gap: var(--seamless-spacing-6) !important;
+  overflow: hidden !important;
+}
+
+:host .seamless-card-list-image {
+  flex-shrink: 0 !important;
+}
+
+:host .seamless-card-list-image-wrapper {
+  width: 8rem !important;
+  height: 8rem !important;
+  border-radius: var(--seamless-radius-lg) !important;
+  overflow: hidden !important;
+  background-color: var(--seamless-color-gray-100) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:host .seamless-card-list-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  transition: transform var(--seamless-transition-normal) !important;
+}
+
+:host .seamless-card-list-no-image {
+  color: var(--seamless-color-gray-400) !important;
+  font-size: var(--seamless-font-size-sm) !important;
+}
+
+:host .seamless-card-list-details {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+:host .seamless-card-list-details .seamless-card-list-title {
+  display: block !important;
+  margin-bottom: var(--seamless-spacing-3) !important;
+  font-size: 20px !important;
+  text-decoration: underline !important;
+  line-height: 1.5 !important;
+  font-weight: 500 !important;
+  color: var(--seamless-color-primary) !important;
+  transition: color var(--seamless-transition-fast) !important;
+  font-family: var(--seamless-font-family-serif) !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  width: 100% !important;
+}
+
+:host .seamless-card-list-details .seamless-card-list-title:hover {
+  text-decoration: underline !important;
+}
+
+:host .seamless-card-list-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--seamless-spacing-1) !important;
+  margin-bottom: var(--seamless-spacing-4) !important;
+}
+
+:host .seamless-card-list-meta p {
+  margin: 0 !important;
+  line-height: 18px !important;
+}
+
+:host .seamless-card-list-meta-item {
+  font-size: var(--seamless-font-size-base) !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+  color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-card-list-meta-date {
+  font-weight: 700 !important;
+}
+
+:host .seamless-card-list-description {
+  font-size: var(--seamless-font-size-base) !important;
+  line-height: 1.5 !important;
+  font-weight: 400 !important;
+  color: var(--seamless-color-gray-600) !important;
+  margin-bottom: var(--seamless-spacing-4) !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+:host .seamless-card-list-see-details {
+  font-weight: 600 !important;
+  font-size: var(--seamless-font-size-sm) !important;
+  transition: all var(--seamless-transition-normal) !important;
+  display: inline-block !important;
+  color: var(--seamless-color-secondary) !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
+:host .seamless-card-list-see-details:hover {
+  color: var(--seamless-color-primary) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  :host .seamless-card-image-container {
+    height: 200px !important;
+  }
+
+  :host .seamless-card-content {
+    padding: var(--seamless-spacing-4) !important;
+  }
+
+  :host .seamless-card-list-content {
+    gap: var(--seamless-spacing-4) !important;
+  }
+}

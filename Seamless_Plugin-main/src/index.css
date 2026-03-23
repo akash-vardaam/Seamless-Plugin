@@ -1,0 +1,14 @@
+/* ============================================
+   SEAMLESS PLUGIN — ROOT INDEX
+   ============================================
+   This file re-exports the styles/index.css bundle.
+   It is intentionally minimal — all actual CSS lives
+   inside src/styles/ and is injected into the Shadow DOM
+   via App.tsx using Vite's ?inline import suffix.
+
+   ⚠️  Do NOT add global (non-shadow-scoped) rules here.
+       They will NOT be injected into the shadow root and
+       will be overridden by host-page theme/plugin CSS.
+   ============================================ */
+
+@import "./styles/index.css";

@@ -1,0 +1,135 @@
+﻿/* ============================================
+   SEAMLESS EVENT DISPLAY - LAYOUT STYLES
+   ============================================ */
+
+:host .seamless-container {
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: var(--seamless-spacing-4) !important;
+  padding-right: var(--seamless-spacing-4) !important;
+}
+
+:host .seamless-page-wrapper {
+  min-height: 100vh !important;
+  width: 100% !important;
+}
+
+:host .seamless-main-content {
+  width: 100% !important;
+}
+
+:host .seamless-filter-section {
+  margin-bottom: var(--seamless-spacing-8) !important;
+}
+
+:host .seamless-items-display {
+  width: 100% !important;
+}
+
+/* Grid layouts for items */
+:host .seamless-items-grid {
+  display: grid !important;
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  gap: var(--seamless-spacing-6) !important;
+  width: 100% !important;
+}
+
+@media (min-width: 768px) {
+  :host .seamless-items-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  :host .seamless-items-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+:host .seamless-items-list {
+  width: 100% !important;
+}
+
+/* Empty state */
+:host .seamless-empty-state {
+  background-color: var(--seamless-color-white) !important;
+  border-radius: var(--seamless-radius-lg) !important;
+  padding: var(--seamless-spacing-8) !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+:host .seamless-empty-state-text {
+  color: var(--seamless-color-gray-600) !important;
+  font-size: var(--seamless-font-size-lg) !important;
+}
+
+/* Loading state */
+:host .seamless-loading-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+}
+
+:host .seamless-loading-content {
+  text-align: center !important;
+}
+
+:host .seamless-spinner {
+  display: inline-block !important;
+  width: 3rem !important;
+  height: 3rem !important;
+  border: 2px solid transparent !important;
+  border-bottom-color: var(--seamless-color-secondary) !important;
+  border-radius: 50% !important;
+  animation: seamless-spin 1s linear infinite !important;
+  margin-bottom: var(--seamless-spacing-4) !important;
+}
+
+@keyframes seamless-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+:host .seamless-loading-text {
+  color: var(--seamless-color-gray-600) !important;
+}
+
+/* Error state */
+:host .seamless-error-container {
+  padding: var(--seamless-spacing-6) !important;
+  background-color: var(--seamless-color-red-50) !important;
+  border: 1px solid var(--seamless-color-red-200) !important;
+  border-radius: var(--seamless-radius-lg) !important;
+}
+
+:host .seamless-error-title {
+  color: var(--seamless-color-red-800) !important;
+  font-weight: 600 !important;
+}
+
+:host .seamless-error-message {
+  color: var(--seamless-color-red-600) !important;
+  font-size: var(--seamless-font-size-sm) !important;
+}
+
+/* Results counter */
+:host .seamless-results-info {
+  margin-bottom: var(--seamless-spacing-6) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: var(--seamless-spacing-4) !important;
+}
+
+:host .seamless-results-text {
+  color: var(--seamless-color-gray-600) !important;
+}
+
+:host .seamless-results-count {
+  font-weight: 600 !important;
+}
+

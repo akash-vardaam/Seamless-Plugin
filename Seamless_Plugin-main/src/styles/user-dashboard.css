@@ -1,0 +1,4954 @@
+﻿:host .seamless-user-dashboard {
+    display: flex !important;
+    gap: 20px !important;
+    padding: 0px !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    min-height: 600px !important;
+}
+
+/* Sidebar */
+:host .seamless-user-dashboard-sidebar {
+    width: 270px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+}
+
+:host .seamless-user-dashboard-profile-card {
+    background: var(--seamless-color-primary) !important;
+    padding: 16px !important;
+    color: #fff !important;
+    border-radius: 12px !important;
+    border: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-profile-name {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-profile-email {
+    font-size: 13px !important;
+}
+
+/* Navigation */
+:host .seamless-user-dashboard-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-nav button.seamless-user-dashboard-nav-item,
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 5px !important;
+    background: transparent !important;
+    border: none !important;
+    color: #333 !important;
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+    border-left: 3px solid transparent !important;
+    cursor: pointer !important;
+    font-size: 15px !important;
+    line-height: 1.8 !important;
+    font-weight: 400 !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    text-align: left !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+:host .seamless-user-dashboard-nav button.seamless-user-dashboard-nav-item:hover,
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item:hover {
+    background: #f3f4f9 !important;
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-nav button.seamless-user-dashboard-nav-item.active,
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item.active {
+    background: var(--seamless-color-primary) !important;
+    color: #fff !important;
+}
+
+:host .seamless-user-dashboard-nav button.seamless-user-dashboard-nav-item svg,
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item svg {
+    opacity: 0.7 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-nav button.seamless-user-dashboard-nav-item:hover svg,
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item:hover svg,
+:host .seamless-user-dashboard-nav button.seamless-user-dashboard-nav-item.active svg,
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item.active svg {
+    opacity: 1 !important;
+}
+
+/* Main Content Area */
+:host .seamless-user-dashboard .seamless-user-dashboard-main {
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 0px !important;
+    border-radius: 8px !important;
+}
+
+:host .seamless-user-dashboard-main .seamless-user-dashboard-view {
+    display: none !important;
+}
+
+:host .seamless-user-dashboard-main .seamless-user-dashboard-view.active {
+    display: block !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-view-title {
+    margin: 0 0 20px 0 !important;
+    font-size: 21px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+/* Summary Grid - Two Cards */
+:host .seamless-user-dashboard-main .seamless-user-dashboard-summary-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 3fr !important;
+    gap: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-dashboard-content-container .seamless-user-dashboard-summary-grid-memberships {
+    grid-template-columns: 1fr 1fr !important;
+}
+
+:host .seamless-user-dashboard-invoice-btn {
+    background-color: var(--seamless-color-primary) !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 8px 18px !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Total Memberships Card */
+:host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-summary-card {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+}
+
+:host .seamless-user-dashboard-summary-card .seamless-user-dashboard-summary-value {
+    font-size: 42px !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    line-height: 1 !important;
+    margin-bottom: 8px !important;
+}
+
+:host .seamless-user-dashboard-summary-card .seamless-user-dashboard-summary-label {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+}
+
+/* Current Membership Card */
+:host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-current-membership-card {
+    background: linear-gradient(135deg, var(--seamless-color-primary) 0%, var(--seamless-color-primary) 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    gap: 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-current-membership-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -50% !important;
+    right: -20% !important;
+    width: 200px !important;
+    height: 200px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+}
+
+:host .seamless-dashboard-content-container .seamless-user-dashboard-summary-grid .upgraded::before {
+    right: -10% !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+}
+
+:host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-current-membership-header h3 {
+    margin: 0 !important;
+    font-size: 21px !important;
+    line-height: 1.5 !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-badge {
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 3px 12px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0.5px !important;
+    font-size: 12px !important;
+    line-height: 15px !important;
+}
+
+/* Upgraded Card - Premium Gold Design */
+
+:host .upgraded .seamless-user-dashboard-current-membership-header h3 {
+    color: #1a1a1a !important;
+    font-size: 24px !important;
+    line-height: 36px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Upgraded Badge with Sparkles */
+:host .upgraded .seamless-upgraded-badge-container {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 10 !important;
+}
+
+:host .seamless-upgraded-badge-container .seamless-upgraded-badge {
+    position: relative !important;
+    background: linear-gradient(135deg, rgb(253 236 167) 0%, rgba(255, 255, 255, 0.85) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: 0px 12px !important;
+    border-radius: 12px !important;
+    border: 2px solid rgba(212, 175, 55, 0.5) !important;
+    box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2) !important;
+}
+
+:host .seamless-upgraded-badge .seamless-badge-text {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #c5a028 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    display: inline-block !important;
+    position: relative !important;
+    z-index: 2 !important;
+    line-height: 1 !important;
+}
+
+/* Sparkle Animation */
+:host .seamless-upgraded-badge .seamless-badge-sparkle {
+    position: absolute !important;
+    width: 4px !important;
+    height: 4px !important;
+    background: radial-gradient(circle, #fff 0%, #f4d03f 50%, transparent 100%) !important;
+    border-radius: 50% !important;
+    animation: sparkle 2s infinite !important;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8) !important;
+}
+
+:host .seamless-upgraded-badge .seamless-sparkle-1 {
+    top: -8px !important;
+    left: 15% !important;
+    animation-delay: 0s !important;
+}
+
+:host .seamless-upgraded-badge .seamless-sparkle-2 {
+    top: 5px !important;
+    right: 10% !important;
+    animation-delay: 0.4s !important;
+}
+
+:host .seamless-upgraded-badge .seamless-sparkle-3 {
+    bottom: -5px !important;
+    left: 30% !important;
+    animation-delay: 0.8s !important;
+}
+
+:host .seamless-upgraded-badge .seamless-sparkle-4 {
+    top: -5px !important;
+    right: 25% !important;
+    animation-delay: 1.2s !important;
+}
+
+:host .seamless-upgraded-badge .seamless-sparkle-5 {
+    bottom: 5px !important;
+    right: 20% !important;
+    animation-delay: 1.6s !important;
+}
+
+@keyframes sparkle {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+}
+
+/* Active Badge - Bottom Right */
+:host .upgraded .seamless-user-dashboard-badge {
+    position: absolute !important;
+    top: auto !important;
+    bottom: 15px !important;
+    right: 15px !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #000 !important;
+    border: 1px solid rgba(154, 154, 154, 0.3) !important;
+    padding: 6px 14px !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0.5px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry {
+    font-size: 14px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card.upgraded .seamless-user-dashboard-current-membership-expiry {
+    color: rgb(54 54 54 / 80%) !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry strong {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card.upgraded .seamless-user-dashboard-current-membership-expiry span {
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card.upgraded .seamless-user-dashboard-current-membership-expiry strong {
+    color: #1a1a1a !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Empty Membership Card */
+:host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-empty-membership {
+    background: #f9fafb !important;
+    border: 2px dashed #d1d5db !important;
+}
+
+:host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-empty-membership::before {
+    display: none !important;
+}
+
+:host .seamless-user-dashboard-empty-membership .seamless-user-dashboard-summary-message {
+    text-align: center !important;
+}
+
+:host .seamless-user-dashboard-empty-membership .seamless-user-dashboard-summary-message strong {
+    display: block !important;
+    font-size: 16px !important;
+    color: #4a5568 !important;
+    margin-bottom: 4px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-empty-membership .seamless-user-dashboard-summary-message p {
+    margin: 0 !important;
+    font-size: 14px !important;
+    color: #718096 !important;
+}
+
+/* Tabs Wrapper */
+:host .seamless-user-dashboard-view .seamless-user-dashboard-tabs-wrapper {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    overflow: visible !important;
+}
+
+/* Tabs Header */
+:host .seamless-user-dashboard-tabs-wrapper .seamless-user-dashboard-tabs-header {
+    display: flex !important;
+    gap: 0 !important;
+    background: #f9fafb !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+:host .seamless-user-dashboard-tabs-header button.seamless-user-dashboard-tab {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 16px 24px !important;
+    background: transparent !important;
+    border-radius: 0px !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    cursor: pointer !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-tabs-header button.seamless-user-dashboard-tab:hover {
+    color: #1a1a1a !important;
+    border-bottom: 2px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-tabs-header button.seamless-user-dashboard-tab.active {
+    color: #1a1a1a !important;
+    border-bottom-color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-tab .seamless-user-dashboard-tab-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    padding: 0 6px !important;
+    background: #e5e7eb !important;
+    color: #374151 !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-tabs-header button.seamless-user-dashboard-tab.active .seamless-user-dashboard-tab-count {
+    background: #dbeafe !important;
+    color: #1a1a1a !important;
+}
+
+/* Tabs Content */
+:host .seamless-user-dashboard-tabs-wrapper .seamless-user-dashboard-tab-content {
+    display: none !important;
+}
+
+:host .seamless-user-dashboard-tabs-wrapper .seamless-user-dashboard-tab-content.active {
+    display: block !important;
+    background: rgb(250, 250, 250) !important;
+    border: 1px solid rgb(243, 244, 246) !important;
+    padding: 20px !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+    margin-top: 0px !important;
+}
+
+/* Membership List */
+:host .seamless-user-dashboard-tabs-content .seamless-user-dashboard-membership-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-membership-list .seamless-user-dashboard-membership-card {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    overflow: visible !important;
+    transition: all 0.3s ease !important;
+}
+
+:host .seamless-user-dashboard-membership-card .seamless-user-dashboard-membership-content {
+    position: relative !important;
+    padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+}
+
+:host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 5px !important;
+}
+
+:host .seamless-user-dashboard-membership-header .seamless-user-dashboard-membership-title {
+    width: auto !important;
+    flex: 1 !important;
+    margin: 0 !important;
+    font-size: 21px !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-membership-header .seamless-user-dashboard-badge {
+    flex-shrink: 0 !important;
+    padding: 3px 12px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0.5px !important;
+    font-size: 12px !important;
+    line-height: 15px !important;
+}
+
+:host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-title {
+    width: 93% !important;
+    margin: 0 !important;
+    font-size: 21px !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    line-height: 30px !important;
+}
+
+:host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-actions {
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    gap: 10px !important;
+    align-items: center !important;
+    border-radius: 12px !important;
+}
+
+:host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-body {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+
+:host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta {
+    font-size: 14px !important;
+    color: #4a5568 !important;
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+}
+
+:host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta:last-child {
+    margin-bottom: 0 !important;
+}
+
+:host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta strong {
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta span {
+    font-size: 14px !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge {
+    padding: 3px 12px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0.5px !important;
+    border: none !important;
+    line-height: 20px !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-active {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
+    color: #065f46 !important;
+    border: 1px solid #6ee7b7 !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-cancelled {
+    background: linear-gradient(135deg, #ff6f6f 0%, #f33e3e 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid #fc4d4d !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-upgraded {
+    background: rgb(245 158 11 / 5%) !important;
+    color: #f59e0b !important;
+    padding: 3px 9px !important;
+    border-radius: 8px !important;
+    border: 1px solid #f59e0b !important;
+    /* box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2); */
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-downgraded {
+    background: rgba(225, 29, 72, 0.05) !important;
+    color: rgb(225, 29, 72) !important;
+    padding: 3px 9px !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(225, 29, 72, 0.5) !important;
+}
+
+:host .seamless-user-dashboard-membership-list .seamless-user-dashboard-badge-expired {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%) !important;
+    color: var(--seamless-color-font) !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* Three-Dot Menu */
+:host .seamless-user-dashboard-menu-container {
+    position: relative !important;
+    display: inline-block !important;
+}
+
+:host .seamless-user-dashboard-menu-button {
+    background: transparent !important;
+    border: 1px solid #d1d5db !important;
+    cursor: pointer !important;
+    padding: 6px 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    color: #6b7280 !important;
+}
+
+:host .seamless-user-dashboard-menu-button:hover {
+    background: #f9fafb !important;
+    border-color: #9ca3af !important;
+    color: #374151 !important;
+}
+
+:host .seamless-user-dashboard-menu-dropdown {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    margin-top: 10px !important;
+    background: #ffffff !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    min-width: 150px !important;
+    z-index: 20 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-menu-container.active .seamless-user-dashboard-menu-dropdown {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+}
+
+:host .seamless-user-dashboard-menu-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 10px 14px !important;
+    background: none !important;
+    border: none !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    color: var(--seamless-color-font) !important;
+    text-align: left !important;
+}
+
+:host .seamless-user-dashboard-menu-item:first-child {
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+}
+
+:host .seamless-user-dashboard-menu-item:last-child {
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+:host .seamless-user-dashboard-menu-item svg {
+    flex-shrink: 0 !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+:host .seamless-user-dashboard-menu-item.seamless-user-dashboard-badge-upgrade svg,
+:host .seamless-user-dashboard-menu-item.seamless-user-dashboard-badge-downgrade svg,
+:host .seamless-user-dashboard-menu-item.seamless-user-dashboard-badge-cancel svg {
+    color: #1e1e1e !important;
+}
+
+:host .seamless-user-dashboard-menu-item.seamless-user-dashboard-badge-upgrade:hover svg {
+    color: #00a63e !important;
+}
+
+:host .seamless-user-dashboard-menu-item.seamless-user-dashboard-badge-downgrade:hover svg {
+    color: #d97706 !important;
+}
+
+:host .seamless-user-dashboard-menu-item.seamless-user-dashboard-badge-cancel:hover svg {
+    color: #dc2626 !important;
+}
+
+
+/* Cancelled Membership Notice */
+:host .seamless-user-dashboard-membership-cancelled-notice {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    border-radius: 8px !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-membership-cancelled-notice svg {
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+    color: #f59e0b !important;
+}
+
+:host .seamless-user-dashboard-membership-cancelled-notice strong {
+    font-weight: 600 !important;
+}
+
+/* Scheduled Downgrade Notice */
+:host .seamless-user-dashboard-membership-scheduled-notice {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-membership-scheduled-notice svg {
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+    color: #f59e0b !important;
+}
+
+:host .seamless-user-dashboard-membership-scheduled-notice button.seamless-user-dashboard-cancel-scheduled-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: #fff !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    border: none !important;
+    font-size: 12px !important;
+    padding: 6px 14px !important;
+}
+
+:host .seamless-user-dashboard-membership-scheduled-notice button.seamless-user-dashboard-cancel-scheduled-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+    transform: translateY(0px) !important;
+}
+
+:host .seamless-user-dashboard-scheduled-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    flex: 1 !important;
+}
+
+:host .seamless-user-dashboard-scheduled-date {
+    font-size: 13px !important;
+    opacity: 0.9 !important;
+}
+
+:host .seamless-user-dashboard-scheduled-date strong {
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-cancel-scheduled-btn {
+    margin-top: 8px !important;
+    padding: 8px 16px !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    align-self: flex-start !important;
+}
+
+:host .seamless-user-dashboard-cancel-scheduled-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+:host .seamless-user-dashboard-cancel-scheduled-btn:active {
+    transform: translateY(0) !important;
+}
+
+/* Buttons - Classic Style */
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-btn {
+    padding: 4px 12px !important;
+    border: 1px solid #cbd5e0 !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    line-height: 20px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    text-align: center !important;
+    background: #ffffff !important;
+    color: #2d3748 !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-btn:hover {
+    background: #f7fafc !important;
+    border-color: #a0aec0 !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-btn-renew {
+    background: var(--seamless-color-primary) !important;
+    color: #1a1a1a !important;
+    border: none !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-btn-renew:hover {
+    background: var(--seamless-secondary-color) !important;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3) !important;
+}
+
+:host .seamless-user-dashboard-profile-actions .seamless-user-dashboard-btn-edit-profile {
+    background: var(--seamless-color-primary) !important;
+    color: #1a1a1a !important;
+    border: none !important;
+}
+
+:host .seamless-user-dashboard-profile-actions .seamless-user-dashboard-btn-edit-profile:hover {
+    background: var(--seamless-secondary-color) !important;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3) !important;
+}
+
+:host .seamless-user-dashboard-col-action .seamless-user-dashboard-btn-invoice {
+    background: var(--seamless-color-primary) !important;
+    color: #1a1a1a !important;
+    border: none !important;
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+    text-decoration: none !important;
+    border-radius: 8px !important;
+}
+
+:host .seamless-user-dashboard-col-action .seamless-user-dashboard-btn-invoice:hover {
+    background: var(--seamless-secondary-color) !important;
+    font-weight: inherit !important;
+}
+
+/* Courses Section */
+
+:host .seamless-user-dashboard-summary-grid {
+    display: grid !important;
+    grid-template-columns: 160px 160px 1fr !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-section {
+    margin-bottom: 40px !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-section:last-child {
+    margin-bottom: 0 !important;
+}
+
+:host .seamless-user-dashboard-section .seamless-user-dashboard-section-title {
+    font-size: 21px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    margin: 0px 0px 20px 0px !important;
+}
+
+:host .seamless-user-dashboard-tab-content .seamless-user-dashboard-courses-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
+    gap: 20px !important;
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-courses-grid .seamless-user-dashboard-course-card {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+}
+
+:host .seamless-user-dashboard-courses-grid .seamless-user-dashboard-course-card:hover {
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Course Image */
+:host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-image {
+    width: 100% !important;
+    height: 160px !important;
+    overflow: hidden !important;
+    background: #f3f4f6 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+:host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-image-placeholder {
+    background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%) !important;
+}
+
+:host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-image-placeholder svg {
+    color: #8b5cf6 !important;
+    opacity: 0.6 !important;
+}
+
+/* Course Content */
+:host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-content {
+    padding: 16px !important;
+}
+
+:host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-content .seamless-user-dashboard-course-title {
+    margin: 0 0 10px 0 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    line-height: 1.4 !important;
+}
+
+/* Course Progress Section */
+
+:host .seamless-user-dashboard-progress-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-user-dashboard-progress-label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-progress-text {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-courses-grid .seamless-user-dashboard-course-progress-section {
+    margin-bottom: 10px !important;
+}
+
+:host .seamless-user-dashboard-progress-bar {
+    width: 100% !important;
+    height: 8px !important;
+    background: #e5e7eb !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-progress-fill {
+    height: 100% !important;
+    background: linear-gradient(90deg, #155dfc 0%, #5568d3 100%) !important;
+    border-radius: 10px !important;
+    transition: width 0.3s ease !important;
+}
+
+/* Current Course Card */
+:host .seamless-user-dashboard-current-course-card {
+    background: linear-gradient(135deg, var(--seamless-color-primary) 0%, var(--seamless-color-primary) 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    min-height: 130px !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-current-course-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -50% !important;
+    right: -20% !important;
+    width: 200px !important;
+    height: 200px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+}
+
+:host .seamless-user-dashboard-current-course-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 15px !important;
+    z-index: 1 !important;
+}
+
+:host .seamless-user-dashboard-current-course-header h3 {
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    line-height: 1.3 !important;
+}
+
+:host .seamless-user-dashboard-course-status {
+    font-size: 14px !important;
+    color: #fff !important;
+    line-height: 1 !important;
+}
+
+:host .seamless-user-dashboard-current-course-header a.seamless-user-dashboard-course-continue-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 5px 10px !important;
+    background: transparent !important;
+    backdrop-filter: blur(16px) !important;
+    color: #fff !important;
+    border: 1px solid rgba(154, 154, 154, 0.3) !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+}
+
+:host .seamless-user-dashboard-course-continue-btn:hover {
+    background: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-course-continue-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+:host .seamless-user-dashboard-current-course-body {
+    z-index: 1 !important;
+}
+
+:host .seamless-user-dashboard-current-course-card .seamless-user-dashboard-progress-label,
+:host .seamless-user-dashboard-current-course-card .seamless-user-dashboard-progress-text {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+:host .seamless-user-dashboard-current-course-card .seamless-user-dashboard-progress-bar {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+:host .seamless-user-dashboard-current-course-card .seamless-user-dashboard-progress-fill {
+    background: #ffffff !important;
+}
+
+/* Empty Course Card */
+:host .seamless-user-dashboard-empty-course-card {
+    background: #f9fafb !important;
+    border: 2px dashed #d1d5db !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-empty-course-content {
+    text-align: center !important;
+    color: #9ca3af !important;
+    line-height: 1 !important;
+}
+
+:host .seamless-user-dashboard-empty-course-content svg {
+    width: 40px !important;
+    height: 40px !important;
+    color: #d1d5db !important;
+    margin-bottom: 12px !important;
+}
+
+:host .seamless-user-dashboard-empty-course-content p {
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
+}
+
+/* Simple Course Info (for included courses without progress) */
+:host .seamless-user-dashboard-course-info {
+    margin-bottom: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+:host .seamless-user-dashboard-course-lessons-simple {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 12px !important;
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-course-lessons-simple svg {
+    width: 16px !important;
+    height: 16px !important;
+    color: #9ca3af !important;
+}
+
+/* Renewal Modal Plan Card */
+:host .seamless-user-dashboard-renew-plan-info .seamless-user-dashboard-renew-plan-card {
+    background: #eef2ff !important;
+    border: 2px solid #667eea !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+}
+
+:host .seamless-user-dashboard-renew-plan-card .seamless-user-dashboard-renew-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-user-dashboard-renew-header .seamless-user-dashboard-renew-plan-name {
+    font-size: 16px !important;
+    line-height: 30px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    margin: 0 !important;
+}
+
+:host .seamless-user-dashboard-renew-plan-price {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #667eea !important;
+}
+
+:host .seamless-user-dashboard-renew-plan-price .plan-period {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+
+:host span.seamless-user-dashboard-renew-total {
+    color: #059669 !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+}
+
+/* Info Icon for Subsequent Renewal Price */
+:host .seamless-user-dashboard-info-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: help !important;
+    position: relative !important;
+    vertical-align: middle !important;
+}
+
+:host .seamless-user-dashboard-info-icon svg {
+    color: #667eea !important;
+    transition: color 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-info-icon:hover svg {
+    color: #4c51bf !important;
+}
+
+/* Tooltip styling */
+:host .seamless-user-dashboard-info-icon::after {
+    content: attr(data-tooltip) !important;
+    position: absolute !important;
+    bottom: 100% !important;
+    left: 50% !important;
+    height: auto !important;
+    width: max-content !important;
+    max-width: 400px !important;
+    transform: translateX(-50%) translateY(-8px) !important;
+    background: #1f2937 !important;
+    color: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    white-space: normal !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+    z-index: 1000 !important;
+}
+
+:host .seamless-user-dashboard-info-icon::before {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 100% !important;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(-2px) !important;
+    border: 5px solid transparent !important;
+    border-top-color: #1f2937 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+    z-index: 1000 !important;
+}
+
+:host .seamless-user-dashboard-info-icon:hover::after,
+:host .seamless-user-dashboard-info-icon:hover::before {
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(-4px) !important;
+}
+
+/* Continue Button */
+:host .seamless-user-dashboard-course-content .seamless-user-dashboard-course-continue {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+    color: #155dfc !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-course-content .seamless-user-dashboard-course-continue:hover {
+    color: #5568d3 !important;
+}
+
+/* Completed Badge */
+:host .seamless-user-dashboard-course-content .seamless-user-dashboard-course-completed {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #059669 !important;
+    text-decoration: none !important;
+}
+
+:host .seamless-user-dashboard-course-content .seamless-user-dashboard-course-completed svg,
+:host .seamless-user-dashboard-course-content .seamless-user-dashboard-course-continue svg {
+    width: 14px !important;
+    height: 14px !important;
+    transition: transform .2s !important;
+}
+
+:host .seamless-user-dashboard-course-content .seamless-user-dashboard-course-completed:hover svg,
+:host .seamless-user-dashboard-course-content .seamless-user-dashboard-course-continue:hover svg {
+    transform: translateX(2px) !important;
+}
+
+/* Empty State */
+:host .seamless-user-dashboard-tab-content .seamless-user-dashboard-empty {
+    padding: 40px 20px !important;
+    text-align: center !important;
+    color: #6b7280 !important;
+    font-size: 15px !important;
+    background: #f9fafb !important;
+    border-radius: 8px !important;
+    border: 1px solid #e5e7eb !important;
+    margin: 20px !important;
+}
+
+/* Orders Table */
+:host .seamless-user-dashboard-view .seamless-user-dashboard-orders-container {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-orders-container .seamless-user-dashboard-order-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    margin: 0 !important;
+}
+
+:host .seamless-user-dashboard-orders-container table.seamless-user-dashboard-order-table thead tr th {
+    background: #f9fafb !important;
+    border: none !important;
+    border-bottom: 2px solid #e5e7eb !important;
+    padding: 12px 16px !important;
+    align-content: center !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #374151 !important;
+}
+
+:host .seamless-user-dashboard-orders-container table.seamless-user-dashboard-order-table tbody tr {
+    border-bottom: 1px solid #e5e7eb !important;
+    transition: background 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-orders-container table.seamless-user-dashboard-order-table tbody tr:hover {
+    background: #f9fafb !important;
+}
+
+:host .seamless-user-dashboard-orders-container table.seamless-user-dashboard-order-table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+:host .seamless-user-dashboard-orders-container table.seamless-user-dashboard-order-table td {
+    border: none !important;
+    padding: 16px !important;
+    font-size: 14px !important;
+    color: #1a1a1a !important;
+    vertical-align: middle !important;
+}
+
+/* Column widths */
+:host .seamless-user-dashboard-order-table .seamless-user-dashboard-col-customer {
+    width: 15% !important;
+}
+
+:host .seamless-user-dashboard-order-table .seamless-user-dashboard-col-items {
+    width: 8% !important;
+    text-align: center !important;
+}
+
+:host .seamless-user-dashboard-order-table .seamless-user-dashboard-col-products {
+    width: 25% !important;
+}
+
+:host .seamless-user-dashboard-order-table .seamless-user-dashboard-col-status {
+    width: 12% !important;
+}
+
+:host .seamless-user-dashboard-order-table .seamless-user-dashboard-col-total {
+    width: 15% !important;
+}
+
+:host .seamless-user-dashboard-order-table .seamless-user-dashboard-col-date {
+    width: 15% !important;
+}
+
+:host .seamless-user-dashboard-order-table .seamless-user-dashboard-col-action {
+    width: 10% !important;
+    text-align: center !important;
+}
+
+:host .seamless-user-dashboard-order-row .seamless-user-dashboard-ellipsis {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 240px !important;
+    white-space: normal !important;
+}
+
+:host .seamless-user-dashboard-col-items .seamless-user-dashboard-count-badge {
+    font-size: 13px !important;
+}
+
+:host .seamless-user-dashboard-col-status .seamless-user-dashboard-chip {
+    display: inline-block !important;
+    padding: 4px 12px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+}
+
+:host .seamless-user-dashboard-col-status .seamless-user-dashboard-chip-success {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+}
+
+:host .seamless-user-dashboard-col-status .seamless-user-dashboard-chip-warning {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+:host .seamless-user-dashboard-col-status .seamless-user-dashboard-chip-danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+:host .seamless-user-dashboard-col-status .seamless-user-dashboard-chip-neutral {
+    background: #f3f4f6 !important;
+    color: #6b7280 !important;
+}
+
+:host .seamless-user-dashboard-col-total .seamless-user-dashboard-strike {
+    text-decoration: line-through !important;
+    color: #9ca3af !important;
+}
+
+:host .seamless-user-dashboard-col-total .seamless-user-dashboard-amount-green {
+    color: #059669 !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-col-total .seamless-user-dashboard-refunded {
+    font-size: 11px !important;
+    color: #dc2626 !important;
+}
+
+:host .seamless-user-dashboard-col-total .seamless-user-dashboard-muted {
+    color: #6b7280 !important;
+}
+
+/* Pagination */
+:host .seamless-user-dashboard-orders-container .seamless-user-dashboard-pagination {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 16px 20px !important;
+    background: #f9fafb !important;
+    border-top: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-memberships-container .seamless-user-dashboard-pagination,
+:host .seamless-user-dashboard-courses-container .seamless-user-dashboard-pagination {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 16px 20px !important;
+    background: #f9fafb !important;
+    border-top: 1px solid #e5e7eb !important;
+    border-radius: 0px 0px 12px 12px !important;
+}
+
+:host .seamless-user-dashboard-pagination .seamless-user-dashboard-pagination-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 16px !important;
+    background: #fff !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #374151 !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-pagination .seamless-user-dashboard-pagination-btn:hover:not(:disabled) {
+    background: #f9fafb !important;
+    border: 1px solid #9ca3af !important;
+}
+
+:host .seamless-user-dashboard-pagination .seamless-user-dashboard-pagination-btn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    border: 1px solid #9ca3af !important;
+}
+
+:host .seamless-user-dashboard-pagination .seamless-user-dashboard-pagination-info {
+    font-size: 14px !important;
+    color: #6b7280 !important;
+}
+
+:host .seamless-user-dashboard-pagination .seamless-user-dashboard-current-page,
+:host .seamless-user-dashboard-pagination .seamless-user-dashboard-total-pages {
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+/* Profile Section - Inline Editing */
+:host .seamless-user-dashboard-view .seamless-user-dashboard-profile-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+}
+
+:host .seamless-user-dashboard-profile-container .seamless-user-dashboard-profile-section {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 24px 30px !important;
+}
+
+:host .seamless-user-dashboard-profile-section .seamless-user-dashboard-profile-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 24px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-profile-header .seamless-user-dashboard-section-title {
+    margin: 0 !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+/* Edit Button */
+:host .seamless-user-dashboard-profile-header .seamless-user-dashboard-btn-edit {
+    background: var(--seamless-color-primary) !important;
+    color: #fff !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+    padding: 8px 20px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-profile-header .seamless-user-dashboard-btn-edit:hover {
+    color: var(--seamless-color-primary) !important;
+    background: transparent !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+}
+
+/* Profile Grid */
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-grid,
+:host .seamless-user-dashboard-profile-edit-mode .seamless-user-dashboard-profile-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-grid:last-child {
+    margin-bottom: 0 !important;
+}
+
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-field {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-field-full {
+    grid-column: 1 / -1 !important;
+}
+
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-field label {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
+}
+
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-field .seamless-user-dashboard-profile-value,
+:host .seamless-user-dashboard-profile-edit-mode .seamless-user-dashboard-profile-field .seamless-user-dashboard-profile-value {
+    font-size: 15px !important;
+    color: #1a1a1a !important;
+}
+
+/* Profile Separator */
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-separator,
+:host .seamless-user-dashboard-profile-edit-mode .seamless-user-dashboard-profile-separator {
+    margin: 24px 0 20px 0 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-subsection-title,
+:host .seamless-user-dashboard-profile-edit-mode .seamless-user-dashboard-subsection-title {
+    margin: 0 !important;
+    padding-bottom: 10px !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+/* Form Groups in Edit Mode */
+:host .seamless-user-dashboard-form-group {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+:host .seamless-user-dashboard-form-group label {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #374151 !important;
+}
+
+:host .seamless-user-dashboard-form-group .required {
+    color: #dc2626 !important;
+}
+
+:host .seamless-user-dashboard-form-group input,
+:host .seamless-user-dashboard-form-group select {
+    padding: 10px 14px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    color: #1a1a1a !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-form-group input:focus,
+:host .seamless-user-dashboard-form-group select:focus {
+    outline: none !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Profile Actions (Save/Cancel buttons) */
+:host .seamless-user-dashboard-edit-profile-form .seamless-user-dashboard-profile-actions {
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+    margin-top: 20px !important;
+    padding-top: 20px !important;
+}
+
+:host .seamless-user-dashboard-profile-actions .seamless-user-dashboard-btn-cancel,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-cancel,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-keep,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-keep-scheduled {
+    background: #fff !important;
+    color: #374151 !important;
+    border: 1px solid #d1d5db !important;
+    padding: 10px 24px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-profile-actions .seamless-user-dashboard-btn-cancel:hover,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-cancel:hover,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-keep:hover,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-keep-scheduled:hover {
+    background: #f9fafb !important;
+    border: 1px solid #9ca3af !important;
+}
+
+:host .seamless-user-dashboard-modal-actions button.seamless-user-dashboard-modal-confirm-cancel,
+:host .seamless-user-dashboard-modal-actions button.seamless-user-dashboard-modal-confirm-cancel-scheduled {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: #fff !important;
+    border: 1px solid #ef4444 !important;
+    padding: 10px 24px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-modal-actions button.seamless-user-dashboard-modal-confirm-cancel:hover,
+:host .seamless-user-dashboard-modal-actions button.seamless-user-dashboard-modal-confirm-cancel-scheduled:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+:host .seamless-user-dashboard-profile-actions .seamless-user-dashboard-btn-save,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-upgrade,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-renew {
+    background: var(--seamless-color-primary) !important;
+    color: #fff !important;
+    border: 1px solid !important;
+    padding: 10px 24px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-profile-actions .seamless-user-dashboard-btn-save:hover,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-upgrade:hover,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-renew:hover {
+    background: transparent !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+    color: var(--seamless-color-primary) !important;
+}
+
+/* Form Message */
+:host .seamless-user-dashboard-form-message {
+    padding: 12px 16px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    margin-bottom: 16px !important;
+    display: none !important;
+}
+
+:host .seamless-user-dashboard-form-message.success {
+    display: block !important;
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    border: 1px solid #a7f3d0 !important;
+}
+
+:host .seamless-user-dashboard-form-message.error {
+    display: block !important;
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+}
+
+/* Modal */
+:host .seamless-user-dashboard-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 9999 !important;
+}
+
+:host .seamless-user-dashboard-modal-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+:host .seamless-user-dashboard-modal-header {
+    padding: 20px 30px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-user-dashboard-modal-header h3 {
+    margin: 0 !important;
+    font-size: 20px !important;
+    line-height: 1.5 !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-modal-close {
+    background: none !important;
+    border: none !important;
+    font-size: 28px !important;
+    color: #9ca3af !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Form */
+:host .seamless-user-dashboard-edit-profile-form {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+:host .seamless-user-dashboard-form-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+}
+
+:host .seamless-user-dashboard-form-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+:host .seamless-user-dashboard-form-group label {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #374151 !important;
+}
+
+:host .seamless-user-dashboard-form-group .required {
+    color: #dc2626 !important;
+}
+
+:host .seamless-user-dashboard-form-group input,
+:host .seamless-user-dashboard-form-group select {
+    background: transparent !important;
+    padding: 10px 14px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    color: #1a1a1a !important;
+    transition: border-color 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-form-group input:focus,
+:host .seamless-user-dashboard-form-group select:focus {
+    outline: none !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+:host .seamless-user-dashboard-form-message {
+    display: none !important;
+    padding: 12px 16px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    margin-top: 10px !important;
+}
+
+:host .seamless-user-dashboard-message-success {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    border: 1px solid #a7f3d0 !important;
+}
+
+:host .seamless-user-dashboard-message-error {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+}
+
+
+:host .seamless-user-dashboard-btn-primary:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+:host .seamless-user-dashboard-btn-secondary {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+}
+
+:host .seamless-user-dashboard-btn-secondary:hover {
+    background: #e5e7eb !important;
+}
+
+/* Responsive */
+@media (max-width: 1250px) {
+
+    :host .seamless-user-dashboard-order-header,
+    :host .seamless-user-dashboard-order-card {
+        grid-template-columns: 1fr 0.5fr 1.5fr 1fr 1fr 1fr 0.8fr !important;
+    }
+
+    :host .seamless-user-dashboard-orders-container .seamless-user-dashboard-order-table-container {
+        overflow-x: scroll !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+}
+
+@media (max-width: 768px) {
+    :host .seamless-user-dashboard {
+        flex-direction: column !important;
+    }
+
+    :host .seamless-user-dashboard-sidebar {
+        width: 100% !important;
+    }
+
+    :host .seamless-user-dashboard-main .seamless-user-dashboard-summary-grid,
+    :host .seamless-user-dashboard-summary-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-user-dashboard-nav {
+        flex-direction: column !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    :host .seamless-user-dashboard-nav-item {
+        white-space: nowrap !important;
+        border-left: none !important;
+        border-bottom: 3px solid transparent !important;
+    }
+
+    :host .seamless-user-dashboard-nav-item.active {
+        border-left: none !important;
+        border-bottom-color: #fff !important;
+    }
+
+    :host .seamless-user-dashboard-summary {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
+    }
+
+    :host .seamless-user-dashboard-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    :host .seamless-user-dashboard-tab {
+        white-space: nowrap !important;
+    }
+
+    :host .seamless-user-dashboard-tabs-wrapper .seamless-user-dashboard-tabs-header {
+        flex-direction: column !important;
+    }
+
+    :host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-body {
+        align-items: flex-start !important;
+        flex-direction: column !important;
+        gap: 0px !important;
+        margin-top: 10px !important;
+    }
+
+    :host .seamless-user-dashboard-courses-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Responsive Table - Horizontal scroll on mobile */
+    :host .seamless-user-dashboard-orders-container .seamless-user-dashboard-order-table-container {
+        overflow-x: scroll !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    :host .seamless-user-dashboard-col-items,
+    :host .seamless-user-dashboard-col-products,
+    :host .seamless-user-dashboard-col-status,
+    :host .seamless-user-dashboard-col-total,
+    :host .seamless-user-dashboard-col-date,
+    :host .seamless-user-dashboard-col-action {
+        white-space: nowrap !important;
+        width: auto !important;
+    }
+
+    :host .seamless-user-dashboard-col-customer {
+        min-width: 230px !important;
+    }
+
+    :host .seamless-user-dashboard-order-table {
+        min-width: 800px !important;
+    }
+
+    :host .seamless-user-dashboard-order-table thead th {
+        position: sticky !important;
+        top: 0 !important;
+        background: #f9fafb !important;
+        z-index: 1 !important;
+    }
+
+    /* Profile Grid Responsive */
+    :host .seamless-user-dashboard-profile-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-user-dashboard-info-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-user-dashboard-form-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-user-dashboard-modal-content {
+        width: 95% !important;
+    }
+
+    :host .seamless-user-dashboard-pagination {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    :host .seamless-user-dashboard-pagination-btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    :host .seamless-user-dashboard-profile-container .seamless-user-dashboard-profile-section {
+        padding: 20px !important;
+    }
+
+    :host .seamless-user-dashboard-profile-view-mode .seamless-user-dashboard-profile-grid,
+    :host .seamless-user-dashboard-profile-edit-mode .seamless-user-dashboard-profile-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge {
+        font-size: 10px !important;
+    }
+
+    :host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-actions {
+        top: 15px !important;
+        right: 15px !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        justify-content: space-around !important;
+        gap: 50px !important;
+    }
+
+    :host .seamless-user-dashboard-membership-content .seamless-user-dashboard-membership-title {
+        width: 70% !important;
+        font-size: 20px !important;
+    }
+
+    :host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta {
+        font-size: 13px !important;
+        line-height: 1.8 !important;
+    }
+
+    :host .seamless-user-dashboard-membership-body .seamless-user-dashboard-membership-meta span {
+        font-size: 13px !important;
+    }
+
+    :host .upgraded .seamless-user-dashboard-badge {
+        right: 10px !important;
+        bottom: 10px !important;
+    }
+
+    :host .upgraded .seamless-user-dashboard-current-membership-header h3 {
+        font-size: 21px !important;
+        width: 70% !important;
+    }
+
+    :host .seamless-dashboard-content-container .seamless-user-dashboard-summary-grid .upgraded::before {
+        right: -35% !important;
+    }
+
+    :host .seamless-upgraded-badge .seamless-badge-text {
+        font-size: 10px !important;
+    }
+
+    :host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry,
+    :host .seamless-user-dashboard-current-membership-card .seamless-user-dashboard-current-membership-expiry strong {
+        font-size: 12px !important;
+    }
+}
+
+/* Notice */
+:host .seamless-user-dashboard-notice,
+:host .seamless-user-dashboard-error {
+    padding: 20px !important;
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+}
+
+:host .seamless-user-dashboard-error {
+    background: #fee2e2 !important;
+    border-color: #fecaca !important;
+    color: #991b1b !important;
+}
+
+/* Upgrade/Downgrade Badge Buttons */
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-upgrade,
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-downgrade,
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-cancel {
+    cursor: pointer !important;
+    border: none !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 6px 14px !important;
+    border-radius: 12px !important;
+    line-height: 1.8 !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-upgrade:focus,
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-downgrade:focus,
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-cancel:focus,
+:host .seamless-user-dashboard-modal-footer button.seamless-user-dashboard-modal-renew:focus,
+:host .seamless-user-dashboard-menu-container button.seamless-user-dashboard-menu-button:focus,
+:host .seamless-user-dashboard-pagination .seamless-user-dashboard-pagination-btn:focus,
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-btn:focus {
+    outline: none !important;
+    border: none !important;
+    background-color: transparent !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-upgrade {
+    /* border-top-left-radius: 8px; */
+    /* border-top-right-radius: 8px; */
+    background: #fff !important;
+    color: #1e1e1e !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-upgrade:hover {
+    background: #f9fafb !important;
+    border: none !important;
+    color: #00a63e !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-downgrade {
+    position: relative !important;
+    background: #fff !important;
+    color: #1e1e1e !important;
+    z-index: 10 !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-downgrade:hover {
+    background: #f9fafb !important;
+    border: none !important;
+    color: #d87700 !important;
+}
+
+/* Upgrade Modal */
+:host .seamless-user-dashboard-upgrade-modal,
+:host .seamless-user-dashboard-renew-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-modal-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+:host .seamless-user-dashboard-modal-container {
+    position: relative !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+    max-width: 900px !important;
+    width: 90% !important;
+    max-height: 90vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-modal-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 24px 30px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-modal-title {
+    margin: 0 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-modal-close {
+    background: none !important;
+    border: none !important;
+    font-size: 32px !important;
+    color: #9ca3af !important;
+    cursor: pointer !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+
+:host .seamless-user-dashboard-modal-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 24px 30px !important;
+}
+
+:host .seamless-user-dashboard-modal-columns {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 30px !important;
+    margin-top: 15px !important;
+}
+
+:host .seamless-user-dashboard-renew-modal .seamless-user-dashboard-modal-columns {
+    margin-top: 0 !important;
+}
+
+:host .seamless-user-dashboard-modal-header button.seamless-user-dashboard-modal-close {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    padding: 5px 20px !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-modal-header button.seamless-user-dashboard-modal-close:hover {
+    background: transparent !important;
+    color: var(--seamless-color-primary) !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+}
+
+/* Left Column - Plans List */
+:host .seamless-user-dashboard-modal-left h3,
+:host .seamless-user-dashboard-modal-right h3 {
+    margin: 0 0 20px 0 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    line-height: 30px !important;
+}
+
+:host .seamless-user-dashboard-plans-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+}
+
+:host .seamless-user-dashboard-plan-card {
+    padding: 16px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    background: #fff !important;
+}
+
+:host .seamless-user-dashboard-plan-card:hover {
+    border-color: #667eea !important;
+    background: #f9fafb !important;
+}
+
+:host .seamless-user-dashboard-plan-card.selected {
+    border-color: #667eea !important;
+    background: #eef2ff !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+}
+
+:host .seamless-user-dashboard-plan-card .seamless-user-dashboard-plan-card-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-user-dashboard-plan-card-header .seamless-user-dashboard-plan-card-name {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-plan-card-price {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #667eea !important;
+}
+
+:host .seamless-user-dashboard-plan-card-price .plan-period {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-plan-card-description {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+}
+
+/* Proration Breakdown */
+:host .seamless-user-dashboard-proration {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-proration h4 {
+    margin: 0 0 16px 0 !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-proration-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 0 !important;
+    font-size: 14px !important;
+    color: #374151 !important;
+}
+
+:host .seamless-user-dashboard-proration-item:not(:last-child) {
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-proration-total {
+    padding-top: 16px !important;
+    border-top: 1px solid #e5e7eb !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-user-dashboard-proration-amount {
+    color: #059669 !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+}
+
+:host .seamless-user-dashboard-proration-note {
+    margin: 20px 0 0 0 !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    color: #6b7280 !important;
+    font-style: italic !important;
+}
+
+:host .seamless-user-dashboard-remaining-days {
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+
+/* Right Column - Plan Perks */
+:host .seamless-user-dashboard-plan-perks {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #eef2ff !important;
+    padding: 10px !important;
+    border-radius: 12px !important;
+}
+
+:host .seamless-user-dashboard-empty-perks {
+    color: #9ca3af !important;
+    font-style: italic !important;
+    text-align: center !important;
+    padding: 40px 20px !important;
+}
+
+:host .seamless-user-dashboard-perk-icon {
+    flex-shrink: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+:host .seamless-user-dashboard-perk-icon.included {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+}
+
+:host .seamless-user-dashboard-perk-icon.excluded {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+:host .seamless-user-dashboard-perk-text {
+    flex: 1 !important;
+}
+
+:host .seamless-user-dashboard-perk-label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin: 0 0 4px 0 !important;
+}
+
+:host .seamless-user-dashboard-perk-value {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    margin: 0 !important;
+}
+
+/* Modal Footer */
+:host .seamless-user-dashboard-modal-footer {
+    display: flex !important;
+    justify-content: flex-start !important;
+    flex-direction: row-reverse !important;
+    gap: 12px !important;
+    padding: 20px 30px !important;
+    border-top: 1px solid #e5e7eb !important;
+    background: #f9fafb !important;
+}
+
+:host .seamless-user-dashboard-modal-upgrade:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    :host .seamless-user-dashboard-modal-container {
+        width: 95% !important;
+        max-height: 95vh !important;
+    }
+
+    :host .seamless-user-dashboard-modal-columns {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-user-dashboard-modal-header {
+        padding: 20px !important;
+    }
+
+    :host .seamless-user-dashboard-modal-body {
+        padding: 20px !important;
+    }
+
+    :host .seamless-user-dashboard-modal-footer {
+        padding: 16px 20px !important;
+        flex-direction: column-reverse !important;
+    }
+
+    :host .seamless-user-dashboard-modal-footer .seamless-user-dashboard-btn {
+        width: 100% !important;
+    }
+}
+
+/* Redesigned Perk Items */
+:host .seamless-user-dashboard-perk-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 10px 15px !important;
+    transition: all 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-perk-highlight {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    border-left: 3px solid #f59e0b !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+:host .seamless-user-dashboard-perk-highlight:hover {
+    background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%) !important;
+}
+
+:host .seamless-user-dashboard-perk-value {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: #374151 !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-perk-item.excluded .seamless-user-dashboard-perk-value {
+    color: #9ca3af !important;
+}
+
+:host .seamless-user-dashboard-perk-icon {
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+}
+
+:host .seamless-user-dashboard-perk-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+:host .seamless-user-dashboard-perk-text {
+    flex: 1 !important;
+}
+
+/* Upgraded Membership Card Styling */
+:host .seamless-user-dashboard-summary-grid .seamless-user-dashboard-current-membership-card.upgraded {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    /* border-left: 4px solid #f59e0b; */
+    position: relative !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-current-membership-card.upgraded h3.seamless-user-dashboard-current-membership-header {
+    color: #000 !important;
+}
+
+/* Scheduled Downgrade Info */
+:host .seamless-user-dashboard-scheduled-info {
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+}
+
+:host .seamless-user-dashboard-info-message {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+}
+
+:host .seamless-user-dashboard-info-message svg {
+    width: 18px !important;
+    height: 18px !important;
+    color: #3b82f6 !important;
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+}
+
+:host .seamless-user-dashboard-info-message p {
+    margin: 0 !important;
+    font-size: 14px !important;
+    color: #1447e6 !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-modal-actions {
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-start !important;
+    flex-direction: row-reverse !important;
+}
+
+@media (max-width: 768px) {
+    :host .seamless-user-dashboard-modal-note {
+        font-size: 12px !important;
+    }
+
+    :host .seamless-user-dashboard-modal-actions {
+        flex-direction: column-reverse !important;
+    }
+}
+
+/* Cancel Membership Button */
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-cancel {
+    /* border-radius: 8px; */
+    background: #fff !important;
+    color: #1e1e1e !important;
+}
+
+:host .seamless-user-dashboard-membership-actions .seamless-user-dashboard-badge-cancel:hover {
+    background: #f9fafb !important;
+    border: none !important;
+    color: #dc2626 !important;
+}
+
+/* Cancel Modal - Using Same Structure as Upgrade Modal */
+:host .seamless-user-dashboard-cancel-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 99999 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-menu-container button.seamless-user-dashboard-menu-button {
+    background: #fff !important;
+    color: #000000 !important;
+    padding: 0px !important;
+    margin: 0px !important;
+    border: none !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-container {
+    position: relative !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 90vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 24px 30px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-header h2 {
+    margin: 0 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-close {
+    background: none !important;
+    border: none !important;
+    font-size: 32px !important;
+    color: #9ca3af !important;
+    cursor: pointer !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-close:hover {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 24px 30px !important;
+}
+
+:host .seamless-user-dashboard-cancel-content {
+    padding: 0 !important;
+}
+
+:host .seamless-user-dashboard-cancel-question {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    color: #374151 !important;
+    margin-bottom: 24px !important;
+}
+
+:host .seamless-user-dashboard-cancel-policy p:last-child {
+    margin-bottom: 0 !important;
+}
+
+:host .seamless-user-dashboard-cancel-refund {
+    color: #059669 !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-cancel-refund strong {
+    color: #047857 !important;
+    font-size: 16px !important;
+}
+
+/* Period End Cancellation */
+:host .seamless-user-dashboard-cancel-no-refund {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    border-radius: 8px !important;
+    margin-bottom: 16px !important;
+}
+
+:host .seamless-user-dashboard-cancel-no-refund svg {
+    flex-shrink: 0 !important;
+    color: #dc2626 !important;
+    margin-top: 2px !important;
+}
+
+:host .seamless-user-dashboard-cancel-no-refund p {
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    color: #991b1b !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-cancel-period-end,
+:host .seamless-user-dashboard-cancel-policy {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-user-dashboard-cancel-period-end svg,
+:host .seamless-user-dashboard-cancel-policy svg {
+    flex-shrink: 0 !important;
+    color: #193cb8 !important;
+    margin-top: 2px !important;
+}
+
+:host .seamless-user-dashboard-cancel-policy h4 {
+    margin: 0 0 8px 0 !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    font-weight: 600 !important;
+    color: #193cb8 !important;
+}
+
+:host .seamless-user-dashboard-cancel-period-end p,
+:host .seamless-user-dashboard-cancel-policy p {
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    color: #1447e6 !important;
+}
+
+:host .seamless-user-dashboard-cancel-warnings {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+:host .seamless-user-dashboard-cancel-warning {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 12px !important;
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    border-radius: 6px !important;
+}
+
+:host .seamless-user-dashboard-cancel-warning svg {
+    flex-shrink: 0 !important;
+    color: #dc2626 !important;
+    margin-top: 2px !important;
+}
+
+:host .seamless-user-dashboard-cancel-warning span {
+    font-size: 14px !important;
+    color: #991b1b !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-footer {
+    padding: 20px 30px !important;
+    border-top: 1px solid #e5e7eb !important;
+    background: #f9fafb !important;
+}
+
+:host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-actions {
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+}
+
+:host .seamless-user-dashboard-btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+:host .seamless-user-dashboard-btn-danger:disabled {
+    background: #9ca3af !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Cancel Scheduled Change Modal Warning */
+:host .seamless-user-dashboard-modal-warning {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-modal-warning svg {
+    color: #f59e0b !important;
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-user-dashboard-modal-warning p {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    color: #374151 !important;
+    margin: 0 !important;
+    max-width: 500px !important;
+}
+
+:host .seamless-user-dashboard-btn-secondary,
+:host .seamless-user-dashboard-modal-keep {
+    background: #fff !important;
+    color: #374151 !important;
+    border: 1px solid #d1d5db !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+:host .seamless-user-dashboard-btn-secondary:hover,
+:host .seamless-user-dashboard-modal-keep:hover {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+}
+
+@media (max-width: 768px) {
+    :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-container {
+        width: 95% !important;
+        max-height: 95vh !important;
+    }
+
+    :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-header,
+    :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-body,
+    :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-footer {
+        padding: 16px 20px !important;
+    }
+
+    :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-actions {
+        flex-direction: column !important;
+    }
+
+    :host .seamless-user-dashboard-cancel-modal .seamless-user-dashboard-modal-actions button {
+        width: 100% !important;
+    }
+
+    :host .seamless-user-dashboard-cancel-policy {
+        padding: 12px !important;
+    }
+
+    :host .seamless-user-dashboard-cancel-question {
+        font-size: 15px !important;
+    }
+
+    :host .seamless-user-dashboard-cancel-warning {
+        padding: 10px !important;
+    }
+}
+
+/* Extracted inline styles from React components */
+:host .seamless-user-dashboard-loading {
+    padding: 80px 20px !important;
+    text-align: center !important;
+    min-height: 600px !important;
+}
+
+:host .seamless-user-dashboard-react-layout {
+    padding: 20px 0px !important;
+    margin: 0 auto !important;
+}
+
+:host .seamless-user-dashboard-profile-container {
+    background: #fff !important;
+    padding: 30px !important;
+    border-radius: 12px !important;
+    border: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-profile-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-user-dashboard-section-title {
+    margin: 0 !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+}
+
+:host .seamless-user-dashboard-edit-btn {
+    background: var(--seamless-color-primary) !important;
+    border: 1px solid #d1d5db !important;
+    padding: 6px 16px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    color: #fff !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-grid-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-user-dashboard-grid-2.margin-bottom-30 {
+    margin-bottom: 30px !important;
+}
+
+:host .seamless-user-dashboard-grid-item-span-2 {
+    grid-column: span 2 !important;
+}
+
+:host .seamless-user-dashboard-label-text {
+    color: #6b7280 !important;
+    font-size: 13px !important;
+    margin-bottom: 4px !important;
+    display: block !important;
+}
+
+:host .seamless-user-dashboard-label-text.restricted {
+    color: #9ca3af !important;
+    pointer-events: none !important;
+
+}
+
+:host .seamless-user-dashboard-value-text {
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-subtitle {
+    margin-top: 30px !important;
+    margin-bottom: 20px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    border-top: 1px solid #e5e7eb !important;
+    padding-top: 20px !important;
+}
+
+:host .seamless-user-dashboard-input {
+    width: 100% !important;
+    padding: 8px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+}
+
+:host .seamless-user-dashboard-form-actions {
+    display: flex !important;
+    gap: 10px !important;
+    justify-content: flex-start !important;
+}
+
+:host .seamless-user-dashboard-btn-primary {
+    background: var(--seamless-color-primary) !important;
+    color: #ffffff !important;
+    padding: 10px 20px !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-btn-primary:hover {
+    background: #ffffff !important;
+    color: var(--seamless-color-primary) !important;
+    border: 1px solid var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-btn-secondary {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    padding: 10px 20px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-user-dashboard-empty-text {
+    color: #64748b !important;
+}
+
+:host .seamless-user-dashboard-membership-card {
+    margin-bottom: 16px !important;
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-flex-between {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-user-dashboard-flex-center {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+:host .seamless-user-dashboard-card-title {
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+}
+
+:host .seamless-user-dashboard-badge.seamless-user-dashboard-badge-active {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+:host .seamless-user-dashboard-expiry-info {
+    margin-top: 12px !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-user-dashboard-expiry-info strong {
+    color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-course-card {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-tab-content-grid {
+    padding: 20px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20px !important;
+}
+
+:host .seamless-user-dashboard-course-title {
+    margin: 0 0 10px 0 !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: #ffffff !important;
+}
+
+:host .seamless-user-dashboard-course-date {
+    color: #64748b !important;
+    font-size: 13px !important;
+    margin-bottom: 16px !important;
+}
+
+:host .seamless-user-dashboard-progress-bar-bg {
+    width: 100% !important;
+    height: 8px !important;
+    background: #e2e8f0 !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-progress-fill {
+    height: 100% !important;
+    background: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-progress-fill.completed {
+    background: #10b981 !important;
+}
+
+:host .seamless-user-dashboard-progress-text {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 8px !important;
+    font-size: 12px !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+}
+
+:host .seamless-user-dashboard-status-text {
+    color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-status-text.completed {
+    color: #10b981 !important;
+}
+
+:host .seamless-user-dashboard-table-wrapper {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    text-align: left !important;
+}
+
+:host .seamless-user-dashboard-table thead {
+    background: #f9fafb !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-table th {
+    padding: 16px !important;
+    font-size: 14px !important;
+    color: #6b7280 !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-table td {
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 16px !important;
+}
+
+:host .seamless-user-dashboard-table td.empty-message {
+    text-align: center !important;
+    color: #64748b !important;
+}
+
+:host .seamless-user-dashboard-table td.order-number {
+    font-weight: bold !important;
+    color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-table td.order-date {
+    color: var(--seamless-color-font) !important;
+}
+
+:host .seamless-user-dashboard-table td.order-total {
+    font-weight: bold !important;
+}
+
+:host .seamless-user-dashboard-table .seamless-user-dashboard-badge-completed {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+:host .seamless-user-dashboard-tab-content-padded {
+    padding: 20px !important;
+}
+
+/* Inline styles moved from UserDashboardView.tsx */
+
+:host .seamless-user-dashboard-expired-message {
+    text-align: center !important;
+    padding: 40px 0 !important;
+}
+
+:host .seamless-user-dashboard-badge-expired {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+}
+
+:host .seamless-course-in-progress-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-progress-text {
+    margin-top: 8px !important;
+}
+
+:host .seamless-user-dashboard-empty-icon {
+    margin: 0 auto 10px !important;
+    display: block !important;
+    color: #9ca3af !important;
+}
+
+:host .seamless-user-dashboard-tab-content-no-padding {
+    padding: 0px !important;
+}
+
+:host .seamless-user-dashboard-empty-state {
+    margin: 30px !important;
+    background: #fafafa !important;
+    border: 1px solid #f3f4f6 !important;
+    padding: 60px !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+}
+
+:host .seamless-user-dashboard-empty-state .seamless-user-dashboard-empty-text {
+    font-size: 15px !important;
+    color: #6b7280 !important;
+}
+
+:host .seamless-user-dashboard-tab-content-section {
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-progress-bar-bg {
+    background-color: #e5e7eb !important;
+}
+
+:host .seamless-user-dashboard-progress-fill {
+    background-color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-user-dashboard-progress-text-value {
+    color: #1a1a1a !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-table-wrapper {
+    border: 1px solid #f3f4f6 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    text-align: left !important;
+    background-color: #fff !important;
+}
+
+:host .seamless-user-dashboard-table thead tr {
+    border-bottom: 1px solid #f3f4f6 !important;
+    background-color: #fff !important;
+    font-size: 14px !important;
+    color: var(--seamless-color-heading) !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-table th,
+:host .seamless-user-dashboard-table td {
+    padding: 20px !important;
+}
+
+:host .seamless-user-dashboard-table tbody tr {
+    border-bottom: 1px solid #f3f4f6 !important;
+    background-color: #fafafa !important;
+}
+
+:host .seamless-user-dashboard-table td.seamless-user-dashboard-table-empty {
+    padding: 40px !important;
+    text-align: center !important;
+    color: #6b7280 !important;
+}
+
+:host .seamless-user-dashboard-table td.customer-cell {
+    color: var(--seamless-color-font) !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-user-dashboard-table td {
+    color: var(--seamless-color-font) !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-user-dashboard-table th.text-center,
+:host .seamless-user-dashboard-table td.text-center {
+    text-align: center !important;
+}
+
+:host .seamless-user-dashboard-badge-completed {
+    display: inline-block !important;
+    background-color: #dcfce7 !important;
+    color: #059669 !important;
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-table td.order-total-cell {
+    color: #059669 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+:host .seamless-user-dashboard-table .order-total-flex {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* New Styles for Modals, Toasts and additional UI */
+:host .seamless-toast-notification {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    font-weight: 500 !important;
+    animation: fadeInUp 0.3s ease-out forwards !important;
+}
+
+:host .seamless-toast-success {
+    background: #4CAF50 !important;
+}
+
+:host .seamless-toast-error {
+    background: #F44336 !important;
+}
+
+:host .seamless-toast-close {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+}
+
+:host .seamless-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 9999 !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+:host .seamless-modal-content {
+    background: #fff !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    max-width: 600px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+:host .seamless-modal-header {
+    padding: 20px !important;
+    border-bottom: 1px solid #eee !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-modal-header h3 {
+    margin: 0 !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-modal-close {
+    background: transparent !important;
+    border: none !important;
+    font-size: 24px !important;
+    cursor: pointer !important;
+    color: #666 !important;
+}
+
+:host .seamless-modal-body {
+    padding: 24px !important;
+}
+
+:host .seamless-user-dashboard-loading-container {
+    min-height: 400px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-loading-flex {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+}
+
+:host .seamless-user-dashboard-spinner {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    border: 3px solid #f3f3f3 !important;
+    border-top-color: var(--seamless-color-primary) !important;
+    animation: spin 1s linear infinite !important;
+}
+
+:host .seamless-user-dashboard-loading-text {
+    color: #666 !important;
+    margin: 0 !important;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+:host .seamless-plan-card {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+
+:host .seamless-plan-card h4 {
+    margin: 0 0 8px 0 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-plan-card-price {
+    font-size: 24px !important;
+    font-weight: bold !important;
+    color: var(--seamless-color-primary) !important;
+    margin-bottom: 8px !important;
+}
+
+:host .seamless-plan-card-price span {
+    font-size: 14px !important;
+    color: #666 !important;
+    font-weight: normal !important;
+}
+
+:host .seamless-plan-card-desc {
+    font-size: 14px !important;
+    color: #666 !important;
+    line-height: 1.5 !important;
+}
+
+:host .seamless-btn-upgrade,
+:host .seamless-btn-downgrade {
+    color: #fff !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    transition: all 0.2s !important;
+}
+
+:host .seamless-btn-upgrade {
+    background: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-btn-downgrade {
+    background: var(--seamless-color-font) !important;
+}
+
+:host .seamless-btn-upgrade:disabled,
+:host .seamless-btn-downgrade:disabled {
+    opacity: 0.7 !important;
+}
+
+:host .seamless-cancel-modal-icon {
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 50% !important;
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto 24px !important;
+}
+
+:host .seamless-cancel-modal-title {
+    margin: 0 0 12px !important;
+    font-size: 20px !important;
+    text-align: center !important;
+}
+
+:host .seamless-cancel-modal-text {
+    color: #666 !important;
+    margin: 0 0 32px !important;
+    line-height: 1.5 !important;
+    text-align: justify !important;
+}
+
+:host .seamless-cancel-actions {
+    display: flex !important;
+    gap: 16px !important;
+    justify-content: center !important;
+}
+
+:host .seamless-btn-keep {
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #fff !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-heading) !important;
+}
+
+:host .seamless-btn-cancel-now {
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    border: none !important;
+    background: #ef4444 !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-btn-cancel-now:disabled {
+    opacity: 0.7 !important;
+}
+
+:host .seamless-profile-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, var(--seamless-color-primary) 0%, #3b82f6 100%) !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    margin-bottom: 12px !important;
+}
+
+:host .seamless-nav-link span {
+    text-transform: capitalize !important;
+}
+
+:host .seamless-profile-content-card {
+    border-radius: 1px solid #e2e8f0 !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    padding: 32px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+:host .seamless-profile-header {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding-bottom: 24px !important;
+    margin-bottom: 24px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-profile-header h3 {
+    margin: 0 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-heading) !important;
+}
+
+:host .seamless-edit-btn {
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    font-weight: 500 !important;
+    color: var(--seamless-color-font) !important;
+}
+
+:host .seamless-grid-3-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 24px !important;
+    margin-bottom: 32px !important;
+}
+
+:host .seamless-value-label {
+    color: #64748b !important;
+    font-size: 13px !important;
+    display: block !important;
+    margin-bottom: 4px !important;
+}
+
+:host .seamless-value-text {
+    font-weight: 500 !important;
+}
+
+:host .seamless-section-title {
+    margin: 0 0 16px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-heading) !important;
+}
+
+:host .seamless-form-actions {
+    display: flex !important;
+    gap: 16px !important;
+    padding-top: 24px !important;
+    border-top: 1px solid #e2e8f0 !important;
+}
+
+:host .seamless-empty-card {
+    background: #fff !important;
+    border-radius: 16px !important;
+    padding: 48px !important;
+    text-align: center !important;
+    color: #64748b !important;
+}
+
+:host .seamless-empty-icon {
+    margin: 0 auto 16px !important;
+}
+
+:host .seamless-member-card {
+    background: #fff !important;
+    border-radius: 16px !important;
+    padding: 32px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-member-card-highlight {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 6px !important;
+    background: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-member-flex {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+}
+
+:host .seamless-member-title-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+}
+
+:host .seamless-member-title-row h3 {
+    margin: 0 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-badge-active {
+    background: #ecfdf5 !important;
+    color: #059669 !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+}
+
+:host .seamless-badge-expired {
+    background: #fef2f2 !important;
+    color: #ef4444 !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+}
+
+:host .seamless-member-details {
+    display: flex !important;
+    gap: 32px !important;
+    flex-wrap: wrap !important;
+    color: var(--seamless-color-font) !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-member-detail-label {
+    display: block !important;
+    font-size: 12px !important;
+    color: #94a3b8 !important;
+    text-transform: uppercase !important;
+    margin-bottom: 4px !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-manage-btn {
+    padding: 8px 16px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+:host .seamless-menu-dropdown-styled {
+    right: 0 !important;
+    top: 45px !important;
+    min-width: 160px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+:host .seamless-menu-item-upgrade {
+    padding: 12px 16px !important;
+    color: var(--seamless-color-primary) !important;
+    font-weight: 500 !important;
+    background: none !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-menu-item-downgrade {
+    padding: 12px 16px !important;
+    font-weight: 500 !important;
+    background: none !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    cursor: pointer !important;
+    color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-menu-item-cancel {
+    padding: 12px 16px !important;
+    color: #ef4444 !important;
+    font-weight: 500 !important;
+    background: none !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-menu-item-upgrade:hover,
+:host .seamless-menu-item-downgrade:hover,
+:host .seamless-menu-item-cancel:hover {
+    background: #f8fafc !important;
+    color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-menu-divider {
+    height: 1px !important;
+    background: #f1f5f9 !important;
+}
+
+:host .seamless-table-wrapper {
+    background: #fff !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+:host .seamless-styled-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    text-align: left !important;
+    border: none !important;
+    margin: 0 !important;
+}
+
+:host .seamless-styled-thead {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+:host .seamless-styled-th {
+    padding: 16px 24px !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-font) !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+}
+
+:host .seamless-styled-tr {
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+:host .seamless-styled-td {
+    padding: 16px 24px !important;
+    vertical-align: middle !important;
+}
+
+:host .seamless-styled-td-bold {
+    padding: 16px 24px !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-styled-td-gray {
+    padding: 16px 24px !important;
+    color: #64748b !important;
+}
+
+:host .seamless-styled-td-empty {
+    padding: 48px !important;
+    text-align: center !important;
+    color: #64748b !important;
+}
+
+:host .seamless-no-padding {
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+:host .seamless-summary-row {
+    display: grid !important;
+    grid-template-columns: 1fr 2fr !important;
+    gap: 24px !important;
+    margin-bottom: 32px !important;
+}
+
+@media (max-width: 768px) {
+    :host .seamless-summary-row {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+:host .seamless-count-card {
+    background: #fff !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 32px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+:host .seamless-count-card-number {
+    font-size: 32px !important;
+    font-weight: 700 !important;
+    color: var(--seamless-color-primary) !important;
+    line-height: 1 !important;
+    margin: 0 0 12px 0 !important;
+}
+
+:host .seamless-count-card-label {
+    color: #64748b !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+}
+
+:host .seamless-blue-card {
+    background: linear-gradient(135deg, #1A365D 0%, #0d2038 100%) !important;
+    border-radius: 12px !important;
+    padding: 32px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    color: #fff !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+:host .seamless-blue-card::after {
+    content: '' !important;
+    position: absolute !important;
+    top: -50px !important;
+    right: -50px !important;
+    width: 200px !important;
+    height: 200px !important;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%) !important;
+    border-radius: 50% !important;
+    pointer-events: none !important;
+}
+
+:host .seamless-blue-card-content {
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+    gap: 16px !important;
+}
+
+:host .seamless-blue-card-title {
+    margin: 0 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.5px !important;
+    color: #ffffff !important;
+}
+
+:host .seamless-blue-card-expiry {
+    margin: 0 !important;
+    font-size: 15px !important;
+    color: #cbd5e1 !important;
+}
+
+:host .seamless-blue-card-expiry strong {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-blue-badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    color: #fff !important;
+    padding: 6px 16px !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    backdrop-filter: blur(4px) !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+:host .seamless-tab-count {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    margin-left: 8px !important;
+}
+
+:host .active .seamless-tab-count {
+    background: #e2e8f0 !important;
+    color: var(--seamless-color-heading) !important;
+}
+
+/* --- New Upgrade/Downgrade Modal Styles --- */
+:host .seamless-modal-lg {
+    max-width: 800px !important;
+    width: 95% !important;
+}
+
+:host .seamless-modal-header {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding-bottom: 16px !important;
+    margin-bottom: 24px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+:host .seamless-modal-title {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-heading) !important;
+    margin: 0 !important;
+}
+
+:host .seamless-modal-body-split {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 32px !important;
+}
+
+:host .seamless-modal-body-split .seamless-user-dashboard-scheduled-info,
+:host .seamless-modal-body-split .seamless-user-dashboard-modal-columns,
+:host .seamless-modal-body-split .seamless-modal-footer {
+    grid-column: 1 / -1 !important;
+}
+
+@media (max-width: 768px) {
+    :host .seamless-modal-body-split {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+:host .seamless-modal-subheader {
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    margin: 0 0 16px 0 !important;
+}
+
+:host .seamless-dashboard-loading-panel {
+    height: 220px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-blue-badge.seamless-capitalize {
+    white-space: nowrap !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-cancelled-badge.seamless-capitalize {
+    padding: 3px 15px !important;
+    white-space: nowrap !important;
+    background-color: var(--seamless-color-red-50) !important;
+    color: var(--seamless-color-red-800) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--seamless-color-red-800) !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-expired-badge.seamless-capitalize {
+    padding: 3px 15px !important;
+    white-space: nowrap !important;
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    border-radius: 12px !important;
+    border: 1px solid #94a3b8 !important;
+}
+
+:host .seamless-membership-type-tag {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: fit-content !important;
+    padding:3px 15px !important;
+    border-radius: 12px !important;
+    background: #eef2ff !important;
+    color: #3730a3 !important;
+    border: 1px solid #c7d2fe !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    border-radius: 12px !important;
+}
+
+:host .seamless-tag-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    flex-direction: row !important;
+}
+
+/* Plan Selection List */
+:host .seamless-plan-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+:host .seamless-plan-select-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 16px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    background: #fff !important;
+}
+
+:host .seamless-plan-select-item:hover {
+    border-color: #94a3b8 !important;
+}
+
+:host .seamless-plan-select-item.selected {
+    border-color: #6366f1 !important;
+    background: #eff6ff !important;
+    box-shadow: 0 0 0 1px #6366f1 !important;
+}
+
+:host .seamless-plan-select-name {
+    font-weight: 500 !important;
+    color: var(--seamless-color-heading) !important;
+}
+
+:host .seamless-plan-select-price {
+    font-weight: 700 !important;
+    color: #6366f1 !important;
+}
+
+:host .seamless-plan-select-price span {
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+}
+
+/* Pricing Breakdown Details */
+:host .seamless-pricing-breakdown {
+    margin-top: 24px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 20px !important;
+    background: #fafaf9 !important;
+}
+
+:host .seamless-pricing-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 12px !important;
+    font-size: 15px !important;
+    color: var(--seamless-color-font) !important;
+}
+
+:host .seamless-pricing-row.total {
+    border-top: 1px solid #e2e8f0 !important;
+    padding-top: 12px !important;
+    font-weight: 700 !important;
+    color: var(--seamless-color-heading) !important;
+}
+
+:host .seamless-pricing-total-green {
+    color: #10b981 !important;
+}
+
+:host .seamless-pricing-prorated-text {
+    font-size: 13px !important;
+    color: #94a3b8 !important;
+    font-style: italic !important;
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+}
+
+/* Right Panel Offerings */
+:host .seamless-offerings-box {
+    background: #eff6ff !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    min-height: 200px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+:host .seamless-offerings-empty {
+    color: #94a3b8 !important;
+    font-style: italic !important;
+    font-size: 15px !important;
+}
+
+:host .seamless-offerings-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+:host .seamless-offerings-list li {
+    padding: 12px 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    font-size: 15px !important;
+    color: #334155 !important;
+    text-align: left !important;
+}
+
+:host .seamless-offerings-list li:last-child {
+    border-bottom: none !important;
+}
+
+/* Modal Footer */
+:host .seamless-modal-footer {
+    margin-top: 32px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+}
+
+/* --- New Courses View Styles --- */
+:host .seamless-course-summary-grid {
+    display: grid !important;
+    grid-template-columns: auto auto 1fr !important;
+    gap: 16px !important;
+    margin-bottom: 32px !important;
+}
+
+@media (max-width: 768px) {
+    :host .seamless-course-summary-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+:host .seamless-course-stat-card {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    text-align: left !important;
+    min-width: 140px !important;
+}
+
+:host .seamless-course-stat-number {
+    font-size: 32px !important;
+    font-weight: 700 !important;
+    color: var(--seamless-color-primary) !important;
+    margin-bottom: 8px !important;
+    line-height: 1 !important;
+}
+
+:host .seamless-course-stat-label {
+    font-size: 13px !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-course-progress-card {
+    background: #fafaf9 !important;
+    border: 1px dashed #cbd5e1 !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    text-align: center !important;
+}
+
+:host .seamless-course-progress-card svg {
+    color: #cbd5e1 !important;
+    margin-bottom: 8px !important;
+}
+
+:host .seamless-course-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    gap: 24px !important;
+    padding: 24px 0 !important;
+}
+
+:host .seamless-course-card-n {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+:host .seamless-course-card-n:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+}
+
+:host .seamless-course-card-img-wrapper {
+    width: 100% !important;
+    height: 160px !important;
+    overflow: hidden !important;
+    background: #f1f5f9 !important;
+}
+
+:host .seamless-course-card-img-wrapper img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+:host .seamless-course-card-body {
+    padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+}
+
+:host .seamless-course-card-title {
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-heading) !important;
+    margin: 0 0 16px 0 !important;
+    line-height: 1.3 !important;
+}
+
+:host .seamless-course-card-meta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    font-size: 13px !important;
+    color: #64748b !important;
+    margin-bottom: 24px !important;
+}
+
+:host .seamless-course-card-meta span {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+:host .seamless-course-card-action {
+    margin-top: auto !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #6366f1 !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-course-card-action:hover {
+    color: #4f46e5 !important;
+    text-decoration: underline !important;
+}
+
+/* --- New Orders View Styles --- */
+:host .seamless-table-wrapper {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    overflow: auto !important;
+}
+
+:host .seamless-styled-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    text-align: left !important;
+}
+
+:host .seamless-styled-thead th {
+    background: #f8fafc !important;
+    padding: 16px 24px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-font) !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    text-align: center !important;
+}
+
+:host .seamless-styled-tr td {
+    padding: 5px 2px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: var(--seamless-color-heading) !important;
+    font-size: 14px !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+}
+
+:host .seamless-styled-tr:last-child td {
+    border-bottom: none !important;
+}
+
+:host .seamless-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 3px 8px !important;
+    border-radius: 9999px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+}
+
+:host .seamless-badge-success {
+    background: #d1fae5 !important;
+    color: #059669 !important;
+}
+
+:host .seamless-badge-pending {
+    background: #fef08a !important;
+    color: #ca8a04 !important;
+}
+
+:host .seamless-badge-failed {
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+}
+
+:host .seamless-badge-default {
+    background: #f1f5f9 !important;
+    color: var(--seamless-color-font) !important;
+}
+
+:host .seamless-total-amount {
+    font-weight: 700 !important;
+    color: #059669 !important;
+    /* Green text in screenshot */
+}
+
+:host .seamless-btn-invoice {
+    background: var(--seamless-color-primary) !important;
+    color: #fff !important;
+    padding: 3px 13px !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    transition: opacity 0.2s !important;
+    border: 2px solid var(--seamless-color-primary) !important;
+}
+
+:host .seamless-btn-invoice:hover {
+    background: #ffffff !important;
+    color: var(--seamless-color-primary) !important;
+    border: 2px solid var(--seamless-color-primary) !important;
+    text-decoration: none !important;
+}
+
+/* Organization */
+:host .seamless-user-dashboard-org-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+:host .seamless-user-dashboard-org-empty {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 48px 24px !important;
+    text-align: center !important;
+}
+
+:host .seamless-user-dashboard-org-empty-icon {
+    width: 72px !important;
+    height: 72px !important;
+    border-radius: 999px !important;
+    background: #eff6ff !important;
+    color: var(--seamless-color-primary) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 16px !important;
+}
+
+:host .seamless-user-dashboard-org-header {
+    background: linear-gradient(135deg, #0f2742 0%, #173b61 100%) !important;
+    color: #fff !important;
+    border-radius: 18px !important;
+    padding: 28px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    align-items: flex-start !important;
+}
+
+:host .seamless-user-dashboard-org-name {
+    margin: 0 0 6px 0 !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+
+:host .seamless-user-dashboard-org-title {
+    margin: 0 0 8px 0 !important;
+    font-size: 30px !important;
+    line-height: 1.2 !important;
+    color: #fff !important;
+}
+
+:host .seamless-user-dashboard-org-description {
+    margin: 0 !important;
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+:host .seamless-user-dashboard-org-summary {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: flex-end !important;
+}
+
+:host .seamless-user-dashboard-org-plan-count,
+:host .seamless-user-dashboard-org-summary-pill,
+:host .seamless-user-dashboard-org-role-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 6px 12px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-org-plan-count {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+}
+
+:host .seamless-org-role-owner {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #fbbf24 !important;
+}
+
+:host .seamless-org-role-admin {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #93c5fd !important;
+}
+
+:host .seamless-org-role-member {
+    background: #ecfccb !important;
+    color: #3f6212 !important;
+    border: 1px solid #bef264 !important;
+}
+
+:host .seamless-user-dashboard-org-plan {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-org-plan-header {
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 24px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-user-dashboard-org-plan-title {
+    margin: 0 0 10px 0 !important;
+    font-size: 22px !important;
+    color: #0f172a !important;
+}
+
+:host .seamless-user-dashboard-org-plan-meta,
+:host .seamless-user-dashboard-org-plan-stats,
+:host .seamless-user-dashboard-org-content-icon,
+:host .seamless-modal-footer-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+}
+
+:host .seamless-user-dashboard-org-plan-scope {
+    color: #64748b !important;
+    font-size: 13px !important;
+}
+
+:host .seamless-user-dashboard-org-stat-active,
+:host .seamless-user-dashboard-org-stat-pending {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    color: #475569 !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-user-dashboard-org-plan-toggle {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+:host .seamless-user-dashboard-org-plan-toggle .open {
+    transform: rotate(180deg) !important;
+}
+
+:host .seamless-user-dashboard-org-plan-body {
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+}
+
+:host .seamless-user-dashboard-org-capacity {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+}
+
+:host .seamless-user-dashboard-org-capacity-item {
+    border-radius: 14px !important;
+    padding: 18px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+}
+
+:host .seamless-user-dashboard-org-capacity-label {
+    font-size: 13px !important;
+    color: #64748b !important;
+}
+
+:host .seamless-user-dashboard-org-capacity-value {
+    display: block !important;
+    margin-top: 10px !important;
+    font-size: 28px !important;
+    color: #0f172a !important;
+}
+
+:host .seamless-user-dashboard-org-members-section {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+}
+
+:host .seamless-user-dashboard-org-members-header {
+    padding: 18px 20px !important;
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+
+:host .seamless-user-dashboard-org-members-header h4 {
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+:host .seamless-user-dashboard-org-members-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 24px !important;
+    height: 24px !important;
+    border-radius: 999px !important;
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+:host .seamless-user-dashboard-org-add-member-btn,
+:host .seamless-org-import-template-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: var(--seamless-color-primary) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 10px 16px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-user-dashboard-org-members-list {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+:host .seamless-user-dashboard-org-member-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 18px 20px !important;
+    border-bottom: 1px solid #eef2f7 !important;
+}
+
+:host .seamless-user-dashboard-org-member-row:last-child {
+    border-bottom: none !important;
+}
+
+:host .seamless-user-dashboard-org-member-info,
+:host .seamless-user-dashboard-org-member-name,
+:host .seamless-user-dashboard-org-member-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+:host .seamless-user-dashboard-org-member-avatar {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 999px !important;
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 700 !important;
+}
+
+:host .seamless-user-dashboard-org-member-details {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+:host .seamless-user-dashboard-org-member-email {
+    color: #64748b !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-user-dashboard-org-status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+:host .seamless-org-status-accepted {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+:host .seamless-org-status-pending {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+:host .seamless-org-status-declined {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+}
+
+:host .seamless-user-dashboard-org-role-change-wrap {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+:host .seamless-user-dashboard-org-role-change-select,
+:host .seamless-user-dashboard-org-add-field input,
+:host .seamless-user-dashboard-org-add-field select {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    font-size: 14px !important;
+    background: #fff !important;
+}
+
+:host .seamless-user-dashboard-org-role-save-btn,
+:host .seamless-user-dashboard-org-resend-btn,
+:host .seamless-user-dashboard-org-remove-btn,
+:host .seamless-user-dashboard-org-remove-row-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    border: 1px solid #dbe3ee !important;
+    background: #fff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-user-dashboard-org-remove-btn,
+:host .seamless-user-dashboard-org-remove-row-btn {
+    color: #dc2626 !important;
+}
+
+:host .seamless-org-modal-stack,
+:host .seamless-org-warning-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+:host .seamless-org-import-box,
+:host .seamless-user-dashboard-org-pricing-box,
+:host .seamless-org-warning-message-box,
+:host .seamless-org-warning-details {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 18px !important;
+    background: #f8fafc !important;
+}
+
+:host .seamless-org-import-header,
+:host .seamless-org-pricing-top {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+:host .seamless-org-import-file-label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-top: 12px !important;
+}
+
+:host .seamless-org-import-btn {
+    background: #fff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-org-import-filename {
+    color: #64748b !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-org-pricing-title {
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
+:host .seamless-org-pricing-amount {
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    color: #059669 !important;
+}
+
+:host .seamless-org-pricing-middle {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+    color: #64748b !important;
+}
+
+:host .seamless-org-pricing-prorated-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: fit-content !important;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+    background: #fff7ed !important;
+    color: #c2410c !important;
+}
+
+:host .seamless-org-pricing-remaining-seats {
+    margin-top: 12px !important;
+    color: #475569 !important;
+}
+
+:host .seamless-org-add-form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+}
+
+:host .seamless-user-dashboard-org-add-row {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+:host .seamless-user-dashboard-org-add-field {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+:host .seamless-user-dashboard-org-add-field label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+}
+
+:host .seamless-user-dashboard-org-add-field .required {
+    color: #dc2626 !important;
+}
+
+:host .seamless-user-dashboard-org-add-field-role .seamless-user-dashboard-org-role-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+:host .seamless-user-dashboard-org-add-another-btn {
+    border: none !important;
+    background: transparent !important;
+    color: var(--seamless-color-primary) !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-org-warning-details {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+}
+
+:host .seamless-org-warning-item {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+
+:host .seamless-org-warning-item .label,
+:host .seamless-org-warning-note {
+    color: #64748b !important;
+}
+
+:host .seamless-org-warning-item .value {
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
+@media (max-width: 768px) {
+    :host .seamless-user-dashboard-org-header,
+    :host .seamless-user-dashboard-org-plan-header,
+    :host .seamless-user-dashboard-org-member-row,
+    :host .seamless-user-dashboard-org-members-header,
+    :host .seamless-org-import-header,
+    :host .seamless-org-pricing-top,
+    :host .seamless-modal-footer {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    :host .seamless-user-dashboard-org-capacity,
+    :host .seamless-user-dashboard-org-add-row,
+    :host .seamless-org-warning-details {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-user-dashboard-org-member-actions {
+        flex-wrap: wrap !important;
+        justify-content: flex-end !important;
+    }
+}

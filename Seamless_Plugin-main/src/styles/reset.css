@@ -1,0 +1,183 @@
+﻿/* ============================================
+   SEAMLESS EVENT DISPLAY - RESET & BASE STYLES
+   ============================================
+   This file aggressively re-scopes CSS so that
+   WordPress theme styles cannot override plugin styles.
+   ============================================ */
+
+/* Force all children to inherit the design system values from the root.
+   This prevents WordPress themes from bleeding into the plugin. */
+/* Force all children to inherit the design system values from the root.
+   This prevents WordPress themes from bleeding into the plugin. */
+/* Root element isolation: 
+   Establish the design system baseline and block ALL inheritance from the theme. */
+:host {
+  all: initial !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  
+  /* Typography baseline - must be explicit to stop theme font bleed */
+  font-family: var(--seamless-font-family-default) !important;
+  font-size: var(--seamless-font-size-base) !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+  color: var(--seamless-color-font) !important;
+  background-color: transparent !important;
+  
+  /* Layout */
+  width: 100% !important;
+  position: relative !important;
+  text-align: left !important;
+  letter-spacing: normal !important;
+}
+
+:host *,
+:host *::before,
+:host *::after {
+  box-sizing: border-box !important;
+  /* Do NOT use font-family: inherit here, as it might inherit from a corrupted host state.
+     Instead, we let normal CSS inheritance work from the :host definition above. */
+}
+
+/* #seamless-plugin-root inside shadow DOM is the inner wrapper — ensure it fills width */
+:host #seamless-plugin-root {
+  display: block !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Links: reset WordPress theme link colors */
+:host a,
+:host a:link,
+:host a:visited,
+:host a:hover,
+:host a:active {
+  color: inherit !important;
+  text-decoration: none !important;
+  font-weight: inherit !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Headings: reset WordPress theme heading styles */
+:host h1,
+:host h2,
+:host h3,
+:host h4,
+:host h5,
+:host h6 {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-weight: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: var(--seamless-color-heading) !important;
+  font-family: inherit !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  border: none !important;
+}
+
+/* Paragraphs */
+:host p {
+  margin: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+  font-family: inherit !important;
+}
+
+/* Lists */
+:host ul,
+:host ol {
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+:host li {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Buttons: reset WordPress / theme button styles completely */
+:host button,
+:host input[type="button"],
+:host input[type="submit"],
+:host input[type="reset"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: normal !important;
+  cursor: pointer !important;
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: inherit !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-decoration: none !important;
+  border-radius: 0 !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+/* Form elements */
+:host input,
+:host select,
+:host textarea {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: normal !important;
+  margin: 0 !important;
+}
+
+/* Images */
+:host img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: inline-block !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Tables */
+:host table {
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+}
+
+:host th,
+:host td {
+  padding: 0 !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  border: none !important;
+  font-weight: inherit !important;
+}
+
+/* SVG icons — don't let theme color them unless explicit */
+:host svg {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  flex-shrink: 0 !important;
+}
+

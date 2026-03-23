@@ -1,0 +1,150 @@
+﻿/* ============================================
+   SEAMLESS PLUGIN — GLOBAL UTILITIES
+   ============================================
+   This file contains only utility classes that
+   are too general to belong to any single component.
+
+   All other styles are imported individually in
+   App.tsx via Vite's ?inline suffix and injected
+   into the Shadow DOM as a bundle.
+
+   ⚠️  Do NOT add @import statements here — they are
+       NOT resolved when a CSS file is imported with
+       Vite's ?inline suffix.
+   ============================================ */
+
+/* Text truncation */
+:host .seamless-line-clamp-1 {
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  line-clamp: 1 !important;
+  -webkit-line-clamp: 1 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+:host .seamless-line-clamp-2 {
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  line-clamp: 2 !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+:host .seamless-line-clamp-3 {
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  line-clamp: 3 !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+/* Responsive utilities */
+:host .seamless-hidden-mobile {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  :host .seamless-hidden-mobile {
+    display: block !important;
+  }
+
+  :host .seamless-hidden-desktop {
+    display: none !important;
+  }
+}
+
+/* Flex utilities */
+:host .seamless-flex {
+  display: flex !important;
+}
+
+:host .seamless-flex-between {
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+:host .seamless-flex-center {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:host .seamless-flex-col {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+:host .seamless-flex-wrap {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
+/* Spacing utilities */
+:host .seamless-mb-4  { margin-bottom: var(--seamless-spacing-4) !important; }
+:host .seamless-mb-6  { margin-bottom: var(--seamless-spacing-6) !important; }
+:host .seamless-mb-8  { margin-bottom: var(--seamless-spacing-8) !important; }
+:host .seamless-mt-4  { margin-top: var(--seamless-spacing-4) !important; }
+:host .seamless-mt-6  { margin-top: var(--seamless-spacing-6) !important; }
+:host .seamless-gap-4 { gap: var(--seamless-spacing-4) !important; }
+:host .seamless-gap-6 { gap: var(--seamless-spacing-6) !important; }
+
+/* Display utilities */
+:host .seamless-block        { display: block !important; }
+:host .seamless-inline-block { display: inline-block !important; }
+:host .seamless-hidden       { display: none !important; }
+
+/* Width utilities */
+:host .seamless-w-full { width: 100% !important; }
+:host .seamless-w-32   { width: 8rem !important; }
+
+/* Text utilities */
+:host .seamless-text-center   { text-align: center !important; }
+:host .seamless-font-bold     { font-weight: 700 !important; }
+:host .seamless-font-semibold { font-weight: 600 !important; }
+
+:host .seamless-text-gray-600  { color: var(--seamless-color-gray-600) !important; }
+:host .seamless-text-primary   { color: var(--seamless-color-primary) !important; }
+:host .seamless-text-secondary { color: var(--seamless-color-secondary) !important; }
+
+/* Border radius utilities */
+:host .seamless-rounded-lg   { border-radius: var(--seamless-radius-lg) !important; }
+:host .seamless-rounded-full { border-radius: var(--seamless-radius-full) !important; }
+
+/* Shadow utilities */
+:host .seamless-shadow-md { box-shadow: var(--seamless-shadow-md) !important; }
+:host .seamless-shadow-lg { box-shadow: var(--seamless-shadow-lg) !important; }
+
+/* Transition utilities */
+:host .seamless-transition-colors {
+  transition: color var(--seamless-transition-normal),
+              background-color var(--seamless-transition-normal) !important;
+}
+
+:host .seamless-transition-all {
+  transition: all var(--seamless-transition-normal) !important;
+}
+
+/* ── Accessibility ─────────────────────────────────────────────────────────── */
+:host .seamless-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border-width: 0 !important;
+}
+
+:host .seamless-focus-visible:focus-visible {
+  outline: 2px solid var(--seamless-color-secondary) !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Print ─────────────────────────────────────────────────────────────────── */
+@media print {
+  :host .seamless-no-print {
+    display: none !important;
+  }
+}

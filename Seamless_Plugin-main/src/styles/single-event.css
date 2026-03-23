@@ -1,0 +1,218 @@
+﻿/* Single Event Page Container */
+:host .seamless-single-event-container {
+    margin: 0 auto !important;
+    padding: 20px !important;
+    font-family: var(--seamless-font-family-default) !important;
+    color: var(--seamless-color-font) !important;
+}
+
+/* Breadcrumbs */
+:host .seamless-breadcrumbs {
+    font-size: 0.9rem !important;
+    color: var(--seamless-color-gray-600) !important;
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-breadcrumb-current {
+    font-weight: 600 !important;
+    color: var(--seamless-color-primary) !important;
+}
+
+/* Grid Layout */
+:host .seamless-single-event-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 390px !important;
+    gap: 40px !important;
+}
+
+:host .seamless-event-header-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+@media (max-width: 900px) {
+    :host .seamless-single-event-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+}
+
+/* Left Content Wrapper */
+:host .seamless-single-event-content {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+}
+
+/* Header Group */
+:host .seamless-event-header-group {
+    display: flex !important;
+    align-items: start !important;
+    gap: 20px !important;
+    margin-bottom: 30px !important;
+    padding-bottom: 20px !important;
+    border-bottom: 1px solid var(--seamless-color-secondary) !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+}
+
+@media (max-width: 900px) {
+    :host .seamless-event-header-group {
+        order: 1 !important;
+    }
+    :host .seamless-single-event-sidebar {
+        order: 2 !important;
+    }
+    :host .seamless-single-event-content {
+        order: 3 !important;
+    }
+}
+
+:host .seamless-event-icon-circle img {
+    width: 150px !important;
+    height: 120px !important;
+    object-fit: contain !important;
+}
+
+:host .seamless-event-title {
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    color: var(--seamless-color-primary) !important;
+    margin: 0 0 10px 0 !important;
+}
+
+:host .seamless-event-description {
+    line-height: 1.6 !important;
+    margin-bottom: 30px !important;
+}
+
+:host .seamless-event-description h3 {
+    font-family: var(--seamless-font-family-default) !important;
+    font-size: 26px !important;
+    line-height: 1.5 !important;
+    color: var(--seamless-color-primary) !important;
+}
+
+:host p {
+    font-family: var(--seamless-font-family-default) !important;
+    font-size: 16px !important;
+    line-height: 1.8 !important;
+    color: var(--seamless-color-font) !important;
+    margin-bottom: 15px !important;
+}
+
+:host a {
+    color: var(--seamless-color-secondary) !important;
+    text-decoration: underline !important;
+}
+
+:host a:hover {
+    color: var(--seamless-color-primary) !important;
+}
+
+/* Schedule Table */
+:host table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 10px !important;
+}
+
+:host table thead th {
+    background-color: var(--seamless-color-primary) !important;
+    color: var(--seamless-color-white) !important;
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    padding: 15px 20px !important;
+    text-align: left !important;
+    border: none !important;
+}
+
+:host table tbody tr:nth-child(odd) {
+    background-color: var(--seamless-color-gray-50) !important;
+}
+
+:host table td {
+    padding: 15px 20px !important;
+    vertical-align: top !important;
+    border: none !important;
+    color: var(--seamless-color-gray-700) !important;
+    line-height: 1.6 !important;
+}
+
+/* Sidebar */
+:host .seamless-single-event-sidebar {
+    position: sticky !important;
+    top: 30px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 40px !important;
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+}
+
+:host .seamless-sidebar-box {
+    background: var(--seamless-color-white) !important;
+    border: 1px solid var(--seamless-color-gray-200) !important;
+    border-radius: 16px !important;
+    padding: 30px !important;
+    box-shadow: var(--seamless-shadow-md) !important;
+}
+
+:host .seamless_single_page_calendar_button {
+    background-color: var(--seamless-color-white) !important;
+    border: 1px solid var(--seamless-color-secondary) !important;
+    border-radius: 10px !important;
+    color: var(--seamless-color-secondary) !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-calendar-option {
+    display: flex !important;
+    padding: 12px 20px !important;
+    color: var(--seamless-color-gray-700) !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+}
+
+:host .seamless-tickets-box .seamless-tickets-title {
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    color: var(--seamless-color-primary) !important;
+    margin: 0 0 10px 0 !important;
+}
+
+/* Register Button */
+:host .seamless-tickets-box .event-register-btn {
+    background-color: var(--seamless-color-secondary) !important;
+    color: white !important;
+    padding: 12px 35px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+:host .seamless-tickets-box .event-register-btn:hover {
+    background-color: var(--seamless-color-primary) !important;
+}
+
+:host ul.seamless-single-evt-details-list {
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-detials-container {
+    display: inline-grid !important;
+    padding-left: 10px !important;
+}
+
+@media (max-width: 900px) {
+    :host .seamless-single-event-sidebar {
+        position: static !important;
+    }
+}
