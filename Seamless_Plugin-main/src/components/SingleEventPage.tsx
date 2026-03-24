@@ -10,6 +10,7 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { useShadowRoot } from './ShadowRoot';
 
 export const SingleEventPage: React.FC = () => {
+    console.log('Rendering SingleEventPage');
     const shadowRoot = useShadowRoot();
     const { slug: paramSlug } = useParams<{ slug: string }>();
     // Logic to determine slug: param > DOM attribute
@@ -341,6 +342,7 @@ export const SingleEventPage: React.FC = () => {
 
     // Check if event has passed
     const isEventPassed = new Date(endDateToUse || startDateToUse).getTime() < new Date().getTime();
+    console.log('Event Passed:', isEventPassed);
     const sponsorCount = event?.sponsors?.length ?? 0;
     const hasSponsors = sponsorCount > 0;
     const visibleSponsors = sponsorCount > 1 ? 2 : 1;
