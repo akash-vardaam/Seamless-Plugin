@@ -4,9 +4,15 @@ import { useMembershipPlans } from '../hooks/useMembershipPlans';
 import { LoadingSpinner } from './LoadingSpinner';
 
 // Helper to get WordPress site URL for middleware routing
-const getSiteUrl = () => {
-    if (typeof window !== 'undefined' && (window as any).seamlessReactConfig?.siteUrl) {
-        return (window as any).seamlessReactConfig.siteUrl;
+const getMembershipBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        const cfg = (window as any).seamlessReactConfig;
+        if (cfg?.clientDomain) {
+            return String(cfg.clientDomain).trim();
+        }
+        if (cfg?.siteUrl) {
+            return String(cfg.siteUrl).trim();
+        }
     }
     return window.location.origin;
 };
@@ -49,7 +55,7 @@ export const MembershipListView: React.FC = () => {
         );
     }
 
-    const siteUrl = getSiteUrl();
+    const baseUrl = getMembershipBaseUrl();
 
     return (
         <div className="seamless-membership-container">
@@ -105,7 +111,7 @@ export const MembershipListView: React.FC = () => {
 
                         <div className="seamless-plan-footer">
                             <a
-                                href={`${siteUrl.replace(/\/$/, '')}/memberships/${plan.id}`}
+                                href={`${baseUrl.replace(/\/$/, '')}/memberships/${plan.id}`}
                                 className="seamless-plan-cta"
                             >
                                 GET STARTED

@@ -13,8 +13,15 @@ export const SingleEventPage: React.FC = () => {
     console.log('Rendering SingleEventPage');
     const shadowRoot = useShadowRoot();
     const { slug: paramSlug } = useParams<{ slug: string }>();
+    const safeDecode = (value: string): string => {
+        try {
+            return decodeURIComponent(value);
+        } catch {
+            return value;
+        }
+    };
     // Logic to determine slug: param > DOM attribute
-    const [slug, setSlug] = useState<string>(paramSlug || '');
+    const [slug, setSlug] = useState<string>(paramSlug ? safeDecode(paramSlug) : '');
     const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
     const [isCalendarAdded, setIsCalendarAdded] = useState(false);
     const [activeSponsorIndex, setActiveSponsorIndex] = useState(0);
@@ -28,12 +35,28 @@ export const SingleEventPage: React.FC = () => {
 
     useEffect(() => {
         if (paramSlug) {
-            setSlug(paramSlug);
+            setSlug(safeDecode(paramSlug));
         } else {
+            const querySlug = new URLSearchParams(window.location.search).get('seamless_event');
+            if (querySlug) {
+                setSlug(safeDecode(querySlug));
+                return;
+            }
+
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const singleEventEndpoint = ((window as any)?.seamlessReactConfig?.singleEventEndpoint || 'event')
+                .toString()
+                .replace(/^\/+|\/+$/g, '');
+            const endpointIndex = pathParts.indexOf(singleEventEndpoint);
+            if (endpointIndex > -1 && pathParts[endpointIndex + 1]) {
+                setSlug(safeDecode(pathParts[endpointIndex + 1]));
+                return;
+            }
+
             const container = (shadowRoot || document) as (Document | ShadowRoot);
             const domSlug = container.getElementById?.('event_detail')?.getAttribute('data-event-slug');
             if (domSlug) {
-                setSlug(domSlug);
+                setSlug(safeDecode(domSlug));
             }
         }
     }, [paramSlug, shadowRoot]);

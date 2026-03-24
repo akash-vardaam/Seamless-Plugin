@@ -30,10 +30,11 @@ export const CoursesView: React.FC = () => {
     } = useCourses();
 
     const handleCourseClick = (slug: string) => {
-        // Redirection to the WordPress middleware
+        // Course detail pages should open on Seamless client domain from settings.
         const cfg = (window as any).seamlessReactConfig;
-        const siteUrl = cfg?.siteUrl || window.location.origin;
-        window.location.href = `${siteUrl.replace(/\/$/, '')}/courses/${slug}`;
+        const clientDomain = (cfg?.clientDomain || '').toString().trim();
+        const baseUrl = (clientDomain || cfg?.siteUrl || window.location.origin).replace(/\/$/, '');
+        window.location.href = `${baseUrl}/courses/${slug}`;
     };
 
     // Sort options updated: removed "All Years" from label concept, now just "Sort By" or specific

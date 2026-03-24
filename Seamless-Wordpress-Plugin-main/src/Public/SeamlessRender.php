@@ -294,6 +294,9 @@ class SeamlessRender
 			window.seamlessReactConfig = {
 				siteUrl: '<?php echo esc_url(home_url()); ?>',
 				restUrl: '<?php echo esc_url(rest_url()); ?>',
+				singleEventEndpoint: '<?php echo esc_js(get_option('seamless_single_event_endpoint', 'event')); ?>',
+				eventListEndpoint: '<?php echo esc_js(get_option('seamless_event_list_endpoint', 'events')); ?>',
+				amsContentEndpoint: '<?php echo esc_js(get_option('seamless_ams_content_endpoint', 'ams-content')); ?>',
 				nonce: '<?php echo wp_create_nonce('seamless'); ?>',
 				ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
 				ajaxNonce: '<?php echo wp_create_nonce('seamless_nonce'); ?>',
@@ -387,6 +390,9 @@ class SeamlessRender
 		wp_localize_script('seamless-react-js', 'seamlessReactConfig', [
 			'siteUrl' => esc_url(home_url()),
 			'restUrl' => esc_url(rest_url()),
+			'singleEventEndpoint' => get_option('seamless_single_event_endpoint', 'event'),
+			'eventListEndpoint' => get_option('seamless_event_list_endpoint', 'events'),
+			'amsContentEndpoint' => get_option('seamless_ams_content_endpoint', 'ams-content'),
 			'nonce' => wp_create_nonce('seamless'),
 			'ajaxUrl' => admin_url('admin-ajax.php'),
 			'ajaxNonce' => wp_create_nonce('seamless_nonce'),

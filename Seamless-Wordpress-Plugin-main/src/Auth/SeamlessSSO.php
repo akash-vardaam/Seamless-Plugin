@@ -22,6 +22,8 @@ class SeamlessSSO
     const NONCE_ACTION = 'seamless_sso_state';
     const LOGIN_ROUTE = 'auth/login';
     const LOGOUT_ROUTE = 'logout';
+    const PKCE_TRANSIENT_PREFIX = 'seamless_sso_pkce_';
+    const PKCE_TTL = 900;
 
     private string $client_domain;
     private string $sso_client_id;
@@ -56,7 +58,7 @@ class SeamlessSSO
         if (get_query_var('sso_login_redirect')) {
             $this->ensure_session_started();
 
-            $return_to = self::get_return_to_url();
+            $return_to = $this->resolve_return_to_url();
             $login_url = $this->get_login_url($return_to);
 
             wp_redirect($login_url);
@@ -107,6 +109,123 @@ class SeamlessSSO
             : home_url('/');
     }
 
+    private function resolve_return_to_url(): string
+    {
+        $requested_return_to = $this->sanitize_internal_return_url($_GET['return_to'] ?? null);
+        if ($requested_return_to) {
+            return $requested_return_to;
+        }
+
+        $fallback_url = $this->get_post_login_redirect_url();
+        $referer = $this->sanitize_internal_return_url($_SERVER['HTTP_REFERER'] ?? null);
+
+        if (!$referer) {
+            return $fallback_url;
+        }
+
+        if ($this->is_auth_route_url($referer)) {
+            return $fallback_url;
+        }
+
+        $referer_post_id = url_to_postid($referer);
+        if ($referer_post_id > 0) {
+            $post = get_post($referer_post_id);
+            $content = $post ? (string) $post->post_content : '';
+
+            if ($this->content_has_shortcode($content, 'seamless_login_button')) {
+                return $fallback_url;
+            }
+        }
+
+        return $referer;
+    }
+
+    private function sanitize_internal_return_url($url): string
+    {
+        if (!is_string($url) || trim($url) === '') {
+            return '';
+        }
+
+        $url = esc_url_raw(wp_unslash($url));
+        if ($url === '') {
+            return '';
+        }
+
+        $home_host = wp_parse_url(home_url('/'), PHP_URL_HOST);
+        $target_host = wp_parse_url($url, PHP_URL_HOST);
+
+        if ($target_host && $home_host && strcasecmp((string) $target_host, (string) $home_host) !== 0) {
+            return '';
+        }
+
+        return $url;
+    }
+
+    private function is_auth_route_url(string $url): bool
+    {
+        $normalized = untrailingslashit($url);
+
+        return in_array($normalized, [
+            untrailingslashit(home_url(self::LOGIN_ROUTE)),
+            untrailingslashit(home_url(self::LOGOUT_ROUTE)),
+            untrailingslashit(rest_url(self::REST_NAMESPACE . '/callback')),
+        ], true);
+    }
+
+    private function content_has_shortcode(string $content, string $shortcode): bool
+    {
+        return $content !== '' && function_exists('has_shortcode') && has_shortcode($content, $shortcode);
+    }
+
+    private function get_post_login_redirect_url(): string
+    {
+        $configured_url = $this->sanitize_internal_return_url(get_option('seamless_redirect_url', ''));
+        if ($configured_url) {
+            return $configured_url;
+        }
+
+        $dashboard_page = get_page_by_path('dashboard');
+        if ($dashboard_page instanceof \WP_Post && $dashboard_page->post_status === 'publish') {
+            return get_permalink($dashboard_page);
+        }
+
+        $dashboard_page = $this->find_page_with_shortcodes([
+            'seamless_user_dashboard',
+            'seamless_dashboard',
+        ]);
+
+        if ($dashboard_page instanceof \WP_Post) {
+            $permalink = get_permalink($dashboard_page);
+            if (is_string($permalink) && $permalink !== '') {
+                return $permalink;
+            }
+        }
+
+        return home_url('/');
+    }
+
+    private function find_page_with_shortcodes(array $shortcodes): ?\WP_Post
+    {
+        $pages = get_posts([
+            'post_type' => 'page',
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'suppress_filters' => false,
+        ]);
+
+        foreach ($pages as $page) {
+            $content = (string) $page->post_content;
+
+            foreach ($shortcodes as $shortcode) {
+                if ($this->content_has_shortcode($content, $shortcode)) {
+                    return $page;
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Generates the SSO login URL with PKCE and stores PKCE verifier + return URL in PHP session keyed by state.
      *
@@ -139,6 +258,11 @@ class SeamlessSSO
             'created_at' => time(),
         ];
 
+        set_transient($this->get_pkce_transient_key($nonce), [
+            'verifier'   => $code_verifier,
+            'created_at' => time(),
+        ], self::PKCE_TTL);
+
         // Helper::log('SeamlessSSO | get_login_url | Stored PKCE in session with nonce=' . $nonce . ', session_id=' . session_id());
 
         // Build the URL
@@ -156,6 +280,11 @@ class SeamlessSSO
         $final_url = "{$this->client_domain}/oauth/authorize?{$query}";
 
         return $final_url;
+    }
+
+    public static function get_pkce_transient_key(string $nonce): string
+    {
+        return self::PKCE_TRANSIENT_PREFIX . md5($nonce);
     }
 
     public function handle_oauth_callback(WP_REST_Request $req): void
@@ -343,7 +472,7 @@ class SeamlessSSO
             );
         }
 
-        $url = home_url(self::LOGIN_ROUTE);
+        $url = add_query_arg('return_to', $this->get_post_login_redirect_url(), home_url(self::LOGIN_ROUTE));
 
         return sprintf(
             '<a class="%s" href="%s">%s</a>',

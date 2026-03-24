@@ -46,15 +46,14 @@ class SeamlessCallbackHandler
             return new WP_Error('invalid_state', 'Invalid or expired state.');
         }
 
-        if (empty($_SESSION[self::SSO_PREFIX]['pkce'][$nonce]['verifier'])) {
+        $pkce_verifier = $this->resolve_pkce_verifier($nonce);
+
+        if ($pkce_verifier === '') {
             Helper::log('Expired or missing PKCE verifier for state');
             return new WP_Error('missing_verifier', 'Expired or missing PKCE verifier.');
         }
 
-        $pkce_verifier = $_SESSION[self::SSO_PREFIX]['pkce'][$nonce]['verifier'];
-        unset($_SESSION[self::SSO_PREFIX]['pkce'][$nonce]);
-
-        $return_to = $encoded_return_to ? base64_decode($encoded_return_to) : home_url('/');
+        $return_to = $this->resolve_callback_redirect_url($encoded_return_to);
 
         try {
             $tokens = $this->exchange_code_for_token($code, $pkce_verifier);
@@ -133,6 +132,48 @@ class SeamlessCallbackHandler
             return new WP_Error('token_exchange_failed', 'Token exchange failed: ' . $err, ['status' => $response_code]);
         }
         return $data;
+    }
+
+    private function resolve_callback_redirect_url(?string $encoded_return_to): string
+    {
+        $decoded_url = '';
+
+        if (is_string($encoded_return_to) && $encoded_return_to !== '') {
+            $decoded = base64_decode($encoded_return_to, true);
+            $decoded_url = is_string($decoded) ? esc_url_raw($decoded) : '';
+        }
+
+        if ($decoded_url !== '' && wp_validate_redirect($decoded_url, false)) {
+            return $decoded_url;
+        }
+
+        $configured_url = esc_url_raw((string) get_option('seamless_redirect_url', ''));
+        if ($configured_url !== '' && wp_validate_redirect($configured_url, false)) {
+            return $configured_url;
+        }
+
+        return home_url('/');
+    }
+
+    private function resolve_pkce_verifier(string $nonce): string
+    {
+        $verifier = '';
+
+        if (!empty($_SESSION[self::SSO_PREFIX]['pkce'][$nonce]['verifier'])) {
+            $verifier = (string) $_SESSION[self::SSO_PREFIX]['pkce'][$nonce]['verifier'];
+            unset($_SESSION[self::SSO_PREFIX]['pkce'][$nonce]);
+        }
+
+        if ($verifier === '') {
+            $transient = get_transient(SeamlessSSO::get_pkce_transient_key($nonce));
+            if (is_array($transient) && !empty($transient['verifier'])) {
+                $verifier = (string) $transient['verifier'];
+            }
+        }
+
+        delete_transient(SeamlessSSO::get_pkce_transient_key($nonce));
+
+        return $verifier;
     }
 
     /**

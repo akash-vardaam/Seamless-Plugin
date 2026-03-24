@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { Event } from '../types/event';
 import { getEventPageURL } from '../utils/urlHelper';
 
@@ -89,6 +90,17 @@ const getItemLink = (item: Event): string => {
   return getEventPageURL(slug, isGroup);
 };
 
+const getItemRoute = (item: Event): string => {
+  const fullUrl = getItemLink(item);
+
+  try {
+    const parsed = new URL(fullUrl, window.location.origin);
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return fullUrl;
+  }
+};
+
 const stripHtmlTags = (html: string): string => {
   if (!html) return '';
   return html.replace(/<[^>]*>/g, '').trim();
@@ -154,12 +166,12 @@ export const Card: React.FC<CardProps> = ({
         {/* Item Details */}
         <div className="seamless-card-content">
           {/* Title */}
-          <a
-            href={getItemLink(item)}
+          <Link
+            to={getItemRoute(item)}
             className="seamless-card-title seamless-font-merriweather"
           >
             {item?.title}
-          </a>
+          </Link>
 
           {/* Date Range */}
           <p className="seamless-card-date">
@@ -172,12 +184,12 @@ export const Card: React.FC<CardProps> = ({
           </p>
 
           {/* SEE DETAILS Button */}
-          <a
-            href={getItemLink(item)}
+          <Link
+            to={getItemRoute(item)}
             className="seamless-card-see-details"
           >
             SEE DETAILS
-          </a>
+          </Link>
         </div>
       </article>
     );
@@ -207,12 +219,12 @@ export const Card: React.FC<CardProps> = ({
         <div className="seamless-card-modern-shell">
           <div className="seamless-card-modern-content">
             <div className="seamless-card-modern-body">
-              <a
-                href={getItemLink(item)}
+              <Link
+                to={getItemRoute(item)}
                 className="seamless-card-modern-title seamless-font-merriweather"
               >
                 {item?.title}
-              </a>
+              </Link>
 
               <div className="seamless-card-modern-meta">
                 {multiDayRange ? (
@@ -237,10 +249,10 @@ export const Card: React.FC<CardProps> = ({
                 <p className="seamless-card-modern-description">{description}</p>
               ) : null}
 
-              <a href={getItemLink(item)} className="seamless-card-modern-link">
+              <Link to={getItemRoute(item)} className="seamless-card-modern-link">
                 <span>View Event</span>
                 <ArrowUpRightIcon />
-              </a>
+              </Link>
             </div>
 
             <div className="seamless-card-modern-image-wrap">
