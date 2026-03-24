@@ -419,7 +419,7 @@ export const SingleEventPage: React.FC = () => {
                                                 <div
                                                     key={`${sponsorUrl}-${index}`}
                                                     className="seamless-sponsor-slide"
-                                                    style={{ flexBasis: `${100 / visibleSponsors}%` }}
+                                                    style={{ flex: `0 0 ${100 / visibleSponsors}%` }}
                                                 >
                                                     <img
                                                         src={sponsorUrl}
