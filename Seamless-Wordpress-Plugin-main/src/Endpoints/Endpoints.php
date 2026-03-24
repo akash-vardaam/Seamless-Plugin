@@ -144,12 +144,8 @@ class Endpoints
 	{
 		$page = get_query_var('seamless_page');
 		if ($page) {
-			if ('seamless-event-list' === $page) {
-				return plugin_dir_path(__DIR__) . 'Public/templates/tpl-event-container.php';
-			} elseif ('single_event' === $page) {
-				return plugin_dir_path(__DIR__) . 'Public/templates/tpl-single-event-wrapper.php';
-			} elseif ('ams_content' === $page) {
-				return plugin_dir_path(__DIR__) . 'Public/templates/tpl-seamless-ams-content.php';
+			if (in_array($page, ['seamless-event-list', 'single_event', 'ams_content'], true)) {
+				return plugin_dir_path(__DIR__) . 'Public/react-endpoint-template.php';
 			}
 		}
 		return $template;
