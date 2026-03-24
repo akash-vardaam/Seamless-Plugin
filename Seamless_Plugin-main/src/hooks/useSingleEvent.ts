@@ -22,13 +22,21 @@ export const useSingleEvent = (slug: string, isGroupEvent: boolean = false) => {
         const fetchEvent = async () => {
             setState(prev => ({ ...prev, loading: true, error: null }));
             try {
-                // Try /events/slug first, if that fails we can try /event/slug
-                // Based on urlHelper it seems 'event' is the endpoint for single, but 'events' for list.
-                // Let's rely on standard REST practices or the helper.
-                // urlHelper says `singleEventEndpoint: 'event'`
+                let response;
 
-                // Try to fetch normal event or group event depending on the flag
-                const response = isGroupEvent ? await fetchGroupEventBySlug(slug) : await fetchEventBySlug(slug);
+                if (isGroupEvent) {
+                    try {
+                        response = await fetchGroupEventBySlug(slug);
+                    } catch {
+                        response = await fetchEventBySlug(slug);
+                    }
+                } else {
+                    try {
+                        response = await fetchEventBySlug(slug);
+                    } catch {
+                        response = await fetchGroupEventBySlug(slug);
+                    }
+                }
 
                 // Check if data is wrapped in 'data'
                 const eventData = response.data.data || response.data;

@@ -3914,6 +3914,7 @@
 #singleEventWrapper .event-info-card .event-coming-soon-btn {
   display: block;
   width: 100%;
+  box-sizing: border-box;
   text-align: center;
   padding: 14px 20px;
   background: var(--seamless-light-background-color);
@@ -3935,6 +3936,8 @@
   color: var(--seamless-text-color);
   border: 1px solid var(--seamless-border-color);
   opacity: 0.7;
+  cursor: default;
+  pointer-events: none;
 }
 
 /* Coming Soon Button */

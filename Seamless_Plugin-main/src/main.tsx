@@ -23,11 +23,12 @@ if (shortcodeContainers.length > 0) {
   shortcodeContainers.forEach((container) => {
     const view = container.getAttribute('data-seamless-view') || 'events';
     const slug = container.getAttribute('data-seamless-slug') || '';
+    const type = container.getAttribute('data-seamless-type') || '';
     const siteUrl = container.getAttribute('data-site-url') || window.location.origin;
 
     createRoot(container).render(
       <StrictMode>
-        <App initialView={view} initialSlug={slug} siteUrl={siteUrl} />
+        <App initialView={view} initialSlug={slug} initialType={type} siteUrl={siteUrl} />
       </StrictMode>,
     );
   });

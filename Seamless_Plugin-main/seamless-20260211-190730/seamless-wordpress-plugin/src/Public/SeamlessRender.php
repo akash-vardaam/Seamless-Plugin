@@ -328,10 +328,6 @@ class SeamlessRender
 		add_shortcode('seamless_courses', [$this, 'shortcode_react_courses']);
 		add_shortcode('seamless_dashboard', [$this, 'shortcode_react_dashboard']);
 		add_shortcode('seamless_react_single_event', [$this, 'shortcode_react_single_event']);
-		add_shortcode('seamless_react_dashboard', [$this, 'shortcode_react_dashboard']);
-		add_shortcode('seamless_react_memberships', [$this, 'shortcode_react_memberships']);
-		add_shortcode('seamless_react_courses', [$this, 'shortcode_react_courses']);
-		add_shortcode('seamless_react_events_list', [$this, 'shortcode_react_events_list']);
 
 		// Legacy shortcode contract used by seamless-addon and older page builds
 		add_shortcode('seamless_event_list', [$this, 'shortcode_event_list']);

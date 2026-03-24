@@ -2,35 +2,50 @@ export interface EventURLConfig {
   siteUrl: string;
   singleEventEndpoint: string;
   eventListEndpoint: string;
+  amsContentEndpoint?: string;
 }
 
+const normalizeEndpoint = (value: string | undefined, fallback: string): string => {
+  const normalized = (value || fallback).trim().replace(/^\/+|\/+$/g, '');
+  return normalized || fallback;
+};
+
+const getWindowConfig = (): Partial<EventURLConfig> | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return (
+    (window as any).seamlessReactConfig ||
+    (window as any).seamlessConfig ||
+    null
+  );
+};
+
 export const getWordPressSiteUrl = (): string => {
-  // First, check if passed via window object (preferred method)
   if (typeof window !== 'undefined') {
-    // Check for seamless config
-    if ((window as any).seamlessConfig?.siteUrl) {
-      return (window as any).seamlessConfig.siteUrl;
+    const config = getWindowConfig();
+    if (config?.siteUrl) {
+      return config.siteUrl;
     }
 
-    // Check for WordPress REST API base URL in meta tag
     const restApiMeta = document.querySelector('meta[name="rest-api-base-url"]');
     if (restApiMeta) {
       let siteUrl = restApiMeta.getAttribute('content');
-      // Remove /wp-json/wp/v2 or similar REST endpoints to get base URL
       if (siteUrl && siteUrl.includes('/wp-json')) {
         siteUrl = siteUrl.split('/wp-json')[0];
       }
       return siteUrl || window.location.origin;
     }
 
-    // Check for WordPress site URL in meta tag
     const siteMeta = document.querySelector('meta[name="wordpress-site-url"]');
     if (siteMeta) {
       const siteUrl = siteMeta.getAttribute('content');
-      if (siteUrl) return siteUrl;
+      if (siteUrl) {
+        return siteUrl;
+      }
     }
 
-    // Fallback to window location origin
     return window.location.origin;
   }
 
@@ -38,17 +53,23 @@ export const getWordPressSiteUrl = (): string => {
 };
 
 export const getSeamlessConfig = (): EventURLConfig | null => {
-  if (typeof window !== 'undefined' && (window as any).seamlessConfig) {
-    return (window as any).seamlessConfig;
+  const config = getWindowConfig();
+  if (config) {
+    return {
+      siteUrl: (config.siteUrl || getWordPressSiteUrl()).replace(/\/+$/g, ''),
+      singleEventEndpoint: normalizeEndpoint(config.singleEventEndpoint, 'event'),
+      eventListEndpoint: normalizeEndpoint(config.eventListEndpoint, 'events'),
+      amsContentEndpoint: normalizeEndpoint(config.amsContentEndpoint, 'ams-content'),
+    };
   }
 
-  // Dynamically create config if not explicitly set
   const siteUrl = getWordPressSiteUrl();
   if (siteUrl) {
     return {
-      siteUrl,
-      singleEventEndpoint: 'events',
-      eventListEndpoint: 'events'
+      siteUrl: siteUrl.replace(/\/+$/g, ''),
+      singleEventEndpoint: 'event',
+      eventListEndpoint: 'events',
+      amsContentEndpoint: 'ams-content',
     };
   }
 
@@ -65,13 +86,16 @@ export const createEventSlug = (title: string, id: string): string => {
 };
 
 export const getEventPageURL = (eventSlug: string, isGroupEvent: boolean = false): string => {
-  // Use query-parameter deep-linking — the same strategy as Card.tsx —
-  // so calendar clicks produce identical URLs to grid/list card clicks.
-  // Format: ?seamless_event=SLUG&type=events|group-event
-  // This stays on the current WordPress page (where the shortcode is mounted)
-  // and signals to the React MemoryRouter which event to show.
-  const type = isGroupEvent ? 'group-event' : 'events';
-  return `?seamless_event=${encodeURIComponent(eventSlug)}&type=${type}`;
+  const config = getSeamlessConfig();
+  const baseUrl = config?.siteUrl || window.location.origin;
+  const singleEventEndpoint = config?.singleEventEndpoint || 'event';
+  const eventUrl = `${baseUrl.replace(/\/+$/g, '')}/${singleEventEndpoint}/${encodeURIComponent(eventSlug)}`;
+
+  if (!isGroupEvent) {
+    return eventUrl;
+  }
+
+  return `${eventUrl}?type=group-event`;
 };
 
 export const getEventURL = (
@@ -86,21 +110,23 @@ export const getEventURL = (
 
 export const navigateToEvent = (eventSlug: string, isGroupEvent?: boolean): void => {
   const url = getEventPageURL(eventSlug, isGroupEvent);
-  // Update the real browser URL bar (MemoryRouter won't do it itself)
-  try {
-    const realParams = new URLSearchParams(window.location.search);
-    realParams.set('seamless_event', eventSlug);
-    realParams.set('type', isGroupEvent ? 'group-event' : 'events');
-    history.pushState(null, '', `?${realParams.toString()}`);
-  } catch {
-    // Fallback: direct navigate
-    window.location.href = url;
-    return;
-  }
-  // Trigger a same-page navigation so React picks up the new query params
   window.location.href = url;
 };
 
+export const getSingleEventRoutePath = (): string => {
+  const config = getSeamlessConfig();
+  return `/${config?.singleEventEndpoint || 'event'}/:slug`;
+};
+
+export const getEventListRoutePath = (): string => {
+  const config = getSeamlessConfig();
+  return `/${config?.eventListEndpoint || 'events'}`;
+};
+
+export const getAmsContentRoutePath = (): string => {
+  const config = getSeamlessConfig();
+  return `/${config?.amsContentEndpoint || 'ams-content'}`;
+};
 
 export const getEventsListURL = (): string => {
   const config = getSeamlessConfig();

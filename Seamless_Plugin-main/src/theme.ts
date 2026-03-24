@@ -123,3 +123,89 @@ export const BUTTON = {
 export const LAYOUT = {
     containerMaxWidth: '80rem',
 } as const;
+
+export type ListViewLayout = 'option_1' | 'option_2';
+export type CardVariant = 'classic' | 'modern';
+
+interface SeamlessAjaxSettings {
+    list_view_layout?: string;
+}
+
+interface SeamlessRuntimeConfig {
+    listViewLayout?: string;
+}
+
+interface SeamlessWindow extends Window {
+    seamless_ajax?: SeamlessAjaxSettings;
+    seamlessReactConfig?: SeamlessRuntimeConfig;
+    seamlessConfig?: SeamlessRuntimeConfig;
+}
+
+export interface RuntimeThemeSettings {
+    cardVariant: CardVariant;
+    listViewLayout: ListViewLayout;
+    styleOverrides: string;
+}
+
+const LEGACY_VAR_NAMES = {
+    primary: ['--seamless-primary-color'],
+    secondary: ['--seamless-link-color', '--seamless-secondary-color'],
+    hover: ['--seamless-secondary-hover-color', '--seamless-secondary-color'],
+    active: ['--seamless-primary-color'],
+    font: ['--seamless-text-color', '--seamless-primary-color'],
+    heading: ['--seamless-primary-color'],
+    border: ['--seamless-accent-color', '--seamless-secondary-color', '--seamless-primary-color'],
+    fontFamily: ['--seamless-font-family'],
+} as const;
+
+const getCssVarValue = (style: CSSStyleDeclaration, names: readonly string[]): string => {
+    for (const name of names) {
+        const value = style.getPropertyValue(name).trim();
+        if (value) return value;
+    }
+    return '';
+};
+
+const buildStyleOverrides = (): string => {
+    if (typeof window === 'undefined') return '';
+
+    const rootStyle = window.getComputedStyle(document.documentElement);
+    const primary = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.primary);
+    const secondary = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.secondary);
+    const hover = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.hover);
+    const active = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.active);
+    const font = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.font);
+    const heading = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.heading);
+    const border = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.border);
+    const fontFamily = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.fontFamily);
+
+    const declarations = [
+        primary && `--seamless-color-primary: ${primary} !important;`,
+        secondary && `--seamless-color-secondary: ${secondary} !important;`,
+        hover && `--seamless-color-hover: ${hover} !important;`,
+        active && `--seamless-color-active: ${active} !important;`,
+        font && `--seamless-color-font: ${font} !important;`,
+        heading && `--seamless-color-heading: ${heading} !important;`,
+        border && `--seamless-border-color: ${border} !important;`,
+        fontFamily && `--seamless-font-family-default: ${fontFamily} !important;`,
+    ].filter(Boolean);
+
+    if (declarations.length === 0) return '';
+
+    return `:host { ${declarations.join(' ')} }`;
+};
+
+export const getRuntimeThemeSettings = (): RuntimeThemeSettings => {
+    const seamlessWindow = typeof window !== 'undefined' ? (window as SeamlessWindow) : undefined;
+    const configuredLayout =
+        seamlessWindow?.seamless_ajax?.list_view_layout ||
+        seamlessWindow?.seamlessReactConfig?.listViewLayout ||
+        seamlessWindow?.seamlessConfig?.listViewLayout;
+    const layoutValue = configuredLayout === 'option_2' ? 'option_2' : 'option_1';
+
+    return {
+        cardVariant: layoutValue === 'option_2' ? 'modern' : 'classic',
+        listViewLayout: layoutValue,
+        styleOverrides: buildStyleOverrides(),
+    };
+};

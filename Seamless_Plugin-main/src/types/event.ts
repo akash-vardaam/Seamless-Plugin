@@ -140,7 +140,7 @@ export interface LocalChapter {
 export type ViewType = 'list' | 'grid' | 'calendar';
 
 
-export type StatusFilter = 'upcoming' | 'current' | 'past';
+export type StatusFilter = '' | 'upcoming' | 'current' | 'past';
 
 export interface FilterState {
   search: string;
@@ -150,5 +150,4 @@ export interface FilterState {
   localChapter: string;
   year: string;
 }
-
 

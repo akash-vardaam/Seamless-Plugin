@@ -706,7 +706,7 @@ if ($startDate) {
       </div>
 
       <?php if ($is_past_event): ?>
-        <button class="event-past-btn">
+        <button class="event-past-btn" type="button" disabled>
           Event has passed!
         </button>
       <?php elseif ($registration_message && $is_before_registration): ?>

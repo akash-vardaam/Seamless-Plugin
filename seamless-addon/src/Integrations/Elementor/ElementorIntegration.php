@@ -39,6 +39,7 @@ class ElementorIntegration
         // Flush rewrite rules when template settings change
         add_action('update_option_seamless_addon_event_template_id', 'flush_rewrite_rules');
         add_action('update_option_seamless_addon_event_template_overrides', 'flush_rewrite_rules');
+        add_action('update_option_seamless_addon_enable_single_event_template_override', 'flush_rewrite_rules');
     }
 
     /**
@@ -278,6 +279,10 @@ class ElementorIntegration
      */
     public function add_rewrite_rules()
     {
+        if (!$this->is_single_event_template_override_enabled()) {
+            return;
+        }
+
         // Use the same endpoint as the main plugin
         $endpoint = get_option('seamless_single_event_endpoint', 'event');
 
@@ -311,6 +316,10 @@ class ElementorIntegration
      */
     public function setup_virtual_page_globals()
     {
+        if (!$this->is_single_event_template_override_enabled()) {
+            return;
+        }
+
         if (!get_query_var('seamless_event')) {
             return;
         }
@@ -356,6 +365,10 @@ class ElementorIntegration
      */
     public function elementor_template_override($template)
     {
+        if (!$this->is_single_event_template_override_enabled()) {
+            return $template;
+        }
+
         // Check if this is a single event page (addon's query var)
         if (!get_query_var('seamless_event')) {
             return $template;
@@ -533,6 +546,18 @@ class ElementorIntegration
 
         // 3) No template resolved
         return 0;
+    }
+
+    /**
+     * Enable/disable Elementor takeover for single-event pages.
+     *
+     * Default is disabled so main plugin React renderer is used.
+     * Site owners can enable explicitly via option or filter.
+     */
+    private function is_single_event_template_override_enabled(): bool
+    {
+        $enabled = get_option('seamless_addon_enable_single_event_template_override', 'no') === 'yes';
+        return (bool) apply_filters('seamless_addon_enable_single_event_template_override', $enabled);
     }
 
     /**

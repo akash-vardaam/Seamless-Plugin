@@ -745,28 +745,6 @@ class SettingsPage
 							class="regular-text" />
 					</td>
 				</tr> -->
-				<!-- <tr>
-					<th scope="row">Membership List Endpoint</th>
-					<td>
-						<code><?php //echo esc_url(home_url('/')); 
-								?></code>
-						<input type="text" name="seamless_membership_list_endpoint"
-							value="<?php //echo esc_attr(get_option('seamless_membership_list_endpoint', 'memberships')); 
-									?>"
-							class="regular-text" />
-					</td>
-				</tr> -->
-				<!-- <tr>
-					<th scope="row">Single Membership Endpoint</th>
-					<td>
-						<code><?php //echo esc_url(home_url('/')); 
-								?></code>
-						<input type="text" name="seamless_single_membership_endpoint"
-							value="<?php //echo esc_attr(get_option('seamless_single_membership_endpoint', 'membership')); 
-									?>"
-							class="regular-text" />
-					</td>
-				</tr> -->
 			</table>
 			<?php submit_button('Save Endpoint Settings'); ?>
 		</form>
@@ -868,16 +846,8 @@ class SettingsPage
 			<ul class="seamless-shortcodes-list">
 				<li><strong>Membership List:</strong>
 					<span class="shortcode-container" style="display: inline-flex; vertical-align: middle;">
-						<code class="seamless-code-block">[seamless_membership_list]</code>
-						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_membership_list]">
-							<span class="dashicons dashicons-admin-page"></span>
-						</button>
-					</span>
-				</li>
-				<li><strong>Single Membership:</strong>
-					<span class="shortcode-container" style="display: inline-flex; vertical-align: middle;">
-						<code class="seamless-code-block">[seamless_single_membership id="1"]</code>
-						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_single_membership id='1']">
+						<code class="seamless-code-block">[seamless_memberships]</code>
+						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_memberships]">
 							<span class="dashicons dashicons-admin-page"></span>
 						</button>
 					</span>
@@ -3008,9 +2978,6 @@ class SettingsPage
 		$target_options = [
 			'seamless_event_list_endpoint',
 			'seamless_single_event_endpoint'
-			// 'seamless_single_donation_endpoint',
-			// 'seamless_membership_list_endpoint',
-			// 'seamless_single_membership_endpoint',
 		];
 		if (in_array($option, $target_options, true)) {
 			flush_rewrite_rules();

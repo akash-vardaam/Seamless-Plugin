@@ -87,6 +87,100 @@
     margin-bottom: 30px !important;
 }
 
+:host .seamless-sponsors-section {
+    margin-top: 40px !important;
+}
+
+:host .seamless-sponsors-title {
+    font-size: var(--seamless-font-size-26) !important;
+    line-height: var(--seamless-line-height-1-4) !important;
+    color: var(--seamless-color-primary) !important;
+    margin: 0 0 12px 0 !important;
+}
+
+:host .seamless-sponsors-description {
+    margin-bottom: 20px !important;
+    color: var(--seamless-color-font) !important;
+}
+
+:host .seamless-sponsors-carousel {
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    align-items: center !important;
+    gap: 16px !important;
+}
+
+:host .seamless-sponsor-slider-window {
+    overflow: hidden !important;
+    border: 1px solid var(--seamless-color-gray-200) !important;
+    border-radius: 18px !important;
+    background: var(--seamless-color-white) !important;
+    box-shadow: var(--seamless-shadow-sm) !important;
+}
+
+:host .seamless-sponsor-slider-track {
+    display: flex !important;
+    transition: transform 0.3s ease !important;
+    width: 100% !important;
+}
+
+:host .seamless-sponsor-slide {
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 24px !important;
+    min-height: 180px !important;
+    box-sizing: border-box !important;
+}
+
+:host .seamless-sponsor-image {
+    max-width: 100% !important;
+    max-height: 120px !important;
+    object-fit: contain !important;
+}
+
+:host .seamless-sponsor-nav {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 999px !important;
+    border: 1px solid var(--seamless-color-secondary) !important;
+    background: var(--seamless-color-white) !important;
+    color: var(--seamless-color-secondary) !important;
+    font-size: 28px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-sponsor-nav:hover {
+    background: var(--seamless-color-secondary) !important;
+    color: var(--seamless-color-white) !important;
+}
+
+:host .seamless-sponsor-dots {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    margin-top: 18px !important;
+}
+
+:host .seamless-sponsor-dot {
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 999px !important;
+    border: none !important;
+    background: var(--seamless-color-gray-300) !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+}
+
+:host .seamless-sponsor-dot.active {
+    background: var(--seamless-color-secondary) !important;
+}
+
 :host .seamless-event-description h3 {
     font-family: var(--seamless-font-family-default) !important;
     font-size: var(--seamless-font-size-26) !important;
@@ -185,6 +279,46 @@
     margin: 0 0 10px 0 !important;
 }
 
+:host .seamless-tickets-box .seamless-ticket-item {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 0 0 15px 0 !important;
+    margin: 0 0 15px 0 !important;
+    border-bottom: 1px solid var(--seamless-color-gray-300) !important;
+}
+
+:host .seamless-tickets-box .seamless-ticket-item:last-of-type {
+    margin-bottom: 20px !important;
+}
+
+:host .seamless-tickets-box .seamless-ticket-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+}
+
+:host .seamless-tickets-box .seamless-ticket-name {
+    font-size: var(--seamless-font-size-14) !important;
+    color: var(--seamless-color-gray-900) !important;
+    line-height: 1.4 !important;
+}
+
+:host .seamless-tickets-box .seamless-ticket-price {
+    font-size: var(--seamless-font-size-16) !important;
+    font-weight: 500 !important;
+    color: var(--seamless-color-primary) !important;
+    line-height: 1.4 !important;
+    white-space: nowrap !important;
+}
+
+:host .seamless-tickets-box .seamless-ticket-deadline {
+    font-size: var(--seamless-font-size-13) !important;
+    color: var(--seamless-color-gray-700) !important;
+    line-height: 1.5 !important;
+}
+
 /* Register Button */
 :host .seamless-tickets-box .event-register-btn {
     background-color: var(--seamless-color-secondary) !important;
@@ -202,6 +336,20 @@
     background-color: var(--seamless-color-primary) !important;
 }
 
+:host .seamless-tickets-box .seamless-event-passed-box {
+    background-color: var(--seamless-color-gray-100) !important;
+    color: var(--seamless-color-gray-700) !important;
+    padding: 12px 35px !important;
+    border: 1px solid var(--seamless-color-gray-300) !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    pointer-events: none !important;
+}
+
 :host ul.seamless-single-evt-details-list {
     margin-bottom: 20px !important;
 }
@@ -214,5 +362,13 @@
 @media (max-width: 900px) {
     :host .seamless-single-event-sidebar {
         position: static !important;
+    }
+
+    :host .seamless-sponsors-carousel {
+        grid-template-columns: 1fr !important;
+    }
+
+    :host .seamless-sponsor-nav {
+        display: none !important;
     }
 }

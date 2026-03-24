@@ -471,7 +471,27 @@
 .event-info-card .event-past-btn,
 .event-info-card .event-coming-soon-btn {
     display: block;
+    width: 100%;
+    box-sizing: border-box;
     text-align: center;
+}
+
+.event-info-card .event-past-btn,
+.event-info-card .event-coming-soon-btn {
+    padding: 14px 20px;
+    background: var(--seamless-light-background-color, #f8fafc);
+    color: var(--seamless-text-color, #666);
+    border: 1px solid var(--seamless-border-color, #dcdcdc);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.event-info-card .event-past-btn {
+    opacity: 0.7;
+    cursor: default;
+    pointer-events: none;
 }
 
 /* Event Schedule Table - Default Styling */

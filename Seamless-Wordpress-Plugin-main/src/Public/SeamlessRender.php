@@ -24,9 +24,6 @@ class SeamlessRender
 		add_filter('script_loader_tag', [$this, 'add_module_type_attribute'], 10, 3);
 
 		// AJAX hooks
-		// Event rendering hook (API data is fetched client-side, then rendered server-side)
-		add_action('wp_ajax_render_event_template', [$this, 'ajax_render_event_template']);
-		add_action('wp_ajax_nopriv_render_event_template', [$this, 'ajax_render_event_template']);
 		add_action('wp_ajax_seamless_upgrade_membership', [$this, 'ajax_upgrade_membership']);
 		add_action('wp_ajax_seamless_downgrade_membership', [$this, 'ajax_downgrade_membership']);
 		add_action('wp_ajax_seamless_cancel_membership', [$this, 'ajax_cancel_membership']);
@@ -44,8 +41,10 @@ class SeamlessRender
 		add_action('wp_ajax_seamless_add_group_members', [$this, 'ajax_add_group_members']);
 		add_action('wp_ajax_seamless_remove_group_member', [$this, 'ajax_remove_group_member']);
 		add_action('wp_ajax_seamless_change_member_role', [$this, 'ajax_change_member_role']);
+		add_action('wp_ajax_seamless_api_proxy', [$this, 'ajax_api_proxy']);
 
 		add_action('wp_head', [$this, 'enqueue_dynamic_styles']);
+		add_action('wp_head', [$this, 'add_wordpress_config_meta_tags']);
 
 		add_action('rest_api_init', [$this->sso, 'register_rest_routes']);
 		// add_filter('the_content', [$this, 'apply_content_restrictions']);
@@ -257,16 +256,6 @@ class SeamlessRender
 			]);
 		}
 
-		$seamless_js_file = 'js/seamless.js';
-		if (file_exists($dist_path . $seamless_js_file)) {
-			wp_enqueue_script(
-				'seamless-vite-main-js',
-				$plugin_url . 'dist/' . $seamless_js_file,
-				['jquery', 'seamless-api-client-js'],
-				filemtime($dist_path . $seamless_js_file),
-				true // Load in footer
-			);
-		}
 	}
 
 	public function add_module_type_attribute($tag, $handle, $src): mixed
@@ -276,7 +265,7 @@ class SeamlessRender
 		}
 
 		// Add your bundled script handle if you need module type
-		if (in_array($handle, ['seamless-toast-ui-calendar-js', 'seamless-vite-main-js'])) {
+		if (in_array($handle, ['seamless-toast-ui-calendar-js', 'seamless-vite-main-js', 'seamless-react-js'], true)) {
 			return str_replace('<script ', '<script type="module" ', $tag);
 		}
 
@@ -296,8 +285,35 @@ class SeamlessRender
 		return '<div class="seamless-authentication-required"><p>' . esc_html__('Please authenticate to fetch data. Open the Seamless Plugin Authentication tab, enter your credentials, and connect to continue.', 'seamless') . '</p></div>';
 	}
 
+	public function add_wordpress_config_meta_tags(): void
+	{
+		?>
+		<meta name="wordpress-site-url" content="<?php echo esc_url(home_url()); ?>" />
+		<meta name="rest-api-base-url" content="<?php echo esc_url(rest_url()); ?>" />
+		<script>
+			window.seamlessReactConfig = {
+				siteUrl: '<?php echo esc_url(home_url()); ?>',
+				restUrl: '<?php echo esc_url(rest_url()); ?>',
+				nonce: '<?php echo wp_create_nonce('seamless'); ?>',
+				ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
+				ajaxNonce: '<?php echo wp_create_nonce('seamless_nonce'); ?>',
+				clientDomain: '<?php echo esc_js(rtrim(get_option('seamless_client_domain', ''), '/')); ?>',
+				isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
+				userEmail: '<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->user_email) : ''; ?>',
+				logoutUrl: '<?php echo is_user_logged_in() ? esc_js(add_query_arg('sso_logout_redirect', '1', home_url('/'))) : ''; ?>',
+				hasSsoToken: <?php echo is_user_logged_in() && !empty(get_user_meta(get_current_user_id(), 'seamless_access_token', true)) ? 'true' : 'false'; ?>
+			};
+		</script>
+		<?php
+	}
+
 	private function register_shortcodes(): void
 	{
+		add_shortcode('seamless_events_list', [$this, 'shortcode_react_events_list']);
+		add_shortcode('seamless_memberships', [$this, 'shortcode_react_memberships']);
+		add_shortcode('seamless_courses', [$this, 'shortcode_react_courses']);
+		add_shortcode('seamless_dashboard', [$this, 'shortcode_react_dashboard']);
+		add_shortcode('seamless_react_single_event', [$this, 'shortcode_react_single_event']);
 		add_shortcode('seamless_event_list', [$this, 'shortcode_event_list']);
 		add_shortcode('seamless_single_event', [$this, 'shortcode_single_event']);
 		add_shortcode('seamless_user_dashboard', [$this, 'shortcode_user_dashboard']);
@@ -309,46 +325,192 @@ class SeamlessRender
 		return locate_template($template_name) ?: plugin_dir_path(__FILE__) . 'templates/' . $template_name;
 	}
 
-	public function shortcode_event_list($atts = []): string
+	private function enqueue_react_assets(): void
+	{
+		static $react_assets_enqueued = false;
+		if ($react_assets_enqueued) {
+			return;
+		}
+		$react_assets_enqueued = true;
+
+		$plugin_dir = plugin_dir_path(dirname(__DIR__));
+		$plugin_url = plugin_dir_url(dirname(__DIR__));
+		$dist_folder = $plugin_dir . 'src/Public/assets/react-build/dist/';
+		$dist_url = $plugin_url . 'src/Public/assets/react-build/dist/';
+
+		if (!is_dir($dist_folder)) {
+			return;
+		}
+
+		$assets_folder = $dist_folder . 'assets/';
+		if (!is_dir($assets_folder)) {
+			return;
+		}
+
+		$files = scandir($assets_folder);
+		if ($files === false) {
+			return;
+		}
+
+		foreach ($files as $file) {
+			if (strpos($file, 'index-') === 0 && $this->ends_with($file, '.css')) {
+				$css_path = $assets_folder . $file;
+				wp_enqueue_style(
+					'seamless-react-css',
+					$dist_url . 'assets/' . $file,
+					[],
+					filemtime($css_path)
+				);
+				break;
+			}
+		}
+
+		foreach ($files as $file) {
+			if (strpos($file, 'index-') === 0 && $this->ends_with($file, '.js')) {
+				$js_path = $assets_folder . $file;
+				wp_enqueue_script(
+					'seamless-react-js',
+					$dist_url . 'assets/' . $file,
+					[],
+					filemtime($js_path),
+					true
+				);
+				break;
+			}
+		}
+
+		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
+		if ($client_domain && strpos($client_domain, 'http') !== 0) {
+			$client_domain = 'https://' . $client_domain;
+		}
+
+		wp_localize_script('seamless-react-js', 'seamlessReactConfig', [
+			'siteUrl' => esc_url(home_url()),
+			'restUrl' => esc_url(rest_url()),
+			'nonce' => wp_create_nonce('seamless'),
+			'ajaxUrl' => admin_url('admin-ajax.php'),
+			'ajaxNonce' => wp_create_nonce('seamless_nonce'),
+			'clientDomain' => $client_domain,
+			'isLoggedIn' => is_user_logged_in(),
+			'userEmail' => is_user_logged_in() ? wp_get_current_user()->user_email : '',
+			'logoutUrl' => is_user_logged_in() ? add_query_arg('sso_logout_redirect', '1', home_url('/')) : '',
+			'hasSsoToken' => is_user_logged_in() ? !empty(get_user_meta(get_current_user_id(), 'seamless_access_token', true)) : false,
+		]);
+	}
+
+	private function react_mount_html(string $view, array $extras = []): string
+	{
+		$this->enqueue_react_assets();
+
+		$data_attrs = 'data-seamless-view="' . esc_attr($view) . '"';
+		$data_attrs .= ' data-site-url="' . esc_url(home_url()) . '"';
+
+		foreach ($extras as $key => $value) {
+			$data_attrs .= ' data-' . esc_attr($key) . '="' . esc_attr($value) . '"';
+		}
+
+		$uid = 'seamless-react-' . $view . '-' . uniqid('', true);
+
+		return sprintf(
+			'<div id="%s" class="seamless-react-root" %s></div>',
+			esc_attr($uid),
+			$data_attrs
+		);
+	}
+
+	private function ends_with($value, $suffix): bool
+	{
+		$suffix_length = strlen($suffix);
+		if ($suffix_length === 0) {
+			return true;
+		}
+
+		return substr($value, -$suffix_length) === $suffix;
+	}
+
+	public function shortcode_react_events_list($atts = []): string
 	{
 		if (!$this->auth->is_authenticated()) {
 			return $this->get_authentication_required_message();
 		}
 
-		$atts = shortcode_atts([
-			'template' => 'default',
-		], $atts, 'seamless_event_list');
+		return $this->react_mount_html('events');
+	}
 
-		$template = strtolower((string) $atts['template']);
-		$template_file = 'tpl-event-wrapper.php';
-		if ($template === 'without-dropdown') {
-			$template_file = 'tpl-event-wrapper-without-dropdown.php';
+	public function shortcode_react_single_event($atts = []): string
+	{
+		$atts = shortcode_atts([
+			'slug' => '',
+			'type' => 'event',
+		], $atts, 'seamless_single_event');
+
+		$slug = sanitize_text_field((string) $atts['slug']);
+		if ($slug === '') {
+			$slug = sanitize_text_field((string) get_query_var('event_uuid'));
+		}
+		if ($slug === '' && isset($_GET['seamless_event'])) {
+			$slug = sanitize_text_field(wp_unslash((string) $_GET['seamless_event']));
 		}
 
-		$instance_id = uniqid('seamless-events-', false);
+		$type = sanitize_text_field((string) $atts['type']);
+		if ($type === '' && isset($_GET['type'])) {
+			$type = sanitize_text_field(wp_unslash((string) $_GET['type']));
+		}
+		if ($type === '') {
+			$type = 'event';
+		}
 
-		ob_start();
-		include $this->seamless_get_template($template_file);
-		return ob_get_clean();
+		return $this->react_mount_html('single-event', [
+			'seamless-slug' => $slug,
+			'seamless-type' => $type,
+		]);
+	}
+
+	public function shortcode_react_memberships($atts = []): string
+	{
+		if (!$this->auth->is_authenticated()) {
+			return $this->get_authentication_required_message();
+		}
+
+		return $this->react_mount_html('memberships');
+	}
+
+	public function shortcode_react_courses($atts = []): string
+	{
+		if (!$this->auth->is_authenticated()) {
+			return $this->get_authentication_required_message();
+		}
+
+		return $this->react_mount_html('courses');
+	}
+
+	public function shortcode_react_dashboard($atts = []): string
+	{
+		if (!is_user_logged_in()) {
+			return do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn"]');
+		}
+
+		$uid = get_current_user_id();
+		$has_sso_token = !empty(get_user_meta($uid, 'seamless_access_token', true));
+		if (!$has_sso_token) {
+			$connect_url = add_query_arg('sso_login_redirect', '1', home_url('/'));
+			return sprintf(
+				'<div class="seamless-sso-connect-wrapper"><div class="seamless-sso-connect-icon" style="display: inline;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div><h3 class="seamless-sso-connect-title" style="display: inline;">Connect Your Seamless Account</h3><p class="seamless-sso-connect-text">Your WordPress account is not yet linked to a Seamless SSO session. Please sign in with Seamless to access your dashboard.</p><a href="%s" class="seamless-sso-connect-btn">Sign in with Seamless</a></div>',
+				esc_url($connect_url)
+			);
+		}
+
+		return $this->react_mount_html('dashboard');
+	}
+
+	public function shortcode_event_list($atts = []): string
+	{
+		return $this->shortcode_react_events_list($atts);
 	}
 
 	public function shortcode_single_event($atts): string
 	{
-		if (!$this->auth->is_authenticated()) {
-			return $this->get_authentication_required_message();
-		}
-		$atts = shortcode_atts([
-			'slug' => '',
-			'type' => 'event', // Default to 'event'
-		], $atts, 'seamless_single_event');
-
-		$slug = $atts['slug'];
-		$type = $atts['type'];
-
-		$lid = substr(md5(uniqid('sl', true)), 0, 6);
-		$loader_html = '<div class="loader-container"><div id="Seamlessloader" class="seamless-plugin-loader hidden" role="status" aria-label="Loading"><svg xmlns="http://www.w3.org/2000/svg"  class="sync-wheel-svg" viewBox="62 64 282 282" aria-hidden="true"><defs><linearGradient id="swg1-' . $lid . '" x1="135.2" y1="221.8" x2="271.3" y2="221.8" gradientTransform="translate(0 420) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0fd"/><stop offset=".2" stop-color="#2ac9e4"/><stop offset=".4" stop-color="#6383ed"/><stop offset=".6" stop-color="#904bf5"/><stop offset=".8" stop-color="#b022fa"/><stop offset=".9" stop-color="#c40afd"/><stop offset="1" stop-color="#cc01ff"/></linearGradient><linearGradient id="swg2-' . $lid . '" x1="62.7" y1="214.6" x2="343.9" y2="214.6" gradientTransform="translate(0 420) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0fd"/><stop offset=".2" stop-color="#2ac9e4"/><stop offset=".4" stop-color="#6383ed"/><stop offset=".6" stop-color="#904bf5"/><stop offset=".8" stop-color="#b022fa"/><stop offset=".9" stop-color="#c40afd"/><stop offset="1" stop-color="#cc01ff"/></linearGradient><linearGradient id="swg3-' . $lid . '" x1="99.4" y1="214.7" x2="314.3" y2="214.7" gradientTransform="translate(0 420) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0fd"/><stop offset=".2" stop-color="#2ac9e4"/><stop offset=".4" stop-color="#6383ed"/><stop offset=".6" stop-color="#904bf5"/><stop offset=".8" stop-color="#b022fa"/><stop offset=".9" stop-color="#c40afd"/><stop offset="1" stop-color="#cc01ff"/></linearGradient></defs><g class="sl-ring-outer"><path fill="url(#swg2-' . $lid . ')" d="M203,64.7c-77.5.2-140.5,63.4-140.3,140.9,0,34.4,12.6,65.9,33.2,90.3-1.6,3.2-2.6,6.8-2.6,10.6,0,12.6,10.3,22.9,23,22.9s9.6-1.6,13.3-4.3c21.5,13.3,46.9,21,74,20.9,77.5-.2,140.5-63.4,140.3-140.9-.2-77.5-63.4-140.5-140.9-140.3h0ZM116.3,316c-5.2,0-9.5-4.2-9.5-9.5s4.2-9.5,9.5-9.5,9.5,4.2,9.5,9.5-4.2,9.5-9.5,9.5ZM203.6,332.5c-24.1,0-46.6-6.6-65.8-18.2.9-2.5,1.4-5.1,1.4-7.9,0-12.6-10.3-22.9-23-22.9s-7.7,1-10.9,2.8c-18.2-21.9-29.1-50-29.2-80.7-.2-70.1,56.8-127.3,126.9-127.5s127.3,56.8,127.5,126.9-56.8,127.3-126.9,127.5Z"/></g><g class="sl-ring-mid"><path fill="url(#swg3-' . $lid . ')" d="M305.1,226.9c1.5-7,2.3-14.2,2.3-21.6,0-57.4-46.7-104-104-104s-104,46.7-104,104,46.7,104,104,104,64.3-16.4,83.3-41.7c1.5.3,3.1.5,4.7.5,12.6,0,22.9-10.3,22.9-22.9s-3.6-14.1-9.2-18.3h0ZM203.3,296c-50,0-90.6-40.7-90.6-90.6s40.7-90.6,90.6-90.6,90.6,40.7,90.6,90.6-.6,11.5-1.6,17h-1c-12.6,0-22.9,10.3-22.9,22.9s2.4,11.7,6.4,15.8c-16.6,21.2-42.4,34.9-71.4,34.9h0ZM291.4,254.7c-5.2,0-9.5-4.3-9.5-9.5s4.3-9.5,9.5-9.5,9.5,4.3,9.5,9.5-4.3,9.5-9.5,9.5Z"/></g><g class="sl-ring-inner"><path fill="url(#swg1-' . $lid . ')" d="M225.6,141.1c-2.2-10.4-11.5-18.2-22.5-18.1-11,0-20.2,7.9-22.4,18.3-26.5,9.4-45.5,34.7-45.5,64.3s30.7,68,68.2,67.9c37.5,0,68-30.7,67.9-68.2,0-29.7-19.2-54.9-45.8-64.1h0ZM203.2,136.3c5.2,0,9.5,4.2,9.5,9.5s-4.2,9.5-9.5,9.5-9.5-4.2-9.5-9.5,4.2-9.5,9.5-9.5ZM203.5,260c-30.1,0-54.7-24.4-54.8-54.5,0-22.7,13.8-42.2,33.5-50.5,3.5,8.1,11.7,13.8,21.1,13.8s17.5-5.7,21-13.9c19.7,8.2,33.7,27.7,33.7,50.3s-24.4,54.7-54.5,54.8Z"/></g></svg></div></div>';
-
-		return '<div id="singleEventWrapper" class="single_event_container">' . $loader_html . '<div id="event_detail" data-event-slug="' . esc_attr($slug) . '" data-event-type="' . esc_attr($type) . '"></div></div>';
+		return $this->shortcode_react_single_event($atts);
 	}
 
 	// Retired server-side fetching methods and pagination helpers
@@ -548,147 +710,7 @@ class SeamlessRender
 	 */
 	public function shortcode_user_dashboard($atts = []): string
 	{
-		// Require login
-		if (!is_user_logged_in()) {
-			return do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn"]');
-		}
-
-		$uid = get_current_user_id();
-		$access_token = get_user_meta($uid, 'seamless_access_token', true);
-		if (empty($access_token) && method_exists($this->sso, 'seamless_refresh_token_if_needed')) {
-			$access_token = $this->sso->seamless_refresh_token_if_needed($uid) ?: '';
-		}
-
-		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
-		if (empty($client_domain)) {
-			return '<div class="seamless-user-dashboard-error">Client domain is not configured.</div>';
-		}
-
-		$headers = [
-			'headers' => [
-				'Accept'        => 'application/json',
-			],
-			'timeout' => 20,
-			'sslverify' => false,
-		];
-		if (!empty($access_token)) {
-			$headers['headers']['Authorization'] = 'Bearer ' . $access_token;
-		}
-
-		$user = wp_get_current_user();
-		$email = $user && !empty($user->user_email) ? $user->user_email : '';
-
-		// Prepare default containers
-		$profile = [
-			'name'  => wp_get_current_user()->display_name,
-			'email' => wp_get_current_user()->user_email,
-		];
-		$current_memberships = [];
-		$membership_history = [];
-		$orders = [];
-
-		// Profile/basic user info (only if we have an access token)
-		if (!empty($access_token)) {
-			$response = wp_remote_get($client_domain . '/api/user', $headers);
-			if (!is_wp_error($response)) {
-				$body = json_decode(wp_remote_retrieve_body($response), true);
-				if (is_array($body)) {
-					$profile = $body['data']['user'] ?? ($body['data'] ?? $body);
-				}
-			}
-
-
-			// Membership plans (current and historical if available) — prefer email filtered API
-			$memUrl = $client_domain . '/api/users/membership-plans' . ($email ? ('?email=' . rawurlencode($email)) : '');
-			$memRes = wp_remote_get($memUrl, $headers);
-			if (is_wp_error($memRes) && $email) {
-				// retry with alternate param key if server expects user_email
-				$memUrlAlt = $client_domain . '/api/users/membership-plans?user_email=' . rawurlencode($email);
-				$memRes = wp_remote_get($memUrlAlt, $headers);
-			}
-			if (!is_wp_error($memRes)) {
-				$memBody = json_decode(wp_remote_retrieve_body($memRes), true);
-				$memData = is_array($memBody) ? ($memBody['data'] ?? $memBody) : [];
-				// If API returned collection of users -> pick the matching email row
-				if (is_array($memData) && isset($memData[0]['user'])) {
-					foreach ($memData as $row) {
-						if (!empty($row['user']['email']) && $row['user']['email'] === $email) {
-							$memData = $row['memberships'] ?? [];
-							break;
-						}
-					}
-				}
-				// Try to detect common shapes
-				if (isset($memData['current'])) {
-					$current_memberships = $memData['current'];
-					$membership_history = $memData['history'] ?? [];
-				} elseif (isset($memData['active_memberships'])) {
-					$current_memberships = $memData['active_memberships'] ?? [];
-					$membership_history = $memData['membership_history'] ?? [];
-				} elseif (is_array($memData)) {
-					foreach ($memData as $m) {
-						if (!empty($m['status']) && $m['status'] === 'active') {
-							$current_memberships[] = $m;
-						} else {
-							$membership_history[] = $m;
-						}
-					}
-				}
-			}
-
-			$orderUrl = $client_domain . '/api/users/order-history' . ($email ? ('?email=' . rawurlencode($email)) : '');
-			$ordRes = wp_remote_get($orderUrl, $headers);
-			if (is_wp_error($ordRes) && $email) {
-				$orderUrlAlt = $client_domain . '/api/users/order-history?user_email=' . rawurlencode($email);
-				$ordRes = wp_remote_get($orderUrlAlt, $headers);
-			}
-			if (!is_wp_error($ordRes)) {
-				$data = wp_remote_retrieve_body($ordRes);
-				$ordBody = json_decode(wp_remote_retrieve_body($ordRes), true);
-				$ordersData = is_array($ordBody) ? ($ordBody['data'] ?? $ordBody) : [];
-				if (isset($ordersData[0]['user'])) {
-					foreach ($ordersData as $row) {
-						if (!empty($row['user']['email']) && $row['user']['email'] === $email) {
-							$orders = $row['orders'] ?? [];
-							break;
-						}
-					}
-				} else {
-					$orders = $ordersData;
-				}
-			}
-		}
-
-		$active_filtered = [];
-		$history_combined = is_array($membership_history) ? $membership_history : [];
-		$now = time();
-		foreach ((array) $current_memberships as $m) {
-			$status = $m['status'] ?? '';
-			$expiry = $m['expiry_date'] ?? ($m['expires_at'] ?? null);
-			$is_expired = false;
-			if (!empty($expiry)) {
-				$ts = strtotime((string)$expiry);
-				if ($ts !== false && $ts < $now) {
-					$is_expired = true;
-				}
-			}
-			if (strtolower((string)$status) === 'active' && !$is_expired) {
-				$active_filtered[] = $m;
-			} else {
-				$history_combined[] = $m;
-			}
-		}
-
-		// Render via template
-		ob_start();
-		$__seamless_client_domain = $client_domain;
-		$__seamless_profile = $profile;
-		$__seamless_current_memberships = $active_filtered;
-		$__seamless_membership_history = $history_combined;
-		$__seamless_orders = $orders;
-		include $this->seamless_get_template('tpl-user-dashboard.php');
-		return ob_get_clean();
-		// }
+		return $this->shortcode_react_dashboard($atts);
 	}
 
 	/**
@@ -902,37 +924,9 @@ class SeamlessRender
 	 */
 	public function ajax_render_event_template()
 	{
-		// Verify nonce
-		if (!check_ajax_referer('seamless_nonce', 'nonce', false)) {
-			wp_send_json_error(['message' => 'Invalid nonce']);
-			return;
-		}
-
-		// Get event data from POST
-		$event_data_json = isset($_POST['event_data']) ? wp_unslash($_POST['event_data']) : '';
-		$event_type = isset($_POST['event_type']) ? sanitize_text_field($_POST['event_type']) : 'event';
-
-		if (empty($event_data_json)) {
-			wp_send_json_error(['message' => 'No event data provided']);
-			return;
-		}
-
-		// Decode event data
-		$event = json_decode($event_data_json, true);
-		if (json_last_error() !== JSON_ERROR_NONE) {
-			wp_send_json_error(['message' => 'Invalid event data format']);
-			return;
-		}
-
-		// Add event_type to event data
-		$event['event_type'] = $event_type;
-
-		// Render the template
-		ob_start();
-		include $this->seamless_get_template('tpl-single-event-detail.php');
-		$html = ob_get_clean();
-
-		wp_send_json_success($html);
+		wp_send_json_error([
+			'message' => 'Legacy single event renderer has been removed. Use the React single event shortcode renderer instead.',
+		], 410);
 	}
 
 	/**
@@ -1224,4 +1218,81 @@ class SeamlessRender
 			wp_send_json_error(['message' => $result['message']]);
 		}
 	}
+
+	public function ajax_api_proxy(): void
+	{
+		$nonce_valid = check_ajax_referer('seamless_nonce', 'nonce', false);
+		if (!$nonce_valid && !current_user_can('administrator')) {
+			wp_send_json_error(['message' => 'Security check failed. Please refresh the page.'], 403);
+			return;
+		}
+
+		if (!is_user_logged_in()) {
+			wp_send_json_error(['message' => 'Unauthenticated access to dashboard API.'], 401);
+			return;
+		}
+
+		$endpoint = isset($_POST['endpoint']) ? sanitize_text_field($_POST['endpoint']) : '';
+		$method = isset($_POST['method']) ? strtoupper(sanitize_text_field($_POST['method'])) : 'GET';
+		$payload = isset($_POST['payload']) ? wp_unslash($_POST['payload']) : null;
+
+		if (empty($endpoint)) {
+			wp_send_json_error(['message' => 'Missing proxy endpoint.'], 400);
+			return;
+		}
+
+		$check_path = ltrim($endpoint, '/');
+		if (strpos($check_path, 'dashboard') !== 0) {
+			wp_send_json_error(['message' => 'Unauthorized proxy target. Only dashboard endpoints are allowed via middleware.'], 403);
+			return;
+		}
+
+		$uid = get_current_user_id();
+		$token = method_exists($this->sso, 'seamless_refresh_token_if_needed')
+			? $this->sso->seamless_refresh_token_if_needed($uid)
+			: get_user_meta($uid, 'seamless_access_token', true);
+		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
+
+		if (!$token) {
+			wp_send_json_error([
+				'message' => 'No valid SSO session. Please sign in with Seamless.',
+				'needs_sso_auth' => true,
+			], 401);
+			return;
+		}
+
+		$url = $client_domain . '/api/' . $check_path;
+		$args = [
+			'method' => $method,
+			'timeout' => 30,
+			'sslverify' => false,
+			'headers' => [
+				'Authorization' => 'Bearer ' . $token,
+				'Accept' => 'application/json',
+				'Content-Type' => 'application/json',
+			],
+		];
+
+		if ($payload) {
+			$args['body'] = is_string($payload) ? $payload : wp_json_encode($payload);
+		}
+
+		$response = wp_remote_request($url, $args);
+		if (is_wp_error($response)) {
+			wp_send_json_error(['message' => 'Proxy request failed: ' . $response->get_error_message()], 502);
+			return;
+		}
+
+		$status = wp_remote_retrieve_response_code($response);
+		$body = wp_remote_retrieve_body($response);
+		$data = json_decode($body, true);
+
+		if ($status >= 400) {
+			wp_send_json_error($data ?: ['message' => $body], $status);
+			return;
+		}
+
+		wp_send_json_success($data ?: $body, $status);
+	}
 }
+

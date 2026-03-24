@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, Check } from 'lucide-react';
 import { useSingleEvent } from '../hooks/useSingleEvent';
 import { SeamlessAccordion } from './SeamlessAccordion';
+import { getEventsListURL } from '../utils/urlHelper';
 
 import type { Event } from '../types/event';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -15,6 +16,7 @@ export const SingleEventPage: React.FC = () => {
     const [slug, setSlug] = useState<string>(paramSlug || '');
     const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
     const [isCalendarAdded, setIsCalendarAdded] = useState(false);
+    const [activeSponsorIndex, setActiveSponsorIndex] = useState(0);
     const calendarDropdownRef = React.useRef<HTMLDivElement>(null);
 
     const handleCalendarOptionClick = () => {
@@ -24,7 +26,9 @@ export const SingleEventPage: React.FC = () => {
     };
 
     useEffect(() => {
-        if (!paramSlug) {
+        if (paramSlug) {
+            setSlug(paramSlug);
+        } else {
             const container = (shadowRoot || document) as (Document | ShadowRoot);
             const domSlug = container.getElementById?.('event_detail')?.getAttribute('data-event-slug');
             if (domSlug) {
@@ -57,6 +61,10 @@ export const SingleEventPage: React.FC = () => {
     const eventType = searchParams.get('type') || '';
     const isGroupEvent = eventType === 'group-event' || window.location.pathname.includes('/group-event/');
     const { event, loading, error } = useSingleEvent(slug, isGroupEvent);
+
+    useEffect(() => {
+        setActiveSponsorIndex(0);
+    }, [event?.sponsors?.length]);
 
     // Date/Time Formatters
     const formatEventDateRange = (startStr: string, endStr: string) => {
@@ -128,6 +136,21 @@ export const SingleEventPage: React.FC = () => {
         }
     };
 
+    const getCalendarLocation = (evt: Event) => {
+        const locationParts = [
+            evt.venue?.name,
+            evt.venue?.address_line_1,
+            evt.venue?.city,
+            evt.venue?.state ? `${evt.venue.state}${evt.venue.zip_code ? ` ${evt.venue.zip_code}` : ''}` : evt.venue?.zip_code,
+        ].filter(Boolean);
+
+        if (locationParts.length > 0) {
+            return locationParts.join(', ');
+        }
+
+        return evt.virtual_meeting_link ? 'Online Event' : '';
+    };
+
 
     // Date/Time Helper for Calendar Links
     const formatCalendarDate = (dateStr: string) => {
@@ -137,7 +160,7 @@ export const SingleEventPage: React.FC = () => {
     const getCalendarDetails = (evt: Event) => {
         const title = encodeURIComponent(evt.title);
         const details = encodeURIComponent(evt.description.replace(/<[^>]+>/g, ''));
-        const location = encodeURIComponent(`${evt.venue?.name}, ${evt.venue?.address_line_1}, ${evt.venue?.city}, ${evt.venue?.state} ${evt.venue?.zip_code}`);
+        const location = encodeURIComponent(getCalendarLocation(evt));
         const start = formatCalendarDate(evt.start_date);
         const end = formatCalendarDate(evt.end_date);
         return { title, details, location, start, end };
@@ -146,7 +169,7 @@ export const SingleEventPage: React.FC = () => {
     const generateICSFile = (evt: Event) => {
         const { start, end } = getCalendarDetails(evt);
         const description = evt.description.replace(/<[^>]+>/g, '');
-        const location = `${evt.venue?.name}, ${evt.venue?.address_line_1}, ${evt.venue?.city}, ${evt.venue?.state} ${evt.venue?.zip_code}`;
+        const location = getCalendarLocation(evt);
 
         const icsContent = [
             'BEGIN:VCALENDAR',
@@ -186,7 +209,7 @@ export const SingleEventPage: React.FC = () => {
             const endDate = new Date(evt.end_date).toISOString().replace(/-|:|\.\d\d\d/g, "");
             const title = encodeURIComponent(evt.title);
             const details = encodeURIComponent(evt.description.replace(/<[^>]+>/g, '')); // Strip HTML for cal desc
-            const location = encodeURIComponent(`${evt.venue?.name}, ${evt.venue?.address_line_1}, ${evt.venue?.city}, ${evt.venue?.state} ${evt.venue?.zip_code}`);
+            const location = encodeURIComponent(getCalendarLocation(evt));
 
             return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}&ctz=America/Chicago`;
         } catch {
@@ -207,9 +230,9 @@ export const SingleEventPage: React.FC = () => {
             <div className="seamless-single-event-container">
                 <div className="seamless-error-container">
                     <p className="seamless-error-title">Event not found</p>
-                    <Link to="/" className="seamless-btn-outline-primary seamless-single-evt-back-btn">Back to Events</Link>
-                </div>
-            </div>
+                    <a href={getEventsListURL()} className="seamless-btn-outline-primary seamless-single-evt-back-btn">Back to Events</a>
+                  </div>
+              </div>
         );
     }
 
@@ -318,6 +341,22 @@ export const SingleEventPage: React.FC = () => {
 
     // Check if event has passed
     const isEventPassed = new Date(endDateToUse || startDateToUse).getTime() < new Date().getTime();
+    const sponsorCount = event?.sponsors?.length ?? 0;
+    const hasSponsors = sponsorCount > 0;
+    const visibleSponsors = sponsorCount > 1 ? 2 : 1;
+    const maxSponsorStartIndex = Math.max(0, sponsorCount - visibleSponsors);
+    const sponsorDotCount = maxSponsorStartIndex + 1;
+    const sponsorTranslateStep = 100 / visibleSponsors;
+
+    const goToPreviousSponsor = () => {
+        if (!sponsorCount) return;
+        setActiveSponsorIndex((prev) => (prev === 0 ? maxSponsorStartIndex : prev - 1));
+    };
+
+    const goToNextSponsor = () => {
+        if (!sponsorCount) return;
+        setActiveSponsorIndex((prev) => (prev === maxSponsorStartIndex ? 0 : prev + 1));
+    };
 
     return (
         <article className="seamless-single-event-container">
@@ -351,6 +390,71 @@ export const SingleEventPage: React.FC = () => {
 
                         {/* Accordions */}
                         <SeamlessAccordion items={sections} />
+
+                        {hasSponsors && (
+                            <section className="seamless-sponsors-section" aria-label="Event sponsors">
+                                <h3 className="seamless-sponsors-title">Thank You, Partners!</h3>
+                                <p className="seamless-sponsors-description">
+                                    We&apos;re grateful for our health care partners and their support of this series and Minnesota&apos;s family physicians.
+                                </p>
+
+                                <div className="seamless-sponsors-carousel">
+                                    <button
+                                        type="button"
+                                        className="seamless-sponsor-nav seamless-sponsor-nav-prev"
+                                        onClick={goToPreviousSponsor}
+                                        aria-label="Show previous sponsor"
+                                    >
+                                        &#8249;
+                                    </button>
+
+                                    <div className="seamless-sponsor-slider-window">
+                                        <div
+                                            className="seamless-sponsor-slider-track"
+                                            style={{ transform: `translateX(-${activeSponsorIndex * sponsorTranslateStep}%)` }}
+                                        >
+                                            {event.sponsors.map((sponsorUrl, index) => (
+                                                <div
+                                                    key={`${sponsorUrl}-${index}`}
+                                                    className="seamless-sponsor-slide"
+                                                    style={{ flexBasis: `${100 / visibleSponsors}%` }}
+                                                >
+                                                    <img
+                                                        src={sponsorUrl}
+                                                        alt={`Sponsor ${index + 1}`}
+                                                        className="seamless-sponsor-image"
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="seamless-sponsor-nav seamless-sponsor-nav-next"
+                                        onClick={goToNextSponsor}
+                                        aria-label="Show next sponsor"
+                                    >
+                                        &#8250;
+                                    </button>
+                                </div>
+
+                                {sponsorDotCount > 1 && (
+                                    <div className="seamless-sponsor-dots" aria-label="Sponsor slide navigation">
+                                        {Array.from({ length: sponsorDotCount }).map((_, index) => (
+                                            <button
+                                                key={index}
+                                                type="button"
+                                                className={`seamless-sponsor-dot ${index === activeSponsorIndex ? 'active' : ''}`}
+                                                onClick={() => setActiveSponsorIndex(index)}
+                                                aria-label={`Show sponsor set ${index + 1}`}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                        )}
                     </section>
                 </div>
 
@@ -408,49 +512,51 @@ export const SingleEventPage: React.FC = () => {
                             </li>
                         </ul>
 
-                        <div className="seamless-single-evt-dropdown-wrap" ref={calendarDropdownRef}>
+                        {!isEventPassed && (
+                            <div className="seamless-single-evt-dropdown-wrap" ref={calendarDropdownRef}>
 
-                            <button
-                                onClick={() => setCalendarDropdownOpen(!calendarDropdownOpen)}
-                                className="seamless_single_page_calendar_button"
-                            >
-                                Add to Calendar
-                                {isCalendarAdded && (
-                                    <div className="seamless-calendar-check-icon">
-                                        <Check size={20} strokeWidth={3} />
+                                <button
+                                    onClick={() => setCalendarDropdownOpen(!calendarDropdownOpen)}
+                                    className="seamless_single_page_calendar_button"
+                                >
+                                    Add to Calendar
+                                    {isCalendarAdded && (
+                                        <div className="seamless-calendar-check-icon">
+                                            <Check size={20} strokeWidth={3} />
+                                        </div>
+                                    )}
+                                </button>
+
+                                {calendarDropdownOpen && (
+                                    <div className="seamless-calendar-dropdown">
+                                        <a href={generateICSFile(event)} download={`${event?.slug}.ics`} className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
+                                            <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.14.47-2.17.65-3.32-.23C3.62 17.5 3 10.3 6.96 10.1c1.28-.06 2.49.56 3.3.56.81 0 2.2-.6 3.6-.5 1.5.06 2.65.6 3.4 1.7-2.9 1.7-2.4 6 1.1 7.4-.7 1.75-1.07 1.25-1.31 1.02zM13 6.3c.6 1.7-1.5 3.3-3.2 2.7-1.3-.4-1.7-2.2-.8-3.5.9-1.2 3.4-1.1 4 .8z" /></svg>
+                                            Apple
+                                        </a>
+                                        <a href={getGoogleCalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
+                                            <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="currentColor" d="M20 2h-4v2h2v2h2V4h2V2h-2zm-6 0h-2v2h2V2zM7 5v2H5V5H2v2h3v2l0 0H2v2h3v14h14v-3h-2v1H7V11h12v-2H7V7h12V5H7z" /></svg>
+                                            Google
+                                        </a>
+                                        <a href={generateICSFile(event)} download={`${event?.slug}.ics`} className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
+                                            <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="2" /><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" /><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" /><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" /></svg>
+                                            iCal File
+                                        </a>
+                                        <a href={getOffice365CalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
+                                            <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="#D83B01" d="M12.5 13v9H4l-2-3V4l2-2h8.5v11z" /><path fill="#A4373A" d="M12.5 2h9l2 2v6h-11V2z" /><path fill="#7E1E34" d="M12.5 13h11l-2 3v4l2 2H12.5v-9z" /></svg>
+                                            Microsoft 365
+                                        </a>
+                                        <a href={getOutlookCalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
+                                            <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="#0072C6" d="M1 18l.8 2.2L4 21h15l2-3V6l-2-3H4L1 4v14z" /><path fill="#F2F2F2" d="M15 13h-3v3h3v-3zm0-4h-3v3h3V9zM9 13H6v3h3v-3zm0-4H6v3h3V9z" /></svg>
+                                            Outlook.com
+                                        </a>
+                                        <a href={getYahooCalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
+                                            <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="#6001D2" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1.2 13h-2.4l-.6 2H8l3-8h2l3 8h-2.2l-.6-2z" /></svg>
+                                            Yahoo
+                                        </a>
                                     </div>
                                 )}
-                            </button>
-
-                            {calendarDropdownOpen && (
-                                <div className="seamless-calendar-dropdown">
-                                    <a href={generateICSFile(event)} download={`${event?.slug}.ics`} className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
-                                        <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.14.47-2.17.65-3.32-.23C3.62 17.5 3 10.3 6.96 10.1c1.28-.06 2.49.56 3.3.56.81 0 2.2-.6 3.6-.5 1.5.06 2.65.6 3.4 1.7-2.9 1.7-2.4 6 1.1 7.4-.7 1.75-1.07 1.25-1.31 1.02zM13 6.3c.6 1.7-1.5 3.3-3.2 2.7-1.3-.4-1.7-2.2-.8-3.5.9-1.2 3.4-1.1 4 .8z" /></svg>
-                                        Apple
-                                    </a>
-                                    <a href={getGoogleCalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
-                                        <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="currentColor" d="M20 2h-4v2h2v2h2V4h2V2h-2zm-6 0h-2v2h2V2zM7 5v2H5V5H2v2h3v2l0 0H2v2h3v14h14v-3h-2v1H7V11h12v-2H7V7h12V5H7z" /></svg>
-                                        Google
-                                    </a>
-                                    <a href={generateICSFile(event)} download={`${event?.slug}.ics`} className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
-                                        <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="2" /><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" /><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" /><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" /></svg>
-                                        iCal File
-                                    </a>
-                                    <a href={getOffice365CalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
-                                        <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="#D83B01" d="M12.5 13v9H4l-2-3V4l2-2h8.5v11z" /><path fill="#A4373A" d="M12.5 2h9l2 2v6h-11V2z" /><path fill="#7E1E34" d="M12.5 13h11l-2 3v4l2 2H12.5v-9z" /></svg>
-                                        Microsoft 365
-                                    </a>
-                                    <a href={getOutlookCalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
-                                        <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="#0072C6" d="M1 18l.8 2.2L4 21h15l2-3V6l-2-3H4L1 4v14z" /><path fill="#F2F2F2" d="M15 13h-3v3h3v-3zm0-4h-3v3h3V9zM9 13H6v3h3v-3zm0-4H6v3h3V9z" /></svg>
-                                        Outlook.com
-                                    </a>
-                                    <a href={getYahooCalendarLink(event)} target="_blank" rel="noopener noreferrer" className="seamless-calendar-option" onClick={handleCalendarOptionClick}>
-                                        <svg viewBox="0 0 24 24" width="20" height="20" className="seamless-cal-icon"><path fill="#6001D2" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1.2 13h-2.4l-.6 2H8l3-8h2l3 8h-2.2l-.6-2z" /></svg>
-                                        Yahoo
-                                    </a>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </section>
 
                     {/* Tickets Box */}
@@ -458,45 +564,51 @@ export const SingleEventPage: React.FC = () => {
 
                         <h3 className="seamless-tickets-title">Tickets</h3>
 
-                        {/* Normal Event Tickets */}
-                        {!isGroupEvent && event?.tickets && event?.tickets.map(ticket => (
-                            <div key={ticket?.id} className="seamless-ticket-item">
-                                <div className="seamless-ticket-row">
-                                    <span className="seamless-ticket-name">{ticket?.label}</span>
-                                    <span className="seamless-ticket-price">{ticket?.price === 0 ? 'Free' : `$${ticket?.price}`}</span>
-                                </div>
-                                <span className="seamless-ticket-deadline">
-                                    Registration ends on {ticket?.formatted_registration_end_date}
-                                </span>
-                            </div>
-                        ))}
-
-                        {/* Group Event Tickets from Associated Events */}
-                        {isGroupEvent && event?.associated_events && event?.associated_events.map(assocEvent => (
-                            <div key={assocEvent.id} className="seamless-ticket-item">
-                                <div className="seamless-ticket-row">
-                                    <span className="seamless-ticket-name">{assocEvent.title}</span>
-                                    {assocEvent.price !== undefined ? (
-                                        <span className="seamless-ticket-price">{assocEvent.price == 0 ? 'Free' : `$${assocEvent.price}`}</span>
-                                    ) : null}
-                                </div>
-                            </div>
-                        ))}
-
                         {isEventPassed ? (
                             <div className="seamless-event-passed-box">
-                                Event has passed!
+                                This event has passed
                             </div>
-                        ) : event?.registration_url ? (
-                            <a
-                                href={event?.registration_url}
-                                className="event-register-btn"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Register Now
-                            </a>
-                        ) : null}
+                        ) : (
+                            <>
+                                {/* Normal Event Tickets */}
+                                {!isGroupEvent && event?.tickets && event?.tickets.map(ticket => (
+                                    <div key={ticket?.id} className="seamless-ticket-item">
+                                        <div className="seamless-ticket-row">
+                                            <span className="seamless-ticket-name">{ticket?.label}</span>
+                                            <span className="seamless-ticket-price">{ticket?.price === 0 ? 'Free' : `$${ticket?.price}`}</span>
+                                        </div>
+                                        {ticket?.formatted_registration_end_date && (
+                                            <span className="seamless-ticket-deadline">
+                                                Registration ends on {ticket.formatted_registration_end_date}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+
+                                {/* Group Event Tickets from Associated Events */}
+                                {isGroupEvent && event?.associated_events && event?.associated_events.map(assocEvent => (
+                                    <div key={assocEvent.id} className="seamless-ticket-item">
+                                        <div className="seamless-ticket-row">
+                                            <span className="seamless-ticket-name">{assocEvent.title}</span>
+                                            {assocEvent.price !== undefined ? (
+                                                <span className="seamless-ticket-price">{assocEvent.price == 0 ? 'Free' : `$${assocEvent.price}`}</span>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {event?.registration_url ? (
+                                    <a
+                                        href={event?.registration_url}
+                                        className="event-register-btn"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Register Now
+                                    </a>
+                                ) : null}
+                            </>
+                        )}
                     </section>
                 </aside>
             </div>

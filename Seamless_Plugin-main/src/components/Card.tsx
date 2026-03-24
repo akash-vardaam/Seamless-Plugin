@@ -1,10 +1,13 @@
 import React from 'react';
 import type { Event } from '../types/event';
+import { getEventPageURL } from '../utils/urlHelper';
 
 
 interface CardProps {
   item: Event;
   layout?: 'list' | 'grid';
+  listVariant?: 'classic' | 'modern';
+  showTimelineDate?: boolean;
 }
 
 const formatDateRange = (startDate: string, endDate: string): string => {
@@ -36,7 +39,36 @@ const formatTimeRange = (startDate: string, endDate: string): string => {
     const startTime = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     const endTime = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     const timezone = 'CDT';
-    return `${startTime} – ${endTime} ${timezone}`;
+    return `${startTime} - ${endTime} ${timezone}`;
+  } catch {
+    return '';
+  }
+};
+
+const formatTimelineDate = (date: string): { date: string; weekday: string } => {
+  try {
+    const parsed = new Date(date);
+    return {
+      date: parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      weekday: parsed.toLocaleDateString('en-US', { weekday: 'long' }),
+    };
+  } catch {
+    return { date, weekday: '' };
+  }
+};
+
+const formatMultiDayRange = (startDate: string, endDate: string): string => {
+  try {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start.toDateString() === end.toDateString()) {
+      return '';
+    }
+
+    const startLabel = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endLabel = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${startLabel} - ${endLabel}`;
   } catch {
     return '';
   }
@@ -54,12 +86,7 @@ const createItemSlug = (title: string, id: string): string => {
 const getItemLink = (item: Event): string => {
   const isGroup = item?.is_group_event;
   const slug = item?.slug || createItemSlug(item?.title, item?.id);
-
-  // In WordPress mode, the events page is the current page (shortcode).
-  // We stay on the same page and signal via query param which event to show.
-  // The URL structure will be: domain.com/events-page/?seamless_event=SLUG&type=events|group-event
-  const type = isGroup ? 'group-event' : 'events';
-  return `?seamless_event=${encodeURIComponent(slug)}&type=${type}`;
+  return getEventPageURL(slug, isGroup);
 };
 
 const stripHtmlTags = (html: string): string => {
@@ -67,7 +94,49 @@ const stripHtmlTags = (html: string): string => {
   return html.replace(/<[^>]*>/g, '').trim();
 };
 
-export const Card: React.FC<CardProps> = ({ item, layout = 'list' }) => {
+const getLocationText = (item: Event): string => {
+  if (item?.venue?.name) return item.venue.name;
+  if (item?.virtual_meeting_link) return 'Online';
+  return 'TBD';
+};
+
+const CalendarIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const MapPinIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+const ArrowUpRightIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
+
+export const Card: React.FC<CardProps> = ({
+  item,
+  layout = 'list',
+  listVariant = 'classic',
+  showTimelineDate = true,
+}) => {
   if (layout === 'grid') {
     return (
       <article className="seamless-card">
@@ -109,6 +178,85 @@ export const Card: React.FC<CardProps> = ({ item, layout = 'list' }) => {
           >
             SEE DETAILS
           </a>
+        </div>
+      </article>
+    );
+  }
+
+  if (listVariant === 'modern') {
+    const timeline = formatTimelineDate(item?.start_date);
+    const multiDayRange = formatMultiDayRange(item?.start_date, item?.end_date || item?.start_date);
+    const description = stripHtmlTags(item?.except_description || item?.description || '');
+
+    return (
+      <article className={`seamless-card-modern${showTimelineDate ? '' : ' seamless-card-modern-same-day'}`}>
+        <div className="seamless-card-modern-timeline">
+          {showTimelineDate ? (
+            <div className="seamless-card-modern-date-group">
+              <span className="seamless-card-modern-date">{timeline.date}</span>
+              {timeline.weekday ? (
+                <span className="seamless-card-modern-weekday">{timeline.weekday}</span>
+              ) : null}
+            </div>
+          ) : (
+            <div className="seamless-card-modern-date-group seamless-card-modern-date-group-hidden" aria-hidden="true" />
+          )}
+          <span className="seamless-card-modern-dot" />
+        </div>
+
+        <div className="seamless-card-modern-shell">
+          <div className="seamless-card-modern-content">
+            <div className="seamless-card-modern-body">
+              <a
+                href={getItemLink(item)}
+                className="seamless-card-modern-title seamless-font-merriweather"
+              >
+                {item?.title}
+              </a>
+
+              <div className="seamless-card-modern-meta">
+                {multiDayRange ? (
+                  <div className="seamless-card-modern-meta-row">
+                    <CalendarIcon />
+                    <span>{multiDayRange}</span>
+                  </div>
+                ) : null}
+
+                <div className="seamless-card-modern-meta-row">
+                  <ClockIcon />
+                  <span>{formatTimeRange(item?.start_date, item?.end_date || item?.start_date) || 'All Day'}</span>
+                </div>
+
+                <div className="seamless-card-modern-meta-row">
+                  <MapPinIcon />
+                  <span>{getLocationText(item)}</span>
+                </div>
+              </div>
+
+              {description ? (
+                <p className="seamless-card-modern-description">{description}</p>
+              ) : null}
+
+              <a href={getItemLink(item)} className="seamless-card-modern-link">
+                <span>View Event</span>
+                <ArrowUpRightIcon />
+              </a>
+            </div>
+
+            <div className="seamless-card-modern-image-wrap">
+              {item?.featured_image ? (
+                <img
+                  src={item?.featured_image}
+                  alt={item?.title}
+                  className="seamless-card-modern-image"
+                />
+              ) : (
+                <div className="seamless-card-modern-image seamless-card-modern-image-placeholder">
+                  <span>No image</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </article>
     );

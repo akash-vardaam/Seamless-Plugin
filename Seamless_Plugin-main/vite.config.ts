@@ -22,7 +22,7 @@ export default defineConfig({
     // Output directly into the WordPress plugin's react-build folder
     outDir: path.resolve(
       __dirname,
-      'seamless-20260211-190730/seamless-wordpress-plugin/src/Public/assets/react-build/dist'
+      '../Seamless-Wordpress-Plugin-main/src/Public/assets/react-build/dist'
     ),
     emptyOutDir: true,
     rollupOptions: {

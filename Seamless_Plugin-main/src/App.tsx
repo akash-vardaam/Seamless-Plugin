@@ -6,15 +6,9 @@ import { MembershipListView } from './components/MembershipView';
 import { CoursesView } from './components/CoursesView';
 import { UserDashboardView } from './components/UserDashboardView';
 import { ShadowRoot } from './components/ShadowRoot';
+import { getRuntimeThemeSettings } from './theme';
+import { getEventListRoutePath, getSingleEventRoutePath } from './utils/urlHelper';
 
-// ── Inline CSS imports ────────────────────────────────────────────────────────
-// Each file is imported as a raw string via Vite's `?inline` suffix.
-// They are injected into the Shadow DOM so no external theme or plugin can
-// override them.  Import ORDER matters for CSS cascade priority.
-//
-// 📌 To change any design value, edit src/theme.ts (TypeScript tokens)
-//    and src/styles/variables.css (CSS custom properties).
-// ─────────────────────────────────────────────────────────────────────────────
 import variablesStyles from './styles/variables.css?inline';
 import resetStyles from './styles/reset.css?inline';
 import layoutStyles from './styles/layout.css?inline';
@@ -35,43 +29,18 @@ import calendarNewStyles from './styles/calendar-new.css?inline';
 import indexUtilStyles from './styles/index.css?inline';
 
 interface AppProps {
-  /**
-   * When mounted by a WordPress shortcode, this tells the app which
-   * "page" to render directly (without router-based navigation).
-   *   'events'       → EventListView  (shortcode: seamless_events_list)
-   *   'single-event' → SingleEventPage (shortcode: seamless_single_event)
-   *   'memberships'  → MembershipListView (shortcode: seamless_memberships)
-   *   'courses'      → CoursesView     (shortcode: seamless_courses)
-   *   'dashboard'    → UserDashboardView (shortcode: seamless_dashboard)
-   */
   initialView?: string;
-  /** Slug for the single-event view (passed as data attribute by the shortcode) */
   initialSlug?: string;
-  /** WordPress site base URL, used for MemoryRouter basename */
+  initialType?: string;
   siteUrl?: string;
 }
 
-/**
- * Route map – maps `data-seamless-view` values to the component that should render.
- * In WordPress mode each shortcode only ever shows one view, so we render it
- * directly inside a MemoryRouter locked to the matching path.
- */
-const VIEW_ROUTES: Record<string, { path: string; element: React.ReactNode }> = {
-  events: { path: '/', element: <EventListView /> },
-  'single-event': { path: '/events/:slug', element: <SingleEventPage /> },
-  memberships: { path: '/', element: <MembershipListView /> },
-  courses: { path: '/', element: <CoursesView /> },
-  dashboard: { path: '/', element: <UserDashboardView /> },
+const normalizeEventType = (value?: string): string => {
+  return (value || '').trim().toLowerCase().replace(/_/g, '-');
 };
 
-const App: React.FC<AppProps> = ({ initialView, initialSlug, siteUrl: _siteUrl }) => {
-  /**
-   * Concatenate ALL stylesheet strings into a single CSS string.
-   * This means only ONE #adopted-style-sheet is created in the shadow root
-   * instead of one per file — dramatically reducing stylesheet overhead.
-   *
-   * useMemo prevents regenerating the string on every render.
-   */
+const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, siteUrl: _siteUrl }) => {
+  const runtimeThemeSettings = useMemo(() => getRuntimeThemeSettings(), []);
   const styles = useMemo(() => [
     [
       variablesStyles,
@@ -92,12 +61,22 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, siteUrl: _siteUrl }
       accordionStyles,
       calendarNewStyles,
       indexUtilStyles,
+      runtimeThemeSettings.styleOverrides,
     ].join('\n'),
-  ] as string[], []);
+  ] as string[], [runtimeThemeSettings.styleOverrides]);
 
-  // ── WordPress shortcode mode ────────────────────────────────────────────────
+  const singleEventRoutePath = getSingleEventRoutePath();
+  const eventListRoutePath = getEventListRoutePath();
+  const viewRoutes: Record<string, { path: string; element: React.ReactNode }> = {
+    events: { path: eventListRoutePath, element: <EventListView /> },
+    'single-event': { path: singleEventRoutePath, element: <SingleEventPage /> },
+    memberships: { path: '/', element: <MembershipListView /> },
+    courses: { path: '/', element: <CoursesView /> },
+    dashboard: { path: '/', element: <UserDashboardView /> },
+  };
+
   if (initialView) {
-    const route = VIEW_ROUTES[initialView];
+    const route = viewRoutes[initialView];
     if (!route) {
       return (
         <ShadowRoot styles={styles}>
@@ -108,27 +87,28 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, siteUrl: _siteUrl }
       );
     }
 
-    // Build the initial entry for MemoryRouter so the route matches immediately.
     let initialEntry = route.path;
-
-    // Read ALL query params from the real browser URL.
     const searchParams = new URLSearchParams(window.location.search);
     const eventParam = searchParams.get('seamless_event');
-    const typeParam = searchParams.get('type') || 'events';
+    const typeParam = normalizeEventType(searchParams.get('type') || initialType || '');
+    const isGroupEvent = typeParam === 'group-event';
 
     if (initialView === 'events' && eventParam) {
-      if (typeParam === 'group-event') {
-        initialEntry = `/group-event/${eventParam}`;
-      } else {
-        initialEntry = `/events/${eventParam}`;
-      }
+      initialEntry = singleEventRoutePath.replace(':slug', eventParam);
       const qs = searchParams.toString();
-      if (qs) initialEntry += `?${qs}`;
-    } else if (initialView === 'single-event' && initialSlug) {
-      initialEntry = `/events/${initialSlug}`;
+      if (qs) {
+        initialEntry += `?${qs}`;
+      }
+    } else if (initialView === 'single-event' && (initialSlug || eventParam)) {
+      initialEntry = singleEventRoutePath.replace(':slug', initialSlug || eventParam || '');
+      if (isGroupEvent) {
+        initialEntry += '?type=group-event';
+      }
     } else {
       const qs = searchParams.toString();
-      if (qs) initialEntry += `?${qs}`;
+      if (qs) {
+        initialEntry += `?${qs}`;
+      }
     }
 
     return (
@@ -137,8 +117,7 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, siteUrl: _siteUrl }
           <div id="seamless-plugin-root" className="seamless-page-wrapper">
             <Routes>
               <Route path={route.path} element={route.element} />
-              <Route path="/events/:slug" element={<SingleEventPage />} />
-              <Route path="/group-event/:slug" element={<SingleEventPage />} />
+              <Route path={singleEventRoutePath} element={<SingleEventPage />} />
               <Route path="*" element={route.element} />
             </Routes>
           </div>
@@ -147,16 +126,14 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, siteUrl: _siteUrl }
     );
   }
 
-  // ── Standalone / development mode ──────────────────────────────────────────
   return (
     <ShadowRoot styles={styles}>
       <BrowserRouter>
         <div id="seamless-plugin-root" className="seamless-page-wrapper">
           <Routes>
             <Route path="/" element={<EventListView />} />
-            <Route path="/events" element={<EventListView />} />
-            <Route path="/events/:slug" element={<SingleEventPage />} />
-            <Route path="/group-event/:slug" element={<SingleEventPage />} />
+            <Route path={eventListRoutePath} element={<EventListView />} />
+            <Route path={singleEventRoutePath} element={<SingleEventPage />} />
             <Route path="/memberships" element={<MembershipListView />} />
             <Route path="/courses" element={<CoursesView />} />
             <Route path="/dashboard" element={<UserDashboardView />} />

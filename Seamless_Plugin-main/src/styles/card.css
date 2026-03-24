@@ -206,7 +206,194 @@
   color: var(--seamless-color-primary) !important;
 }
 
+/* Modern list card layout */
+:host .seamless-card-modern {
+  display: grid !important;
+  grid-template-columns: 180px minmax(0, 1fr) !important;
+  gap: var(--seamless-spacing-6) !important;
+  padding: 0 0 var(--seamless-spacing-6) !important;
+}
+
+:host .seamless-card-modern + .seamless-card-modern {
+  margin-top: var(--seamless-spacing-4) !important;
+}
+
+:host .seamless-card-modern-timeline {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: var(--seamless-spacing-4) !important;
+  padding-top: var(--seamless-spacing-6) !important;
+}
+
+:host .seamless-card-modern-date-group {
+  min-height: 52px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+:host .seamless-card-modern-date-group-hidden {
+  visibility: hidden !important;
+}
+
+:host .seamless-card-modern-date {
+  color: var(--seamless-color-primary) !important;
+  font-size: var(--seamless-font-size-base) !important;
+  font-weight: 700 !important;
+  line-height: var(--seamless-line-height-1-3) !important;
+}
+
+:host .seamless-card-modern-weekday {
+  color: var(--seamless-color-gray-600) !important;
+  font-size: var(--seamless-font-size-sm) !important;
+  line-height: var(--seamless-line-height-1-4) !important;
+  margin-top: 2px !important;
+}
+
+:host .seamless-card-modern-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: var(--seamless-radius-full) !important;
+  background: var(--seamless-color-secondary) !important;
+  box-shadow: 0 0 0 6px rgba(15, 23, 42, 0.08) !important;
+  flex-shrink: 0 !important;
+  margin-top: 6px !important;
+}
+
+:host .seamless-card-modern-shell {
+  border: 1px solid var(--seamless-color-secondary) !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%) !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08) !important;
+  overflow: hidden !important;
+}
+
+:host .seamless-card-modern-content {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr) !important;
+  min-height: 280px !important;
+}
+
+:host .seamless-card-modern-body {
+  padding: 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+:host .seamless-card-modern-title {
+  display: block !important;
+  color: var(--seamless-color-primary) !important;
+  font-size: clamp(1.4rem, 1.8vw, 1.85rem) !important;
+  line-height: 1.2 !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+
+:host .seamless-card-modern-title:hover {
+  color: var(--seamless-color-secondary) !important;
+}
+
+:host .seamless-card-modern-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  margin-top: var(--seamless-spacing-5, 1.25rem) !important;
+}
+
+:host .seamless-card-modern-meta-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  color: var(--seamless-color-font) !important;
+  font-size: var(--seamless-font-size-sm) !important;
+  line-height: var(--seamless-line-height-1-4) !important;
+}
+
+:host .seamless-card-modern-meta-row svg,
+:host .seamless-card-modern-link svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+}
+
+:host .seamless-card-modern-description {
+  margin: var(--seamless-spacing-6) 0 0 !important;
+  color: var(--seamless-color-gray-600) !important;
+  font-size: var(--seamless-font-size-base) !important;
+  line-height: var(--seamless-line-height-1-6) !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 4 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+:host .seamless-card-modern-link {
+  margin-top: auto !important;
+  padding-top: var(--seamless-spacing-6) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: var(--seamless-color-secondary) !important;
+  font-size: var(--seamless-font-size-sm) !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+}
+
+:host .seamless-card-modern-link:hover {
+  color: var(--seamless-color-primary) !important;
+}
+
+:host .seamless-card-modern-image-wrap {
+  min-height: 100% !important;
+  background:
+    radial-gradient(circle at top left, rgba(15, 23, 42, 0.08) 0%, transparent 48%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.04) 0%, #eef4f8 100%) !important;
+  padding: 18px !important;
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+:host .seamless-card-modern-image,
+:host .seamless-card-modern-image-placeholder {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 244px !important;
+  border-radius: 18px !important;
+  object-fit: cover !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+:host .seamless-card-modern-image-placeholder {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--seamless-color-gray-600) !important;
+  font-size: var(--seamless-font-size-sm) !important;
+}
+
 /* Responsive adjustments */
+@media (max-width: 900px) {
+  :host .seamless-card-modern {
+    grid-template-columns: 1fr !important;
+    gap: var(--seamless-spacing-3) !important;
+  }
+
+  :host .seamless-card-modern-timeline {
+    padding-top: 0 !important;
+    align-items: center !important;
+  }
+
+  :host .seamless-card-modern-content {
+    grid-template-columns: 1fr !important;
+  }
+
+  :host .seamless-card-modern-image-wrap {
+    min-height: 220px !important;
+  }
+}
+
 @media (max-width: 640px) {
   :host .seamless-card-image-container {
     height: 200px !important;
@@ -218,5 +405,22 @@
 
   :host .seamless-card-list-content {
     gap: var(--seamless-spacing-4) !important;
+  }
+
+  :host .seamless-card-modern-shell {
+    border-radius: 18px !important;
+  }
+
+  :host .seamless-card-modern-body {
+    padding: 22px !important;
+  }
+
+  :host .seamless-card-modern-title {
+    font-size: 1.25rem !important;
+  }
+
+  :host .seamless-card-modern-image,
+  :host .seamless-card-modern-image-placeholder {
+    min-height: 200px !important;
   }
 }

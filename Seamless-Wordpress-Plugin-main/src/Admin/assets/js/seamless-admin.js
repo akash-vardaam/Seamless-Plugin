@@ -273,7 +273,7 @@ jQuery(document).ready(function ($) {
       const status = plan.is_active
         ? '<span style="color: #16a34a; background-color: #f0fdf4; padding: 5px; border-radius: 5px; font-weight: bold; font-size: 12px;">Active</span>'
         : '<span style="color: #d63638; background-color: #fbeaea; padding: 5px; border-radius: 5px; font-weight: bold; font-size: 12px;">Inactive</span>';
-      const shortcode = `[seamless_single_membership id="${plan.id}"]`;
+      const shortcode = `[seamless_memberships]`;
 
       const row = `
                 <tr>

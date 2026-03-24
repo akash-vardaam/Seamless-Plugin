@@ -868,16 +868,8 @@ class SettingsPage
 			<ul class="seamless-shortcodes-list">
 				<li><strong>Membership List:</strong>
 					<span class="shortcode-container" style="display: inline-flex; vertical-align: middle;">
-						<code class="seamless-code-block">[seamless_membership_list]</code>
-						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_membership_list]">
-							<span class="dashicons dashicons-admin-page"></span>
-						</button>
-					</span>
-				</li>
-				<li><strong>Single Membership:</strong>
-					<span class="shortcode-container" style="display: inline-flex; vertical-align: middle;">
-						<code class="seamless-code-block">[seamless_single_membership id="1"]</code>
-						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_single_membership id='1']">
+						<code class="seamless-code-block">[seamless_memberships]</code>
+						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_memberships]">
 							<span class="dashicons dashicons-admin-page"></span>
 						</button>
 					</span>

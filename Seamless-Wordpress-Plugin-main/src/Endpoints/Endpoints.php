@@ -16,8 +16,6 @@ class Endpoints
 		add_action('update_option_seamless_single_event_endpoint', 'flush_rewrite_rules');
 		add_action('update_option_seamless_ams_content_endpoint', 'flush_rewrite_rules');
 		add_action('update_option_seamless_single_donation_endpoint', 'flush_rewrite_rules');
-		add_action('update_option_seamless_membership_list_endpoint', 'flush_rewrite_rules');
-		add_action('update_option_seamless_single_membership_endpoint', 'flush_rewrite_rules');
 
 		// Add title filters for single event pages
 		add_filter('document_title_parts', [$this, 'filter_event_title'], 10);

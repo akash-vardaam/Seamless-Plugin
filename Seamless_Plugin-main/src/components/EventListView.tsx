@@ -13,10 +13,12 @@ import type { ViewType, Event } from '../types/event';
 import { useCalendarEvents } from '../hooks/useCalendarEvents';
 import { LoadingSpinner } from './LoadingSpinner';
 import { useShadowRoot } from './ShadowRoot';
+import { getRuntimeThemeSettings } from '../theme';
 // ... defaults
 
 export const EventListView: React.FC = () => {
     const shadowRoot = useShadowRoot();
+    const runtimeThemeSettings = useMemo(() => getRuntimeThemeSettings(), []);
     // 1. Categories
     const {
         audiences, focuses, localChapters,
@@ -142,6 +144,23 @@ export const EventListView: React.FC = () => {
     }, [items]);
 
     const loading = itemsLoading || categoriesLoading;
+    const isModernListLayout = runtimeThemeSettings.cardVariant === 'modern';
+
+    const listItems = useMemo(() => {
+        let previousDateKey = '';
+
+        return filteredItems.map((item) => {
+            const rawDate = item?.start_date || item?.formatted_start_date || '';
+            const parsedDate = rawDate ? new Date(rawDate) : null;
+            const dateKey = parsedDate && !Number.isNaN(parsedDate.getTime())
+                ? parsedDate.toLocaleDateString('en-CA')
+                : `${item.id}-${rawDate}`;
+            const showTimelineDate = dateKey !== previousDateKey;
+            previousDateKey = dateKey;
+
+            return { item, showTimelineDate };
+        });
+    }, [filteredItems]);
 
     // ── Render ─────────────────────────────────────────────────────
     if (error) {
@@ -236,8 +255,14 @@ export const EventListView: React.FC = () => {
                 ) : !loading && (
                     <>
                         <div className="seamless-items-list">
-                            {filteredItems.map(item => (
-                                <Card key={item?.id} item={item} layout="list" />
+                            {listItems.map(({ item, showTimelineDate }) => (
+                                <Card
+                                    key={item?.id}
+                                    item={item}
+                                    layout="list"
+                                    listVariant={isModernListLayout ? 'modern' : 'classic'}
+                                    showTimelineDate={showTimelineDate}
+                                />
                             ))}
                         </div>
                         <Pagination

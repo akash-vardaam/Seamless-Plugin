@@ -67,6 +67,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     value={status}
                     onChange={onStatusChange}
                     options={[
+                      { value: '', label: 'ALL' },
                       { value: 'upcoming', label: 'UPCOMING' },
                       { value: 'current', label: 'CURRENT' },
                       { value: 'past', label: 'PAST' }
@@ -166,6 +167,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   onChange={(e) => onStatusChange(e.target.value)}
                   className="seamless-select-dropdown seamless-filter-mobile-control seamless-font-montserrat"
                 >
+                  <option value="">ALL</option>
                   <option value="upcoming">UPCOMING</option>
                   <option value="current">CURRENT</option>
                   <option value="past">PAST</option>
