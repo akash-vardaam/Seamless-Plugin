@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, Check } from 'lucide-react';
 import { useSingleEvent } from '../hooks/useSingleEvent';
 import { SeamlessAccordion } from './SeamlessAccordion';
@@ -12,6 +12,7 @@ import { useShadowRoot } from './ShadowRoot';
 export const SingleEventPage: React.FC = () => {
     console.log('Rendering SingleEventPage');
     const shadowRoot = useShadowRoot();
+    const location = useLocation();
     const { slug: paramSlug } = useParams<{ slug: string }>();
     const safeDecode = (value: string): string => {
         try {
@@ -37,13 +38,13 @@ export const SingleEventPage: React.FC = () => {
         if (paramSlug) {
             setSlug(safeDecode(paramSlug));
         } else {
-            const querySlug = new URLSearchParams(window.location.search).get('seamless_event');
+            const querySlug = new URLSearchParams(location.search).get('seamless_event');
             if (querySlug) {
                 setSlug(safeDecode(querySlug));
                 return;
             }
 
-            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const pathParts = location.pathname.split('/').filter(Boolean);
             const singleEventEndpoint = ((window as any)?.seamlessReactConfig?.singleEventEndpoint || 'event')
                 .toString()
                 .replace(/^\/+|\/+$/g, '');
@@ -59,7 +60,7 @@ export const SingleEventPage: React.FC = () => {
                 setSlug(safeDecode(domSlug));
             }
         }
-    }, [paramSlug, shadowRoot]);
+    }, [location.pathname, location.search, paramSlug, shadowRoot]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -81,9 +82,9 @@ export const SingleEventPage: React.FC = () => {
     }, [calendarDropdownOpen]);
 
     // Detect group events via the 'type' query param (set by Card.tsx link, and by App.tsx deep-link logic)
-    const searchParams = new URLSearchParams(window.location.search);
+    const searchParams = new URLSearchParams(location.search);
     const eventType = searchParams.get('type') || '';
-    const isGroupEvent = eventType === 'group-event' || window.location.pathname.includes('/group-event/');
+    const isGroupEvent = eventType === 'group-event' || location.pathname.includes('/group-event/');
     const { event, loading, error } = useSingleEvent(slug, isGroupEvent);
 
     useEffect(() => {

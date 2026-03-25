@@ -17,7 +17,17 @@ export const useSingleEvent = (slug: string, isGroupEvent: boolean = false) => {
     });
 
     useEffect(() => {
-        if (!slug) return;
+        const normalizedSlug = slug.trim();
+        if (!normalizedSlug) {
+            setState({
+                event: null,
+                loading: false,
+                error: 'Missing event slug',
+            });
+            return;
+        }
+
+        let isActive = true;
 
         const fetchEvent = async () => {
             setState(prev => ({ ...prev, loading: true, error: null }));
@@ -26,36 +36,44 @@ export const useSingleEvent = (slug: string, isGroupEvent: boolean = false) => {
 
                 if (isGroupEvent) {
                     try {
-                        response = await fetchGroupEventBySlug(slug);
+                        response = await fetchGroupEventBySlug(normalizedSlug);
                     } catch {
-                        response = await fetchEventBySlug(slug);
+                        response = await fetchEventBySlug(normalizedSlug);
                     }
                 } else {
                     try {
-                        response = await fetchEventBySlug(slug);
+                        response = await fetchEventBySlug(normalizedSlug);
                     } catch {
-                        response = await fetchGroupEventBySlug(slug);
+                        response = await fetchGroupEventBySlug(normalizedSlug);
                     }
                 }
 
                 // Check if data is wrapped in 'data'
                 const eventData = response.data.data || response.data;
 
-                setState({
-                    event: eventData,
-                    loading: false,
-                    error: null,
-                });
+                if (isActive) {
+                    setState({
+                        event: eventData,
+                        loading: false,
+                        error: null,
+                    });
+                }
             } catch (err: any) {
-                setState({
-                    event: null,
-                    loading: false,
-                    error: err.message || 'Failed to fetch event',
-                });
+                if (isActive) {
+                    setState({
+                        event: null,
+                        loading: false,
+                        error: err.message || 'Failed to fetch event',
+                    });
+                }
             }
         };
 
         fetchEvent();
+
+        return () => {
+            isActive = false;
+        };
     }, [slug, isGroupEvent]);
 
     return state;

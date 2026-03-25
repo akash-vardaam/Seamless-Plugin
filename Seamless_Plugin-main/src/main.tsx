@@ -15,23 +15,54 @@ import App from './App.tsx'
  * multiple shortcodes can coexist on the same page without conflicts.
  */
 
-// Detect all Seamless shortcode containers on the page
+interface MountConfig {
+  container: HTMLElement;
+  view: string;
+  slug: string;
+  type: string;
+  siteUrl: string;
+}
+
+const renderMount = ({ container, view, slug, type, siteUrl }: MountConfig) => {
+  createRoot(container).render(
+    <StrictMode>
+      <App initialView={view} initialSlug={slug} initialType={type} siteUrl={siteUrl} />
+    </StrictMode>,
+  );
+};
+
+// Detect all Seamless shortcode containers on the page.
 const shortcodeContainers = document.querySelectorAll<HTMLElement>('[data-seamless-view]');
+const mounts: MountConfig[] = Array.from(shortcodeContainers).map((container) => ({
+  container,
+  view: container.getAttribute('data-seamless-view') || 'events',
+  slug: container.getAttribute('data-seamless-slug') || '',
+  type: container.getAttribute('data-seamless-type') || '',
+  siteUrl: container.getAttribute('data-site-url') || window.location.origin,
+}));
 
-if (shortcodeContainers.length > 0) {
-  // WordPress shortcode mode - mount each container independently
-  shortcodeContainers.forEach((container) => {
-    const view = container.getAttribute('data-seamless-view') || 'events';
-    const slug = container.getAttribute('data-seamless-slug') || '';
-    const type = container.getAttribute('data-seamless-type') || '';
-    const siteUrl = container.getAttribute('data-site-url') || window.location.origin;
+// Backward compatibility for legacy single-event templates that still expose
+// #event_detail as the mount point instead of the newer data-seamless-view div.
+if (mounts.length === 0) {
+  const legacySingleEventContainer = document.getElementById('event_detail');
+  const legacySlug = legacySingleEventContainer?.getAttribute('data-event-slug') || '';
 
-    createRoot(container).render(
-      <StrictMode>
-        <App initialView={view} initialSlug={slug} initialType={type} siteUrl={siteUrl} />
-      </StrictMode>,
-    );
-  });
+  if (legacySingleEventContainer && legacySlug) {
+    mounts.push({
+      container: legacySingleEventContainer,
+      view: 'single-event',
+      slug: legacySlug,
+      type:
+        legacySingleEventContainer.getAttribute('data-event-type') ||
+        new URLSearchParams(window.location.search).get('type') ||
+        '',
+      siteUrl: window.location.origin,
+    });
+  }
+}
+
+if (mounts.length > 0) {
+  mounts.forEach(renderMount);
 } else {
   // Dev / standalone mode – use the standard #root container
   const containerElement =

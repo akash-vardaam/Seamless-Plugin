@@ -358,6 +358,15 @@ class SeamlessRender
 		$data_attrs = 'data-seamless-view="' . esc_attr($view) . '"';
 		$data_attrs .= ' data-site-url="' . esc_url(home_url()) . '"';
 
+		if ($view === 'single-event') {
+			if (isset($extras['seamless-slug'])) {
+				$data_attrs .= ' data-event-slug="' . esc_attr((string) $extras['seamless-slug']) . '"';
+			}
+			if (isset($extras['seamless-type'])) {
+				$data_attrs .= ' data-event-type="' . esc_attr((string) $extras['seamless-type']) . '"';
+			}
+		}
+
 		foreach ($extras as $key => $value) {
 			$data_attrs .= ' data-' . esc_attr($key) . '="' . esc_attr($value) . '"';
 		}
