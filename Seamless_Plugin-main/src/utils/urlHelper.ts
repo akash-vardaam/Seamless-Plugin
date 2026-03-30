@@ -5,6 +5,8 @@ export interface EventURLConfig {
   amsContentEndpoint?: string;
 }
 
+const LIST_QUERY_KEYS = ['search', 'status', 'audience', 'focus', 'localChapter', 'year', 'page', 'view', 'date'];
+
 const normalizeEndpoint = (value: string | undefined, fallback: string): string => {
   const normalized = (value || fallback).trim().replace(/^\/+|\/+$/g, '');
   return normalized || fallback;
@@ -86,6 +88,27 @@ export const createEventSlug = (title: string, id: string): string => {
 };
 
 export const getEventPageURL = (eventSlug: string, isGroupEvent: boolean = false): string => {
+  if (typeof window !== 'undefined') {
+    const currentUrl = new URL(window.location.href);
+    const currentParams = currentUrl.searchParams;
+    const currentEventSlug = currentParams.get('seamless_event');
+
+    // When the user is already on a shortcode-driven Seamless page, keep them on
+    // that same page and switch the rendered detail via query params.
+    if (document.querySelector('[data-seamless-view="events"]') || currentEventSlug) {
+      LIST_QUERY_KEYS.forEach((key) => currentParams.delete(key));
+      currentParams.set('seamless_event', eventSlug);
+
+      if (isGroupEvent) {
+        currentParams.set('type', 'group-event');
+      } else {
+        currentParams.delete('type');
+      }
+
+      return currentUrl.toString();
+    }
+  }
+
   const config = getSeamlessConfig();
   const baseUrl = config?.siteUrl || window.location.origin;
   const singleEventEndpoint = config?.singleEventEndpoint || 'event';
@@ -129,6 +152,15 @@ export const getAmsContentRoutePath = (): string => {
 };
 
 export const getEventsListURL = (): string => {
+  if (typeof window !== 'undefined') {
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.has('seamless_event')) {
+      currentUrl.searchParams.delete('seamless_event');
+      currentUrl.searchParams.delete('type');
+      return currentUrl.toString();
+    }
+  }
+
   const config = getSeamlessConfig();
 
   if (config) {

@@ -195,7 +195,7 @@ class SeamlessRender
 		}
 
 		// Add your bundled script handle if you need module type
-		if (in_array($handle, ['seamless-toast-ui-calendar-js', 'seamless-vite-main-js'])) {
+		if (in_array($handle, ['seamless-toast-ui-calendar-js', 'seamless-vite-main-js', 'seamless-react-js'])) {
 			return str_replace('<script ', '<script type="module" ', $tag);
 		}
 

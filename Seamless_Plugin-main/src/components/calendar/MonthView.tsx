@@ -3,6 +3,8 @@ import type { Event } from '../../types/event';
 import { getCategoryColor, extractDateOnly } from './utils';
 import { navigateToEvent, createEventSlug } from '../../utils/urlHelper';
 
+const MOBILE_BREAKPOINT = 768;
+
 const formatTimeRange = (startDate: string): string => {
   try {
     const start = new Date(startDate);
@@ -19,19 +21,45 @@ interface MonthViewProps {
 
 export const MonthView: React.FC<MonthViewProps> = ({ currentDate, events }) => {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [isMobileView, setIsMobileView] = useState(
+    typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => setIsMobileView(window.innerWidth <= MOBILE_BREAKPOINT);
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const path = e.composedPath();
       const isInsideCell = path.some(el => (el as Element).classList?.contains('seamless-month-cell'));
       const isInsidePopup = path.some(el => (el as Element).classList?.contains('seamless-month-popup'));
+      const isInsideSheet = path.some(el => (el as Element).classList?.contains('seamless-month-bottom-sheet'));
 
-      if (!isInsideCell && !isInsidePopup) {
+      if (!isInsideCell && !isInsidePopup && !isInsideSheet) {
         setSelectedDay(null);
       }
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedDay(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
   const getCalendarDays = (date: Date) => {
@@ -85,6 +113,25 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate, events }) => 
 
   const todayStr = new Date().toDateString();
   const dayHeaders = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const selectedDayEvents = useMemo(() => {
+    if (!selectedDay) return [];
+
+    const dateKey = selectedDay.toDateString();
+    return normalizedEvents.filter(e =>
+      e.rawStart.toDateString() === dateKey ||
+      e.rawEnd.toDateString() === dateKey ||
+      (e.rawStart.getTime() <= selectedDay.getTime() && e.rawEnd.getTime() >= selectedDay.getTime())
+    );
+  }, [normalizedEvents, selectedDay]);
+
+  const selectedDayLabel = selectedDay
+    ? selectedDay.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    : '';
 
   return (
     <div className="seamless-month-view">
@@ -171,11 +218,11 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate, events }) => 
                         {singleDayEvts.map((e, eIdx) => {
                           if (eIdx >= 4) return null;
                           const c = getCategoryColor(e);
-                          return <span key={eIdx} className={`seamless-mobile-dot seamless-color-${c}-border`}></span>;
+                          return <span key={eIdx} className={`seamless-mobile-dot seamless-color-${c}-bg`}></span>;
                         })}
                       </div>
 
-                      {selectedDay && selectedDay.toDateString() === dateKey && singleDayEvts.length > 0 && (
+                      {!isMobileView && selectedDay && selectedDay.toDateString() === dateKey && singleDayEvts.length > 0 && (
                         <div className="seamless-month-popup" onClick={(e) => e.stopPropagation()}>
                           <div className="seamless-popup-header">{dayObj.date.toISOString().split('T')[0]}</div>
                           <div className="seamless-popup-body">
@@ -268,6 +315,55 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate, events }) => 
           );
         })}
       </div>
+
+      {isMobileView && selectedDay && selectedDayEvents.length > 0 && (
+        <div className="seamless-month-bottom-sheet-overlay" onClick={() => setSelectedDay(null)}>
+          <div
+            className="seamless-month-bottom-sheet"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Events for ${selectedDayLabel}`}
+          >
+            <div className="seamless-month-bottom-sheet-handle" />
+            <div className="seamless-month-bottom-sheet-header">
+              <div>
+                <div className="seamless-month-bottom-sheet-title">{selectedDayLabel}</div>
+                <div className="seamless-month-bottom-sheet-subtitle">
+                  {selectedDayEvents.length} event{selectedDayEvents.length === 1 ? '' : 's'}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="seamless-month-bottom-sheet-close"
+                onClick={() => setSelectedDay(null)}
+                aria-label="Close events panel"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="seamless-month-bottom-sheet-body">
+              {selectedDayEvents.map((pe, eIdx) => {
+                const c = getCategoryColor(pe);
+                return (
+                  <div
+                    key={`sheet-${pe.id}-${eIdx}`}
+                    className={`seamless-popup-event seamless-month-bottom-sheet-event seamless-color-${c}-border`}
+                    onClick={() => navigateToEvent(pe.slug || createEventSlug(pe.title, pe.id), pe.is_group_event)}
+                  >
+                    <span className={`seamless-popup-dot seamless-color-${c}-bg`} />
+                    <div className="seamless-month-bottom-sheet-event-content">
+                      <span className="seamless-popup-title">{pe.title}</span>
+                      <span className="seamless-popup-time">{formatTimeRange(pe.start_date)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

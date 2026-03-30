@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Users, Check } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSingleEvent } from '../hooks/useSingleEvent';
 import { SeamlessAccordion } from './SeamlessAccordion';
 import { getEventsListURL } from '../utils/urlHelper';
@@ -26,6 +26,7 @@ export const SingleEventPage: React.FC = () => {
     const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
     const [isCalendarAdded, setIsCalendarAdded] = useState(false);
     const [activeSponsorIndex, setActiveSponsorIndex] = useState(0);
+    const [isSponsorTrackAnimating, setIsSponsorTrackAnimating] = useState(true);
     const calendarDropdownRef = React.useRef<HTMLDivElement>(null);
 
     const handleCalendarOptionClick = () => {
@@ -86,10 +87,6 @@ export const SingleEventPage: React.FC = () => {
     const eventType = searchParams.get('type') || '';
     const isGroupEvent = eventType === 'group-event' || location.pathname.includes('/group-event/');
     const { event, loading, error } = useSingleEvent(slug, isGroupEvent);
-
-    useEffect(() => {
-        setActiveSponsorIndex(0);
-    }, [event?.sponsors?.length]);
 
     // Date/Time Formatters
     const formatEventDateRange = (startStr: string, endStr: string) => {
@@ -242,6 +239,94 @@ export const SingleEventPage: React.FC = () => {
         }
     };
 
+    const sponsorCount = event?.sponsors?.length ?? 0;
+    const hasSponsors = sponsorCount > 0;
+    const visibleSponsors = sponsorCount > 1 ? 2 : 1;
+    const sponsorSlideGap = 20;
+    const isSponsorCarouselLooping = sponsorCount > visibleSponsors;
+    const sponsorLoopOffset = isSponsorCarouselLooping ? visibleSponsors : 0;
+    const sponsorSlideBasis = `calc((100% - ${sponsorSlideGap * (visibleSponsors - 1)}px) / ${visibleSponsors})`;
+    const sponsorTrackStep = `(${sponsorSlideBasis} + ${sponsorSlideGap}px)`;
+    const sponsorSlides = React.useMemo(() => {
+        const sponsors = event?.sponsors ?? [];
+
+        if (!isSponsorCarouselLooping) {
+            return sponsors;
+        }
+
+        return [
+            ...sponsors.slice(-visibleSponsors),
+            ...sponsors,
+            ...sponsors.slice(0, visibleSponsors),
+        ];
+    }, [event?.sponsors, isSponsorCarouselLooping, visibleSponsors]);
+
+    useEffect(() => {
+        setIsSponsorTrackAnimating(true);
+        setActiveSponsorIndex(sponsorLoopOffset);
+    }, [sponsorCount, sponsorLoopOffset]);
+
+    useEffect(() => {
+        if (!isSponsorCarouselLooping) {
+            return;
+        }
+
+        const autoplayId = window.setInterval(() => {
+            setActiveSponsorIndex((prev) => prev + 1);
+        }, 3500);
+
+        return () => window.clearInterval(autoplayId);
+    }, [isSponsorCarouselLooping]);
+
+    const goToPreviousSponsor = () => {
+        if (!sponsorCount) return;
+        if (!isSponsorCarouselLooping) {
+            setActiveSponsorIndex(0);
+            return;
+        }
+
+        setActiveSponsorIndex((prev) => prev - 1);
+    };
+
+    const goToNextSponsor = () => {
+        if (!sponsorCount) return;
+        if (!isSponsorCarouselLooping) {
+            setActiveSponsorIndex(0);
+            return;
+        }
+
+        setActiveSponsorIndex((prev) => prev + 1);
+    };
+
+    const handleSponsorTrackTransitionEnd = () => {
+        if (!isSponsorCarouselLooping) {
+            return;
+        }
+
+        if (activeSponsorIndex >= sponsorCount + sponsorLoopOffset) {
+            setIsSponsorTrackAnimating(false);
+            setActiveSponsorIndex(sponsorLoopOffset);
+            return;
+        }
+
+        if (activeSponsorIndex < sponsorLoopOffset) {
+            setIsSponsorTrackAnimating(false);
+            setActiveSponsorIndex(sponsorCount + activeSponsorIndex);
+        }
+    };
+
+    useEffect(() => {
+        if (isSponsorTrackAnimating) {
+            return;
+        }
+
+        const resetAnimationFrame = window.requestAnimationFrame(() => {
+            setIsSponsorTrackAnimating(true);
+        });
+
+        return () => window.cancelAnimationFrame(resetAnimationFrame);
+    }, [isSponsorTrackAnimating]);
+
     if (loading) {
         return (
             <div className="seamless-single-event-container" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -367,22 +452,6 @@ export const SingleEventPage: React.FC = () => {
     // Check if event has passed
     const isEventPassed = new Date(endDateToUse || startDateToUse).getTime() < new Date().getTime();
     console.log('Event Passed:', isEventPassed);
-    const sponsorCount = event?.sponsors?.length ?? 0;
-    const hasSponsors = sponsorCount > 0;
-    const visibleSponsors = sponsorCount > 1 ? 2 : 1;
-    const maxSponsorStartIndex = Math.max(0, sponsorCount - visibleSponsors);
-    const sponsorDotCount = maxSponsorStartIndex + 1;
-    const sponsorTranslateStep = 100 / visibleSponsors;
-
-    const goToPreviousSponsor = () => {
-        if (!sponsorCount) return;
-        setActiveSponsorIndex((prev) => (prev === 0 ? maxSponsorStartIndex : prev - 1));
-    };
-
-    const goToNextSponsor = () => {
-        if (!sponsorCount) return;
-        setActiveSponsorIndex((prev) => (prev === maxSponsorStartIndex ? 0 : prev + 1));
-    };
 
     return (
         <article className="seamless-single-event-container">
@@ -425,25 +494,34 @@ export const SingleEventPage: React.FC = () => {
                                 </p>
 
                                 <div className="seamless-sponsors-carousel">
-                                    <button
-                                        type="button"
-                                        className="seamless-sponsor-nav seamless-sponsor-nav-prev"
-                                        onClick={goToPreviousSponsor}
-                                        aria-label="Show previous sponsor"
-                                    >
-                                        &#8249;
-                                    </button>
+                                    {isSponsorCarouselLooping && (
+                                        <button
+                                            type="button"
+                                            className="seamless-sponsor-nav seamless-sponsor-nav-prev"
+                                            onClick={goToPreviousSponsor}
+                                            aria-label="Show previous sponsor"
+                                        >
+                                            <ChevronLeft size={28} strokeWidth={2.25} />
+                                        </button>
+                                    )}
 
                                     <div className="seamless-sponsor-slider-window">
                                         <div
                                             className="seamless-sponsor-slider-track"
-                                            style={{ transform: `translateX(-${activeSponsorIndex * sponsorTranslateStep}%)` }}
+                                            style={{
+                                                transform: `translateX(calc(-${activeSponsorIndex} * ${sponsorTrackStep}))`,
+                                                transition: isSponsorTrackAnimating ? 'transform 0.45s ease' : 'none',
+                                                gap: `${sponsorSlideGap}px`,
+                                            }}
+                                            onTransitionEnd={handleSponsorTrackTransitionEnd}
                                         >
-                                            {event.sponsors.map((sponsorUrl, index) => (
+                                            {sponsorSlides.map((sponsorUrl, index) => (
                                                 <div
                                                     key={`${sponsorUrl}-${index}`}
                                                     className="seamless-sponsor-slide"
-                                                    style={{ flex: `0 0 ${100 / visibleSponsors}%` }}
+                                                    style={{
+                                                        flex: `0 0 ${sponsorSlideBasis}`,
+                                                    }}
                                                 >
                                                     <img
                                                         src={sponsorUrl}
@@ -456,29 +534,17 @@ export const SingleEventPage: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        className="seamless-sponsor-nav seamless-sponsor-nav-next"
-                                        onClick={goToNextSponsor}
-                                        aria-label="Show next sponsor"
-                                    >
-                                        &#8250;
-                                    </button>
+                                    {isSponsorCarouselLooping && (
+                                        <button
+                                            type="button"
+                                            className="seamless-sponsor-nav seamless-sponsor-nav-next"
+                                            onClick={goToNextSponsor}
+                                            aria-label="Show next sponsor"
+                                        >
+                                            <ChevronRight size={28} strokeWidth={2.25} />
+                                        </button>
+                                    )}
                                 </div>
-
-                                {sponsorDotCount > 1 && (
-                                    <div className="seamless-sponsor-dots" aria-label="Sponsor slide navigation">
-                                        {Array.from({ length: sponsorDotCount }).map((_, index) => (
-                                            <button
-                                                key={index}
-                                                type="button"
-                                                className={`seamless-sponsor-dot ${index === activeSponsorIndex ? 'active' : ''}`}
-                                                onClick={() => setActiveSponsorIndex(index)}
-                                                aria-label={`Show sponsor set ${index + 1}`}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
                             </section>
                         )}
                     </section>
@@ -519,7 +585,7 @@ export const SingleEventPage: React.FC = () => {
                                     {event?.venue?.name && (
                                         <p className="seamless-detail-value">
                                             {event?.venue?.google_map_url ? (
-                                                <a href={event?.venue.google_map_url} target="_blank" rel="noopener noreferrer" className="seamless-location-link" style={{ color: '#0ea5e9', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <a href={event?.venue.google_map_url} target="_blank" rel="noopener noreferrer" className="seamless-location-link">
                                                     {event?.venue.name}
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                                                 </a>
@@ -540,18 +606,19 @@ export const SingleEventPage: React.FC = () => {
 
                         {!isEventPassed && (
                             <div className="seamless-single-evt-dropdown-wrap" ref={calendarDropdownRef}>
-
-                                <button
-                                    onClick={() => setCalendarDropdownOpen(!calendarDropdownOpen)}
-                                    className="seamless_single_page_calendar_button"
-                                >
-                                    Add to Calendar
-                                    {isCalendarAdded && (
-                                        <div className="seamless-calendar-check-icon">
-                                            <Check size={20} strokeWidth={3} />
-                                        </div>
-                                    )}
-                                </button>
+                                <div className="seamless-calendar-trigger-group">
+                                    <button
+                                        onClick={() => setCalendarDropdownOpen(!calendarDropdownOpen)}
+                                        className="seamless_single_page_calendar_button"
+                                    >
+                                        <span>Add to Calendar</span>
+                                        {isCalendarAdded && (
+                                            <div className="seamless-calendar-check-icon">
+                                                <Check size={20} strokeWidth={3} />
+                                            </div>
+                                        )}
+                                    </button>
+                                </div>
 
                                 {calendarDropdownOpen && (
                                     <div className="seamless-calendar-dropdown">

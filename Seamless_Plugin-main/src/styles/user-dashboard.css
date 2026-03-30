@@ -2986,7 +2986,7 @@
 
 :host .seamless-user-dashboard-btn-renew.seamless-user-dashboard-btn-renew-disabled,
 :host .seamless-user-dashboard-btn-renew:disabled {
-    background: #e2e8f0 !important;
+    background: var(--seamless-color-gray-700) !important;
     color: #64748b !important;
     border-color: #cbd5e1 !important;
     cursor: not-allowed !important;
@@ -3088,7 +3088,7 @@
 :host .seamless-user-dashboard-progress-bar-bg {
     width: 100% !important;
     height: 8px !important;
-    background: #e2e8f0 !important;
+    background: var(--seamless-color-gray-700) !important;
     border-radius: 4px !important;
     overflow: hidden !important;
 }
@@ -3455,7 +3455,7 @@
 }
 
 :host .seamless-plan-card {
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 12px !important;
     padding: 20px !important;
     display: flex !important;
@@ -3548,7 +3548,7 @@
 :host .seamless-btn-keep {
     padding: 12px 24px !important;
     border-radius: 8px !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     background: #fff !important;
     cursor: pointer !important;
     font-weight: 600 !important;
@@ -3588,15 +3588,16 @@
 }
 
 :host .seamless-profile-content-card {
-    border-radius: 1px solid #e2e8f0 !important;
+    border-radius: 1px solid var(--seamless-color-gray-700) !important;
     background: #fff !important;
     border-radius: 16px !important;
     padding: 32px !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
 }
 
 :host .seamless-profile-header {
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
     padding-bottom: 24px !important;
     margin-bottom: 24px !important;
     display: flex !important;
@@ -3616,7 +3617,7 @@
     border-radius: 6px !important;
     cursor: pointer !important;
     background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     font-weight: 500 !important;
     color: var(--seamless-color-font) !important;
 }
@@ -3650,7 +3651,7 @@
     display: flex !important;
     gap: 16px !important;
     padding-top: 24px !important;
-    border-top: 1px solid #e2e8f0 !important;
+    border-top: 1px solid var(--seamless-color-gray-700) !important;
 }
 
 :host .seamless-empty-card {
@@ -3744,7 +3745,7 @@
 :host .seamless-manage-btn {
     padding: 8px 16px !important;
     background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 8px !important;
     cursor: pointer !important;
     font-weight: 500 !important;
@@ -3811,7 +3812,7 @@
     background: #fff !important;
     border-radius: 16px !important;
     overflow: hidden !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
 }
 
 :host .seamless-styled-table {
@@ -3824,7 +3825,7 @@
 
 :host .seamless-styled-thead {
     background: #f8fafc !important;
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
 }
 
 :host .seamless-styled-th {
@@ -3881,7 +3882,7 @@
 :host .seamless-count-card {
     background: #fff !important;
     border-radius: 12px !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     padding: 32px !important;
     display: flex !important;
     flex-direction: column !important;
@@ -3983,7 +3984,7 @@
 }
 
 :host .active .seamless-tab-count {
-    background: #e2e8f0 !important;
+    background: var(--seamless-color-gray-700) !important;
     color: var(--seamless-color-heading) !important;
 }
 
@@ -3994,7 +3995,7 @@
 }
 
 :host .seamless-modal-header {
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
     padding-bottom: 16px !important;
     margin-bottom: 24px !important;
     display: flex !important;
@@ -4135,7 +4136,7 @@
 /* Pricing Breakdown Details */
 :host .seamless-pricing-breakdown {
     margin-top: 24px !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 8px !important;
     padding: 20px !important;
     background: #fafaf9 !important;
@@ -4150,7 +4151,7 @@
 }
 
 :host .seamless-pricing-row.total {
-    border-top: 1px solid #e2e8f0 !important;
+    border-top: 1px solid var(--seamless-color-gray-700) !important;
     padding-top: 12px !important;
     font-weight: 700 !important;
     color: var(--seamless-color-heading) !important;
@@ -4209,7 +4210,7 @@
 :host .seamless-modal-footer {
     margin-top: 32px !important;
     padding-top: 16px !important;
-    border-top: 1px solid #e2e8f0 !important;
+    border-top: 1px solid var(--seamless-color-gray-700) !important;
     display: flex !important;
     justify-content: flex-end !important;
     gap: 12px !important;
@@ -4231,7 +4232,7 @@
 
 :host .seamless-course-stat-card {
     background: #fff !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 12px !important;
     padding: 24px !important;
     display: flex !important;
@@ -4284,7 +4285,7 @@
 
 :host .seamless-course-card-n {
     background: #fff !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 12px !important;
     overflow: hidden !important;
     display: flex !important;
@@ -4360,7 +4361,7 @@
 /* --- New Orders View Styles --- */
 :host .seamless-table-wrapper {
     background: #fff !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 12px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
@@ -4378,7 +4379,7 @@
     font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-font) !important;
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
     text-align: center !important;
 }
 
@@ -4461,7 +4462,7 @@
 
 :host .seamless-user-dashboard-org-empty {
     background: #fff !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 16px !important;
     padding: 48px 24px !important;
     text-align: center !important;
@@ -4554,7 +4555,7 @@
 
 :host .seamless-user-dashboard-org-plan {
     background: #fff !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 16px !important;
     overflow: hidden !important;
 }
@@ -4617,7 +4618,7 @@
 }
 
 :host .seamless-user-dashboard-org-plan-body {
-    border-top: 1px solid #e2e8f0 !important;
+    border-top: 1px solid var(--seamless-color-gray-700) !important;
     padding: 24px !important;
     display: flex !important;
     flex-direction: column !important;
@@ -4633,7 +4634,7 @@
 :host .seamless-user-dashboard-org-capacity-item {
     border-radius: 14px !important;
     padding: 18px !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     background: #f8fafc !important;
 }
 
@@ -4650,7 +4651,7 @@
 }
 
 :host .seamless-user-dashboard-org-members-section {
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 16px !important;
     overflow: hidden !important;
 }
@@ -4658,7 +4659,7 @@
 :host .seamless-user-dashboard-org-members-header {
     padding: 18px 20px !important;
     background: #f8fafc !important;
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
@@ -4817,7 +4818,7 @@
 }
 
 :host .seamless-org-inline-notice {
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 14px !important;
     padding: 14px 16px !important;
     font-weight: 600 !important;
@@ -4839,7 +4840,7 @@
 :host .seamless-user-dashboard-org-pricing-box,
 :host .seamless-org-warning-message-box,
 :host .seamless-org-warning-details {
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 14px !important;
     padding: 18px !important;
     background: #f8fafc !important;
@@ -4958,7 +4959,7 @@
 
 :host .seamless-org-warning-item {
     background: #fff !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--seamless-color-gray-700) !important;
     border-radius: 12px !important;
     padding: 14px !important;
     display: flex !important;
@@ -4997,5 +4998,10 @@
     :host .seamless-user-dashboard-org-member-actions {
         flex-wrap: wrap !important;
         justify-content: flex-end !important;
+    }
+
+    :host .seamless-user-dashboard-profile-view-mode .seamless-grid-3-col {
+        display: flex !important;
+        flex-direction: column !important;
     }
 }
