@@ -1,0 +1,137 @@
+/**
+ * Seamless Addon - Memberships Widget Styles
+ */
+
+/* Memberships Grid Layout */
+.seamless-memberships-list {
+    display: grid;
+    gap: 30px;
+}
+
+.seamless-memberships-list.seamless-grid-cols-1 {
+    grid-template-columns: 1fr;
+}
+
+.seamless-memberships-list.seamless-grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.seamless-memberships-list.seamless-grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.seamless-memberships-list.seamless-grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Membership Card */
+.seamless-membership-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.seamless-membership-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.seamless-membership-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.seamless-membership-card:hover .seamless-membership-image img {
+    transform: scale(1.05);
+}
+
+.seamless-membership-content {
+    padding: 25px;
+}
+
+.seamless-membership-content .seamless-item-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+    color: #222;
+}
+
+.seamless-membership-content .seamless-item-content {
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    min-height: 60px;
+}
+
+.seamless-membership-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0073aa;
+    margin: 15px 0;
+}
+
+.seamless-membership-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.seamless-membership-footer .seamless-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #0073aa 0%, #005177 100%);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.seamless-membership-footer .seamless-btn:hover {
+    background: linear-gradient(135deg, #005177 0%, #003d5c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 115, 170, 0.3);
+}
+
+/* No Memberships Message */
+.seamless-no-memberships {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+
+    .seamless-memberships-list.seamless-grid-cols-3,
+    .seamless-memberships-list.seamless-grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .seamless-membership-image {
+        height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .seamless-memberships-list.seamless-grid-cols-2,
+    .seamless-memberships-list.seamless-grid-cols-3,
+    .seamless-memberships-list.seamless-grid-cols-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .seamless-membership-content {
+        padding: 20px;
+    }
+}

@@ -1,0 +1,134 @@
+/* Accordion Styles for Seamless Addon Widgets */
+
+.accordion-item {
+    border-top: 1px solid #e0e0e0;
+    margin-bottom: 0;
+}
+
+.accordion-item:last-child {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.accordion-item button.accordion-header {
+    width: 100%;
+    text-align: left;
+    background: #f8f9fa;
+    border: none;
+    padding: 20px 20px 20px 10px;
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 600;
+    color: #2c3e50;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    transition: all 0.3s ease;
+    margin: 0;
+    text-wrap: auto;
+}
+
+.accordion-item button.accordion-header:focus,
+.accordion-item button.accordion-header:focus-visible,
+.accordion-item button.accordion-header:focus-within {
+    outline: none;
+}
+
+.accordion-item .accordion-header:hover {
+    background: #f0f1f3;
+}
+
+.accordion-item .accordion-header i {
+    transition: transform 0.3s ease;
+    color: #2c3e50;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.accordion-item.active .accordion-header i {
+    transform: rotate(180deg);
+}
+
+.accordion-item .accordion-body {
+    display: none;
+    overflow: hidden;
+    padding: 0 24px;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #333;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.accordion-item.active .accordion-body {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    border-top: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+/* Additional Detail Blocks */
+.accordion-item .additional-detail-block {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.accordion-item .additional-detail-block h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    line-height: 30px;
+    color: #2c3e50;
+}
+
+.accordion-item .additional-detail-block .additional-detail-value p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 26px;
+    color: #333;
+}
+
+.accordion-item .additional-detail-block .additional-detail-value ul li {
+    margin: 0;
+    font-size: 14px;
+    line-height: 26px;
+    color: #333;
+}
+
+.accordion-item .accordion-body ul,
+.accordion-item .accordion-body ol {
+    padding: 0px 15px;
+}
+
+/* Ticket Items */
+.accordion-item .accordion-body .ticket-item {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.accordion-item .accordion-body .ticket-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.accordion-item .accordion-body .ticket-details {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+/* Ensure no padding is applied when accordion is collapsed */
+.accordion-item:not(.active) .accordion-body {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}

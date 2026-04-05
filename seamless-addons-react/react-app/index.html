@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seamless React – Dev Preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Fake WordPress globals for local dev -->
+    <script>
+      window.seamlessReactConfig = {
+        siteUrl: 'http://localhost',
+        restUrl: 'http://localhost/wp-json/',
+        ajaxUrl: 'http://localhost/wp-admin/admin-ajax.php',
+        nonce: 'dev-nonce',
+        ajaxNonce: 'dev-ajax-nonce',
+        clientDomain: '',
+        singleEventEndpoint: 'event',
+        eventListEndpoint: 'events',
+        amsContentEndpoint: 'ams-content',
+        listViewLayout: 'option_1',
+        isLoggedIn: true,
+        userEmail: 'dev@example.com',
+        logoutUrl: '/',
+        hasSsoToken: true,
+        version: '2.0.0',
+      };
+    </script>
+  </body>
+</html>
