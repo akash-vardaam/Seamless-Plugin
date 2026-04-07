@@ -60,6 +60,9 @@ class SeamlessCallbackHandler
         delete_option($pkce_option_key);
 
         $return_to = $encoded_return_to ? base64_decode($encoded_return_to) : home_url('/');
+        if (empty($return_to) || strpos($return_to, home_url()) !== 0) {
+            $return_to = home_url('/');
+        }
 
         try {
             $tokens = $this->exchange_code_for_token($code, $pkce_verifier);

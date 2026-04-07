@@ -3985,7 +3985,7 @@
 
 :host .active .seamless-tab-count {
     background: var(--seamless-color-gray-700) !important;
-    color: var(--seamless-color-heading) !important;
+    color: var(--seamless-color-white) !important;
 }
 
 /* --- New Upgrade/Downgrade Modal Styles --- */

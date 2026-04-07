@@ -4,7 +4,7 @@ import type { Event, FilterState } from '../types/event';
 
 export const DEFAULT_FILTERS: FilterState = {
   search: '',
-  status: 'upcoming',
+  status: '',
   audience: '',
   focus: '',
   localChapter: '',
@@ -19,16 +19,21 @@ interface UseFilterStateReturn {
 
 export const useFilterState = (): UseFilterStateReturn => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const rawStatus = searchParams.get('status');
+  const normalizedStatus =
+    rawStatus === 'upcoming' || rawStatus === 'current' || rawStatus === 'past'
+      ? rawStatus
+      : DEFAULT_FILTERS.status;
 
   // Create filters object from searchParams, falling back to defaults
   const filters: FilterState = useMemo(() => ({
     search: searchParams.get('search') || DEFAULT_FILTERS.search,
-    status: (searchParams.get('status') as FilterState['status']) || DEFAULT_FILTERS.status,
+    status: normalizedStatus,
     audience: searchParams.get('audience') || DEFAULT_FILTERS.audience,
     focus: searchParams.get('focus') || DEFAULT_FILTERS.focus,
     localChapter: searchParams.get('localChapter') || DEFAULT_FILTERS.localChapter,
     year: searchParams.get('year') || DEFAULT_FILTERS.year,
-  }), [searchParams]);
+  }), [searchParams, normalizedStatus]);
 
   const updateFilter = (key: keyof FilterState, value: string) => {
     console.log(`Updating filter ${key} to ${value}`);

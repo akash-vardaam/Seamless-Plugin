@@ -56,7 +56,10 @@ class SeamlessSSO
 
     public function handle_login_redirect(): void
     {
-        if (get_query_var('sso_login_redirect')) {
+        $login_requested = get_query_var('sso_login_redirect') || isset($_GET['sso_login_redirect']);
+        $logout_requested = get_query_var('sso_logout_redirect') || isset($_GET['sso_logout_redirect']);
+
+        if ($login_requested) {
             $this->ensure_session_started();
 
             $return_to = self::get_return_to_url();
@@ -66,7 +69,7 @@ class SeamlessSSO
             exit;
         }
 
-        if (get_query_var('sso_logout_redirect')) {
+        if ($logout_requested) {
             $this->ensure_session_started();
             // Read optional return_to so the user lands back on the page they came from.
             $return_to = isset($_GET['return_to']) ? esc_url_raw(wp_unslash($_GET['return_to'])) : '';
@@ -327,8 +330,12 @@ class SeamlessSSO
             );
         }
 
-        // Use a query-param based URL as a robust fallback to prevent 404 if rewrite rules are not flushed
-        $url = add_query_arg('sso_login_redirect', '1', home_url('/'));
+        // Use a query-param based URL as a robust fallback to prevent 404 if rewrite rules are not flushed.
+        // Always preserve the originating page so the user returns there after OAuth completes.
+        $url = add_query_arg([
+            'sso_login_redirect' => '1',
+            'return_to' => self::get_return_to_url(),
+        ], home_url('/'));
 
         return sprintf(
             '<a class="%s" href="%s">%s</a>',

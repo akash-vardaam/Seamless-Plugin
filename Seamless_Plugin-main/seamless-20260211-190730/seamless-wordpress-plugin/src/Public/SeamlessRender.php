@@ -342,6 +342,37 @@ class SeamlessRender
 				? !empty(get_user_meta(get_current_user_id(), 'seamless_access_token', true))
 				: false,
 		]);
+
+		wp_add_inline_script(
+			'seamless-react-js',
+			<<<'JS'
+window.addEventListener('DOMContentLoaded', () => {
+	const calendarProto = window.SeamlessCalendar?.prototype;
+	if (!calendarProto || typeof calendarProto.loadEvents !== 'function' || calendarProto.__seamlessAllSortPatched) {
+		return;
+	}
+
+	const originalLoadEvents = calendarProto.loadEvents;
+	calendarProto.loadEvents = async function (...args) {
+		const filterElements = this.getFilterElements?.();
+		if (filterElements?.$sortBy?.length) {
+			const rawSort = filterElements.$sortBy.val();
+			if (rawSort === null || rawSort === undefined || String(rawSort).trim() === '') {
+				this.currentFilters = {
+					...this.currentFilters,
+					sort: 'all',
+				};
+			}
+		}
+
+		return await originalLoadEvents.apply(this, args);
+	};
+
+	calendarProto.__seamlessAllSortPatched = true;
+});
+JS,
+			'after'
+		);
 	}
 
 	/**
