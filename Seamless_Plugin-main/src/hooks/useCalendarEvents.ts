@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { fetchEvents, fetchGroupEvents } from '../services/eventService';
 import type { Event, FilterState } from '../types/event';
+import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 
 function formatError(err: unknown): string {
     if (axios.isAxiosError(err)) {
@@ -78,30 +79,20 @@ export const useCalendarEvents = (
             if (!enabled) return;
 
             const params = buildParams();
-            const cacheKey = `seamless_calendar_${JSON.stringify(params)}`;
+            const cacheKey = buildBrowserCacheKey('calendar-events', params);
+            const cachedEvents = calendarCache.get(cacheKey) || getBrowserCache<Event[]>(cacheKey);
 
-            let initialDataLoaded = false;
-
-            // Check In-Memory / LocalStorage Cache first for instant load
-            try {
-                const cached = localStorage.getItem(cacheKey);
-                if (cached) {
-                    const data = JSON.parse(cached);
-                    calendarCache.set(cacheKey, data); 
-                    setEvents(data);
-                    initialDataLoaded = true;
-                    setLoading(false); // Can show UI immediately
-                }
-            } catch (e) {
-                console.log(e);
+            if (cachedEvents) {
+                calendarCache.set(cacheKey, cachedEvents);
+                setEvents(cachedEvents);
+                setLoading(false);
+                setError(null);
+                return;
             }
 
-            if (!initialDataLoaded) {
-                setLoading(true);
-            }
+            setLoading(true);
             setError(null);
 
-            // Fetch fresh data unconditionally (Stale-While-Revalidate)
             try {
                 const [response, groupResponse] = await Promise.all([
                     fetchEvents(params),
@@ -144,18 +135,13 @@ export const useCalendarEvents = (
                 setEvents(finalEvents);
                 setLoading(false);
 
-                try {
-                    localStorage.setItem(cacheKey, JSON.stringify(finalEvents));
-                } catch (e) {
-                    console.log(e);
-                }
+                setBrowserCache(cacheKey, finalEvents);
 
             } catch (err) {
-                if (!cancelled && !initialDataLoaded) {
+                if (!cancelled) {
                     setError(formatError(err));
                     console.error('Calendar fetch error:', err);
                 }
-                // If we failed but had initial data, silently fail or we could log it.
             } finally {
                 if (!cancelled) {
                     setLoading(false);

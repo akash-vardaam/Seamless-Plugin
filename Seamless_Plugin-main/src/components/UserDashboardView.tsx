@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import { useShadowRoot } from './ShadowRoot';
-import api from '../services/api';
+import api, { requestWithCache } from '../services/api';
 import { COUNTRIES_STATES } from '../utils/countriesStates';
 import { ArrowDownRight, ArrowUpRight, Check, ChevronDown, CircleCheckBig, CircleX, Clock3, Download, Plus, Send, Trash2, User, UserPlus, Users, X } from 'lucide-react';
 // Type definitions for our dashboard data
@@ -211,9 +211,9 @@ export const UserDashboardView: React.FC = () => {
         return Array.isArray(plans) ? plans : [];
     };
 
-    const reloadMembershipData = () => {
-        fetchApiEndpoint('/dashboard/memberships', setMemberships);
-        fetchApiEndpoint('/dashboard/memberships/history', setExpiredMemberships);
+    const reloadMembershipData = (preferCache: boolean = true) => {
+        fetchApiEndpoint('/dashboard/memberships', setMemberships, true, 'GET', undefined, preferCache);
+        fetchApiEndpoint('/dashboard/memberships/history', setExpiredMemberships, true, 'GET', undefined, preferCache);
     };
 
     useEffect(() => {
@@ -226,13 +226,17 @@ export const UserDashboardView: React.FC = () => {
         return () => window.clearTimeout(timer);
     }, [orgInlineNotice]);
 
-    const reloadOrganizationData = async () => {
+    const reloadOrganizationData = async (preferCache: boolean = true) => {
         const email = getDashboardEmail();
         if (!email) return;
 
         setIsLoading(true);
         try {
-            const response = await api.get('/dashboard/organization', { params: { email } });
+            const response = await requestWithCache<any>({
+                method: 'GET',
+                url: '/dashboard/organization',
+                params: { email }
+            }, { preferCache });
             const data = response.data?.data || response.data || {};
             setOrganization(data?.organization || {});
             setGroupMemberships(Array.isArray(data?.group_memberships) ? data.group_memberships : []);
@@ -308,15 +312,21 @@ export const UserDashboardView: React.FC = () => {
         };
     }, [groupMemberships, organization]);
 
-    const fetchApiEndpoint = async (endpoint: string, stateSetter: React.Dispatch<React.SetStateAction<any>>, isArray: boolean = true, method: string = 'GET', bodyPayload?: any) => {
+    const fetchApiEndpoint = async (
+        endpoint: string,
+        stateSetter: React.Dispatch<React.SetStateAction<any>>,
+        isArray: boolean = true,
+        method: string = 'GET',
+        bodyPayload?: any,
+        preferCache: boolean = true
+    ) => {
         setIsLoading(true);
         try {
-            // No manual token handling anymore - WordPress middleware handles auth
-            const response = await api.request({
+            const response = await requestWithCache<any>({
                 method,
                 url: endpoint,
                 data: bodyPayload
-            });
+            }, { preferCache });
 
             const data = response.data;
 
@@ -387,7 +397,10 @@ export const UserDashboardView: React.FC = () => {
             if (!c?.id || courseProgressMap[c.id]) return;
             try {
                 // Use the proxied api instance instead of direct fetch
-                const res = await api.get(`/dashboard/courses/${c.id}/progress`);
+                const res = await requestWithCache<any>({
+                    method: 'GET',
+                    url: `/dashboard/courses/${c.id}/progress`
+                });
                 const data = res.data;
                 if (data && (data.success || data.progress !== undefined)) {
                     setCourseProgressMap(prev => ({ ...prev, [c.id]: data.data || data || {} }));
@@ -454,7 +467,7 @@ export const UserDashboardView: React.FC = () => {
 
             setToast({ type: 'success', message: 'Profile updated successfully!' });
             setIsEditingProfile(false);
-            fetchApiEndpoint('/dashboard/profile/edit', setProfile, false, 'PUT', {});
+            fetchApiEndpoint('/dashboard/profile/edit', setProfile, false, 'PUT', {}, false);
         } catch (error: any) {
             console.error("Profile update failed!", error);
             if (error.response) {
@@ -493,7 +506,7 @@ export const UserDashboardView: React.FC = () => {
             const data = response.data;
             if (data?.success || response.status === 200) {
                 setToast({ type: 'success', message: successMsg });
-                reloadMembershipData();
+                reloadMembershipData(false);
             } else {
                 setToast({ type: 'error', message: data?.message || 'Failed to apply action.' });
             }
@@ -526,7 +539,7 @@ export const UserDashboardView: React.FC = () => {
             const data = response.data;
             if (data?.success || response.status === 200) {
                 setToast({ type: 'success', message: data?.message || `Successfully applied membership downgrade!` });
-                reloadMembershipData();
+                reloadMembershipData(false);
             } else {
                 setToast({ type: 'error', message: data?.message || 'Failed to apply action.' });
             }
@@ -564,7 +577,7 @@ export const UserDashboardView: React.FC = () => {
 
             if (data?.success || response.status === 200) {
                 setToast({ type: 'success', message: data?.message || `Successfully applied membership upgrade!` });
-                reloadMembershipData();
+                reloadMembershipData(false);
             } else {
                 setToast({ type: 'error', message: data?.message || 'Failed to apply action.' });
             }
@@ -603,7 +616,7 @@ export const UserDashboardView: React.FC = () => {
             const data = response.data;
             if (data?.success || response.status === 200) {
                 setToast({ type: 'success', message: data?.message || 'Scheduled downgrade cancelled successfully.' });
-                reloadMembershipData();
+                reloadMembershipData(false);
             } else {
                 setToast({ type: 'error', message: data?.message || 'Failed to cancel the scheduled downgrade.' });
             }
@@ -634,7 +647,7 @@ export const UserDashboardView: React.FC = () => {
 
             if (data?.success || response.status === 200) {
                 setToast({ type: 'success', message: data?.message || 'Membership renewal started successfully.' });
-                reloadMembershipData();
+                reloadMembershipData(false);
             } else {
                 setToast({ type: 'error', message: data?.message || 'Failed to renew membership.' });
             }
@@ -768,7 +781,7 @@ export const UserDashboardView: React.FC = () => {
                 closeAddMembersModal();
             }
             if (reloadOnSuccess) {
-                await reloadOrganizationData();
+                await reloadOrganizationData(false);
             }
             return true;
         } catch (err: any) {
@@ -843,7 +856,7 @@ export const UserDashboardView: React.FC = () => {
 
         setOrgWarningState(null);
         closeAddMembersModal();
-        await reloadOrganizationData();
+        await reloadOrganizationData(false);
     };
 
     const handleResendGroupInvite = async (membershipId: string | number, memberId: string | number) => {
@@ -904,7 +917,7 @@ export const UserDashboardView: React.FC = () => {
             const successMessage = response.data?.message || 'Member removed successfully!';
             setOrgInlineNotice({ type: 'success', message: successMessage });
             setToast({ type: 'success', message: successMessage });
-            await reloadOrganizationData();
+            await reloadOrganizationData(false);
         } catch (err: any) {
             const errorMessage = getRequestErrorMessage(err, 'Failed to remove member.');
             setOrgInlineNotice({ type: 'error', message: errorMessage });
@@ -935,7 +948,7 @@ export const UserDashboardView: React.FC = () => {
             setOrgInlineNotice({ type: 'success', message: successMessage });
             setToast({ type: 'success', message: successMessage });
             setMemberRoleDrafts((prev) => ({ ...prev, [`${membership?.id}-${member?.id}`]: role }));
-            await reloadOrganizationData();
+            await reloadOrganizationData(false);
         } catch (err: any) {
             const errorMessage = getRequestErrorMessage(err, 'Failed to update role.');
             setOrgInlineNotice({ type: 'error', message: errorMessage });

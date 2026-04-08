@@ -1,15 +1,15 @@
-import api from './api';
+import api, { requestWithCache } from './api';
 
 export const fetchCategories = async () => {
-    return await api.get<any>('/categories');
+    return await requestWithCache<any>({ method: 'GET', url: '/categories' });
 };
 
 export const fetchEvents = async (params?: Record<string, any>) => {
-    return await api.get<any>('/events', { params });
+    return await requestWithCache<any>({ method: 'GET', url: '/events', params });
 };
 
 export const fetchGroupEvents = async (params?: Record<string, any>) => {
-    return await api.get<any>('/group-events', { params });
+    return await requestWithCache<any>({ method: 'GET', url: '/group-events', params });
 };
 
 export const fetchEventBySlug = async (slug: string) => {

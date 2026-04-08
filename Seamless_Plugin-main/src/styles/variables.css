@@ -136,6 +136,7 @@
   --seamless-btn-padding-x: 1.5rem;
   --seamless-btn-font-weight: 700;
   --seamless-btn-letter-spacing: 0.5px;
+  --seamless-layout-container-max-width: 80rem;
 
 }
 
@@ -270,5 +271,6 @@
   --seamless-btn-padding-x: 1.5rem !important;
   --seamless-btn-font-weight: 700 !important;
   --seamless-btn-letter-spacing: 0.5px !important;
+  --seamless-layout-container-max-width: 80rem !important;
 
 }

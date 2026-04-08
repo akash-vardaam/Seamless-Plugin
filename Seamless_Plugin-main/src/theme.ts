@@ -133,6 +133,7 @@ interface SeamlessAjaxSettings {
 
 interface SeamlessRuntimeConfig {
     listViewLayout?: string;
+    containerMaxWidth?: string;
 }
 
 interface SeamlessWindow extends Window {
@@ -144,6 +145,7 @@ interface SeamlessWindow extends Window {
 export interface RuntimeThemeSettings {
     cardVariant: CardVariant;
     listViewLayout: ListViewLayout;
+    containerMaxWidth: string;
     styleOverrides: string;
 }
 
@@ -166,8 +168,21 @@ const getCssVarValue = (style: CSSStyleDeclaration, names: readonly string[]): s
     return '';
 };
 
-const buildStyleOverrides = (): string => {
-    if (typeof window === 'undefined') return '';
+const sanitizeContainerMaxWidth = (value?: string): string => {
+    const fallback = LAYOUT.containerMaxWidth;
+    const normalizedValue = String(value || '').trim();
+
+    if (!normalizedValue) return fallback;
+
+    return /^-?\d+(\.\d+)?(px|rem|em|vw|vh|%)$/i.test(normalizedValue)
+        ? normalizedValue
+        : fallback;
+};
+
+const buildStyleOverrides = (containerMaxWidth: string): string => {
+    // if (typeof window === 'undefined') {
+    //     return `:host { --seamless-layout-container-max-width: ${containerMaxWidth} !important; }`;
+    // }
 
     const rootStyle = window.getComputedStyle(document.documentElement);
     const primary = getCssVarValue(rootStyle, LEGACY_VAR_NAMES.primary);
@@ -188,6 +203,7 @@ const buildStyleOverrides = (): string => {
         heading && `--seamless-color-heading: ${heading} !important;`,
         border && `--seamless-border-color: ${border} !important;`,
         fontFamily && `--seamless-font-family-default: ${fontFamily} !important;`,
+        `--seamless-layout-container-max-width: ${containerMaxWidth} !important;`,
     ].filter(Boolean);
 
     if (declarations.length === 0) return '';
@@ -195,17 +211,23 @@ const buildStyleOverrides = (): string => {
     return `:host { ${declarations.join(' ')} }`;
 };
 
-export const getRuntimeThemeSettings = (): RuntimeThemeSettings => {
+export const getRuntimeThemeSettings = (configuredContainerMaxWidth?: string): RuntimeThemeSettings => {
     const seamlessWindow = typeof window !== 'undefined' ? (window as SeamlessWindow) : undefined;
     const configuredLayout =
         seamlessWindow?.seamless_ajax?.list_view_layout ||
         seamlessWindow?.seamlessReactConfig?.listViewLayout ||
         seamlessWindow?.seamlessConfig?.listViewLayout;
+    const containerMaxWidth = sanitizeContainerMaxWidth(
+        configuredContainerMaxWidth ||
+        seamlessWindow?.seamlessReactConfig?.containerMaxWidth ||
+        seamlessWindow?.seamlessConfig?.containerMaxWidth
+    );
     const layoutValue = configuredLayout === 'option_2' ? 'option_2' : 'option_1';
 
     return {
         cardVariant: layoutValue === 'option_2' ? 'modern' : 'classic',
         listViewLayout: layoutValue,
-        styleOverrides: buildStyleOverrides(),
+        containerMaxWidth,
+        styleOverrides: buildStyleOverrides(containerMaxWidth),
     };
 };

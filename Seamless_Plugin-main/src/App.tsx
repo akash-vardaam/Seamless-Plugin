@@ -32,6 +32,7 @@ interface AppProps {
   initialView?: string;
   initialSlug?: string;
   initialType?: string;
+  containerMaxWidth?: string;
   siteUrl?: string;
 }
 
@@ -39,8 +40,11 @@ const normalizeEventType = (value?: string): string => {
   return (value || '').trim().toLowerCase().replace(/_/g, '-');
 };
 
-const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, siteUrl: _siteUrl }) => {
-  const runtimeThemeSettings = useMemo(() => getRuntimeThemeSettings(), []);
+const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, containerMaxWidth, siteUrl: _siteUrl }) => {
+  const runtimeThemeSettings = useMemo(
+    () => getRuntimeThemeSettings(containerMaxWidth),
+    [containerMaxWidth]
+  );
   const styles = useMemo(() => [
     [
       variablesStyles,

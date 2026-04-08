@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { fetchEvents, fetchGroupEvents } from '../services/eventService';
 import type { Event, FilterState } from '../types/event';
+import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 
 // ─── Error formatter ────────────────────────────────────────────
 function formatError(err: unknown): string {
@@ -72,21 +73,21 @@ export const useSegmentedEventPagination = (
         const fetchData = async () => {
             setError(null);
             const params = buildParams();
-            const cacheKey = `seamless_events_${JSON.stringify(params)}_${uiPage}`;
+            const cacheKey = buildBrowserCacheKey('events-ui-page', { params, uiPage });
 
-            // 1. Check LocalStorage Cache
             if (rawEventsPool.current.length === 0) {
-                try {
-                    const cached = localStorage.getItem(cacheKey);
-                    if (cached) {
-                        const data = JSON.parse(cached);
-                        setEvents(data.events);
-                        setTotalPages(data.totalPages);
-                        setTotalApiEvents(data.totalApiEvents);
-                        setLoading(false);
-                    }
-                } catch (e) {
-                    console.log(e);
+                const cached = getBrowserCache<{
+                    events: Event[];
+                    totalPages: number;
+                    totalApiEvents: number;
+                }>(cacheKey);
+
+                if (cached) {
+                    setEvents(cached.events);
+                    setTotalPages(cached.totalPages);
+                    setTotalApiEvents(cached.totalApiEvents);
+                    setLoading(false);
+                    return;
                 }
             }
 
@@ -135,6 +136,8 @@ export const useSegmentedEventPagination = (
 
                 // Re-calculate consolidated list from current pool
                 let currentConsolidated = getConsolidated(rawEventsPool.current, groupEventsRaw);
+                let nextTotalApiEvents = totalApiEvents;
+                let nextTotalPages = totalPages;
 
                 // If we don't have enough to fill the current page, fetch more until we do
                 const targetCount = uiPage * UI_PAGE_SIZE;
@@ -151,8 +154,10 @@ export const useSegmentedEventPagination = (
 
                     // Update totals
                     if (meta?.total) {
-                        setTotalApiEvents(meta.total);
-                        setTotalPages(Math.ceil(meta.total / UI_PAGE_SIZE) || 1);
+                        nextTotalApiEvents = meta.total;
+                        nextTotalPages = Math.ceil(meta.total / UI_PAGE_SIZE) || 1;
+                        setTotalApiEvents(nextTotalApiEvents);
+                        setTotalPages(nextTotalPages);
                     }
 
                     currentConsolidated = getConsolidated(rawEventsPool.current, groupEventsRaw);
@@ -170,16 +175,11 @@ export const useSegmentedEventPagination = (
                 setEvents(paginatedEvents);
                 setLoading(false);
 
-                // 2. Save to Cache
-                try {
-                    localStorage.setItem(cacheKey, JSON.stringify({
-                        events: paginatedEvents,
-                        totalPages: Math.ceil(totalApiEvents / UI_PAGE_SIZE) || 1,
-                        totalApiEvents
-                    }));
-                } catch (e) {
-                    console.log(e);
-                }
+                setBrowserCache(cacheKey, {
+                    events: paginatedEvents,
+                    totalPages: nextTotalPages,
+                    totalApiEvents: nextTotalApiEvents
+                });
 
             } catch (err) {
                 if (!cancelled) {

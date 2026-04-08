@@ -13,6 +13,10 @@
 :host .seamless-page-wrapper {
   min-height: 100vh !important;
   width: 100% !important;
+  max-width: var(--seamless-layout-container-max-width, 80rem) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
 }
 
 :host .seamless-main-content {
@@ -132,4 +136,3 @@
 :host .seamless-results-count {
   font-weight: 600 !important;
 }
-

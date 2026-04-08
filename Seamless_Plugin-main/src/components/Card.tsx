@@ -37,9 +37,18 @@ const formatTimeRange = (startDate: string, endDate: string): string => {
   try {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const startTime = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    const endTime = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    const timezone = 'CDT';
+    const formatOptions: Intl.DateTimeFormatOptions = {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/Chicago',
+    };
+    const startTime = start.toLocaleTimeString('en-US', formatOptions);
+    const endTime = end.toLocaleTimeString('en-US', formatOptions);
+    const timezone = start
+      .toLocaleTimeString('en-US', { timeZone: 'America/Chicago', timeZoneName: 'short' })
+      .split(' ')
+      .pop() || 'CT';
     return `${startTime} - ${endTime} ${timezone}`;
   } catch {
     return '';
@@ -107,7 +116,23 @@ const stripHtmlTags = (html: string): string => {
 };
 
 const getLocationText = (item: Event): string => {
-  if (item?.venue?.name) return item.venue.name;
+  const venue = item?.venue || {};
+  const parts: string[] = [];
+
+  if (venue?.name) {
+    parts.push(venue.name);
+  } else if ((venue as any)?.address) {
+    parts.push((venue as any).address);
+  }
+
+  const cityState = [venue?.city, venue?.state].filter(Boolean).join(', ');
+  if (cityState) parts.push(cityState);
+  if (venue?.zip_code) parts.push(venue.zip_code);
+
+  const location = parts.join(', ').trim();
+
+  if (location && item?.virtual_meeting_link) return `${location} + Online`;
+  if (location) return location;
   if (item?.virtual_meeting_link) return 'Online';
   return 'TBD';
 };
@@ -198,7 +223,12 @@ export const Card: React.FC<CardProps> = ({
   if (listVariant === 'modern') {
     const timeline = formatTimelineDate(item?.start_date);
     const multiDayRange = formatMultiDayRange(item?.start_date, item?.end_date || item?.start_date);
-    const description = stripHtmlTags(item?.except_description || item?.description || '');
+    const description = stripHtmlTags(
+      (item as Event & { excerpt_description?: string })?.excerpt_description ||
+      item?.except_description ||
+      item?.description ||
+      ''
+    );
 
     return (
       <article className={`seamless-card-modern${showTimelineDate ? '' : ' seamless-card-modern-same-day'}`}>

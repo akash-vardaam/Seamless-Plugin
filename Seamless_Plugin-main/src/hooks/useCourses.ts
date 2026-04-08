@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchCourses } from '../services/courseService';
 import type { Course, CoursePagination } from '../types/course';
+import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 
 export const useCourses = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -81,53 +82,23 @@ export const useCourses = () => {
                 sort: sortParam,
                 year: yearParam
             };
-            const cacheKey = `seamless_courses_${JSON.stringify(cacheParams)}`;
-            console.log("Cache Key:", cacheKey);
+            const cacheKey = buildBrowserCacheKey('courses', cacheParams);
 
             try {
-                let initialDataLoaded = false;
-                // 1. Check LocalStorage Cache first for instant load
-                const cachedData = localStorage.getItem(cacheKey);
-                if (cachedData) {
-                    try {
-                        const parsed = JSON.parse(cachedData);
-                        if (parsed && parsed.courses) {
-                            let sortedCachedCourses = [...parsed.courses];
-                            switch (sortParam) {
-                                case 'oldest':
-                                    sortedCachedCourses.sort((a, b) => new Date(a.published_at || a.created_at || '').getTime() - new Date(b.published_at || b.created_at || '').getTime());
-                                    break;
-                                case 'title_asc':
-                                    sortedCachedCourses.sort((a, b) => a.title.localeCompare(b.title));
-                                    break;
-                                case 'title_desc':
-                                    sortedCachedCourses.sort((a, b) => b.title.localeCompare(a.title));
-                                    break;
-                                case 'newest':
-                                default:
-                                    sortedCachedCourses.sort((a, b) => new Date(b.published_at || b.created_at || '').getTime() - new Date(a.published_at || a.created_at || '').getTime());
-                                    break;
-                            }
+                const cachedData = getBrowserCache<{
+                    courses: Course[];
+                    pagination: CoursePagination | null;
+                    availableYears: string[];
+                }>(cacheKey);
 
-                            setCourses(sortedCachedCourses);
-                            setPagination(parsed.pagination);
-                            if (parsed.availableYears) {
-                                setAvailableYears(parsed.availableYears);
-                            }
-                            initialDataLoaded = true;
-                            setLoading(false); // Enable immediate interaction
-                        }
-                    } catch (e) {
-                        console.warn("Failed to parse cached data", e);
-                        localStorage.removeItem(cacheKey);
-                    }
+                if (cachedData?.courses) {
+                    setCourses(cachedData.courses);
+                    setPagination(cachedData.pagination);
+                    setAvailableYears(cachedData.availableYears || []);
+                    setLoading(false);
+                    return;
                 }
 
-                if (!initialDataLoaded) {
-                    setLoading(true);
-                }
-
-                // 2. Fetch fresh API data unconditionally for bg sync
                 const data = await fetchCourses(pageParam, {
                     search: searchParam,
                     access_type: accessParam,
@@ -176,23 +147,15 @@ export const useCourses = () => {
                 setAvailableYears(newAvailableYears);
                 setLoading(false);
 
-                // 3. Save fresh data to LocalStorage
-                try {
-                    localStorage.setItem(cacheKey, JSON.stringify({
-                        courses: newCourses,
-                        pagination: data.pagination,
-                        availableYears: newAvailableYears
-                    }));
-                } catch (e) {
-                    console.warn("Failed to save to local storage", e);
-                }
+                setBrowserCache(cacheKey, {
+                    courses: sortedCourses,
+                    pagination: data.pagination,
+                    availableYears: newAvailableYears
+                });
 
             } catch (err: any) {
                 console.error("Failed to fetch courses", err);
-                // Only throw error visible if we had NO initial data
-                if (courses.length === 0) {
-                    setError(err.message || 'Failed to load courses.');
-                }
+                setError(err.message || 'Failed to load courses.');
             } finally {
                 setLoading(false);
             }

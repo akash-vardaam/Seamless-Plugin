@@ -7,75 +7,82 @@ use Seamless\Auth\SeamlessAuth as Auth;
 class WelcomePage
 {
 	private Auth $auth;
+	private ?SettingsPage $settings_page;
 
-	public function __construct()
+	public function __construct(?SettingsPage $settings_page = null)
 	{
 		$this->auth = new Auth();
-		// Enqueue admin styles early to prevent FOUC
+		$this->settings_page = $settings_page;
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_styles']);
 	}
 
 	/**
-	 * Render the welcome page with sticky navigation
+	 * Render the welcome page with sticky navigation.
 	 */
 	public function render(): void
 	{
 		$this->remove_all_notices();
 		$this->render_styles();
-		// Always show settings as the main Seamless admin view
-		$active_view = 'settings';
+		$active_view = $this->get_active_view();
 ?>
 		<div class="seamless-dashboard-wrapper">
 			<?php $this->render_top_navigation($active_view); ?>
 
-			<!-- Main Dashboard Content -->
 			<div class="seamless-dashboard-container">
-				<?php $this->render_settings_view(); ?>
+				<?php if ($active_view === 'settings') : ?>
+					<?php $this->render_settings_view(); ?>
+				<?php else : ?>
+					<?php $this->render_overview_view(); ?>
+				<?php endif; ?>
 			</div>
 		</div>
-
-	<?php
+<?php
 		$this->render_scripts();
 	}
 
-	/**
-	 * Render overview (welcome) view
-	 */
 	private function render_overview_view(): void
 	{
-	?>
-		<?php $this->render_welcome_header(); ?>
-		<?php $this->render_feature_grid(); ?>
-	<?php
+?>
+		<section class="seamless-overview-panel">
+			<div class="seamless-overview-panel-inner">
+				<?php $this->render_welcome_header(); ?>
+				<?php $this->render_feature_grid(); ?>
+			</div>
+		</section>
+<?php
 	}
 
-	/**
-	 * Render settings view
-	 */
 	private function render_settings_view(): void
 	{
-		// Get the settings page instance to render settings
-		$settings_page = new \Seamless\Admin\SettingsPage();
-	?>
+		$settings_page = $this->settings_page ?? new SettingsPage();
+?>
 		<div class="seamless-settings-content">
 			<?php $settings_page->render_settings_content(); ?>
 		</div>
-	<?php
+<?php
 	}
 
-	/**
-	 * Render sticky top navigation bar
-	 */
 	private function render_top_navigation(string $active_view = 'overview'): void
 	{
 		$logo_url = $this->get_logo_url();
-	?>
+		$current_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'authentication';
+?>
 		<div class="seamless-top-nav">
 			<div class="seamless-top-nav-content">
 				<div class="seamless-top-nav-left">
 					<div class="seamless-logo-container">
 						<img src="<?php echo esc_url($logo_url); ?>" alt="Seamless" class="seamless-logo-img" height="50" style="height: 50px; width: auto;" />
 					</div>
+					<nav class="seamless-nav-tabs" aria-label="<?php esc_attr_e('Seamless sections', 'seamless'); ?>">
+						<a href="<?php echo esc_url($this->get_view_url('overview')); ?>" class="seamless-nav-tab <?php echo ($active_view === 'overview') ? 'active' : ''; ?>">
+							<span class="dashicons dashicons-admin-home"></span>
+							<span><?php esc_html_e('Overview', 'seamless'); ?></span>
+						</a>
+						<a href="<?php echo esc_url($this->get_view_url('settings', $current_tab)); ?>" class="seamless-nav-tab <?php echo ($active_view === 'settings') ? 'active' : ''; ?>">
+							<span class="dashicons dashicons-admin-settings"></span>
+							<span><?php esc_html_e('Settings', 'seamless'); ?></span>
+						</a>
+					</nav>
 				</div>
 				<div class="seamless-top-nav-right">
 					<?php if (class_exists('SeamlessAddon\Services\CacheService')): ?>
@@ -85,105 +92,120 @@ class WelcomePage
 							<input type="hidden" name="cache_type" value="all">
 							<button type="submit" class="button button-secondary seamless-clear-cache-btn">
 								<span class="dashicons dashicons-update"></span>
-								Clear All Cache
+								<?php esc_html_e('Clear All Cache', 'seamless'); ?>
 							</button>
 						</form>
 					<?php endif; ?>
 				</div>
 			</div>
 		</div>
-	<?php
+<?php
 	}
 
-	/**
-	 * Render welcome header section
-	 */
 	private function render_welcome_header(): void
 	{
-	?>
+?>
 		<div class="seamless-dashboard-header">
-			<h1 class="seamless-dashboard-title">Seamless Overview</h1>
-			<p class="seamless-dashboard-subtitle">Real-time management of events, memberships, and advanced features</p>
+			<h1 class="seamless-dashboard-title"><?php esc_html_e('Seamless Overview', 'seamless'); ?></h1>
+			<p class="seamless-dashboard-subtitle"><?php esc_html_e('Real-time management of events, memberships, and advanced features', 'seamless'); ?></p>
 		</div>
-	<?php
+<?php
 	}
 
-	/**
-	 * Render feature cards grid
-	 */
+	private function get_active_view(): string
+	{
+		$view = isset($_GET['view']) ? sanitize_key(wp_unslash($_GET['view'])) : 'overview';
+
+		return in_array($view, ['overview', 'settings'], true) ? $view : 'overview';
+	}
+
+	private function get_view_url(string $view, ?string $tab = null): string
+	{
+		$args = [
+			'page' => 'seamless',
+			'view' => $view,
+		];
+
+		if ($view === 'settings') {
+			$args['tab'] = $tab ?: 'authentication';
+		}
+
+		return add_query_arg($args, admin_url('admin.php'));
+	}
+
 	private function render_feature_grid(): void
 	{
 		$feature_cards = $this->get_feature_cards_data();
-	?>
+?>
 		<div class="seamless-feature-grid">
 			<?php foreach ($feature_cards as $card): ?>
 				<?php $this->render_feature_card($card); ?>
 			<?php endforeach; ?>
 		</div>
-	<?php
+<?php
 	}
 
-	/**
-	 * Get feature cards data configuration
-	 * 
-	 * @return array Array of feature card configurations
-	 */
 	private function get_feature_cards_data(): array
 	{
+		$is_authenticated = $this->auth->is_authenticated();
+
 		return [
 			[
 				'id' => 'connection-status',
-				'title' => 'Real-time Connection Status',
-				'description' => 'Securely connect WordPress to Seamless using client credentials and verify authentication status.',
+				'title' => $is_authenticated ? 'Connection Status' : 'Connect Seamless AMS',
+				'description' => $is_authenticated
+					? 'WordPress site is connected to Seamless AMS and ready for sync, authentication, and protected content workflows.'
+					: 'Connect your Seamless AMS domain to enable real-time sync, secure authentication, and member-aware content experiences.',
 				'icon_class' => 'dashicons-admin-network',
 				'link_url' => admin_url('admin.php?page=seamless&view=settings&tab=authentication'),
-				'link_text' => 'Manage Connection',
-				'is_available' => true
+				'link_text' => $is_authenticated ? 'Review Connection' : 'Connect Now',
+				'is_available' => true,
 			],
 			[
 				'id' => 'event-sync',
-				'title' => 'Event Synchronization',
-				'description' => 'Seamlessly sync and display events from your Seamless account with automatic updates.',
+				'title' => 'Event Sync & Display',
+				'description' => 'Pull event data from Seamless, keep listings fresh, and manage how events appear across your WordPress site.',
 				'icon_class' => 'dashicons-calendar-alt',
 				'link_url' => admin_url('admin.php?page=seamless&view=settings&tab=events'),
-				'link_text' => 'Configure Events',
-				'is_available' => true
+				'link_text' => 'Manage Events',
+				'is_available' => true,
 			],
 			[
 				'id' => 'membership-sync',
-				'title' => 'Membership Sync',
-				'description' => 'Sync Seamless memberships to power access control and content restrictions.',
+				'title' => 'Membership Access Sync',
+				'description' => 'Sync membership plans from Seamless to support access rules, member journeys, and protected WordPress experiences.',
 				'icon_class' => 'dashicons-groups',
 				'link_url' => admin_url('admin.php?page=seamless&view=settings&tab=membership'),
 				'link_text' => 'Manage Memberships',
-				'is_available' => true
+				'is_available' => true,
 			],
 			[
 				'id' => 'sso-integration',
-				'title' => 'Single Sign-On Integration',
-				'description' => 'Enable seamless user authentication with secure SSO login capabilities.',
+				'title' => 'Single Sign-On',
+				'description' => $is_authenticated
+					? 'Configure Seamless-powered SSO so members can sign in smoothly with a connected authentication flow.'
+					: 'SSO becomes available after your site is connected to Seamless AMS and ready for secure authentication setup.',
 				'icon_class' => 'dashicons-admin-users',
 				'link_url' => admin_url('admin.php?page=seamless&view=settings&tab=sso'),
-				'link_text' => 'Setup SSO',
-				'is_available' => true
+				'link_text' => 'Configure SSO',
+				'is_available' => $is_authenticated,
+				'disabled_text' => 'Connect Seamless First',
 			],
 			[
 				'id' => 'content-restriction',
-				'title' => 'Content Restriction',
-				'description' => 'Restrict WordPress content based on synced membership access.',
+				'title' => 'Content Protection',
+				'description' => $is_authenticated
+					? 'Control which posts, pages, and member content stay visible based on synced membership access from Seamless.'
+					: 'Content protection tools unlock once Seamless is connected, so membership-based visibility rules can be applied correctly.',
 				'icon_class' => 'dashicons-lock',
 				'link_url' => admin_url('admin.php?page=seamless&view=settings&tab=restriction'),
-				'link_text' => 'Configure Restrictions',
-				'is_available' => true
-			]
+				'link_text' => 'Set Access Rules',
+				'is_available' => $is_authenticated,
+				'disabled_text' => 'Requires Active Connection',
+			],
 		];
 	}
 
-	/**
-	 * Render individual feature card
-	 * 
-	 * @param array $card_data Feature card configuration data
-	 */
 	private function render_feature_card(array $card_data): void
 	{
 		$id = $card_data['id'] ?? '';
@@ -193,12 +215,13 @@ class WelcomePage
 		$link_url = $card_data['link_url'] ?? '#';
 		$link_text = $card_data['link_text'] ?? 'Learn More';
 		$is_available = $card_data['is_available'] ?? true;
+		$disabled_text = $card_data['disabled_text'] ?? 'Coming Soon';
 
 		$card_class = 'seamless-feature-card';
 		if (!$is_available) {
 			$card_class .= ' seamless-feature-card-disabled';
 		}
-	?>
+?>
 		<div class="<?php echo esc_attr($card_class); ?>" data-feature-id="<?php echo esc_attr($id); ?>">
 			<div class="seamless-feature-card-icon">
 				<span class="dashicons <?php echo esc_attr($icon_class); ?>"></span>
@@ -211,21 +234,15 @@ class WelcomePage
 						<?php echo esc_html($link_text); ?> &rarr;
 					</a>
 				<?php else: ?>
-					<span class="seamless-feature-card-disabled-text">Coming Soon</span>
+					<span class="seamless-feature-card-disabled-text"><?php echo esc_html($disabled_text); ?></span>
 				<?php endif; ?>
 			</div>
 		</div>
-	<?php
+<?php
 	}
 
-	/**
-	 * Get logo URL
-	 * 
-	 * @return string Logo URL
-	 */
 	private function get_logo_url(): string
 	{
-		// Check for different logo formats in assets folder
 		$logo_files = ['seamless-logo.svg', 'seamless-logo.png', 'logo.svg', 'logo.png'];
 		$assets_dir = dirname(__FILE__) . '/assets/';
 
@@ -235,36 +252,24 @@ class WelcomePage
 			}
 		}
 
-		// Fallback to external logo
 		return 'https://mafpnew.flywheelsites.com/wp-content/uploads/2025/09/seamless.png';
 	}
 
-	/**
-	 * Remove all admin notices on this page
-	 */
 	private function remove_all_notices(): void
 	{
 		remove_all_actions('admin_notices');
 		remove_all_actions('all_admin_notices');
 	}
 
-	/**
-	 * Enqueue admin styles early to prevent FOUC
-	 */
 	public function enqueue_admin_styles($hook)
 	{
-		// Only load on our admin pages
 		if (strpos($hook, 'seamless') === false) {
 			return;
 		}
 
-		// Add inline styles in the head
 		wp_add_inline_style('wp-admin', $this->get_admin_css());
 	}
 
-	/**
-	 * Get admin CSS as a string
-	 */
 	private function get_admin_css()
 	{
 		ob_start();
@@ -272,24 +277,20 @@ class WelcomePage
 		return ob_get_clean();
 	}
 
-	/**
-	 * Render page styles
-	 */
 	private function render_styles(): void
 	{
-	?>
+		$white_grid_url = plugins_url('assets/white-grid-new.png', __FILE__);
+?>
 		<style>
-			/* Hide all notices on welcome page */
 			.seamless-dashboard-wrapper .notice:not(.seamless-notice) {
 				display: none !important;
 			}
 
-			/* Dashboard Wrapper */
 			.seamless-dashboard-wrapper {
 				margin-left: -20px;
 				margin-top: -10px;
-				background: #f5f5f5;
-				min-height: 100vh;
+				background: linear-gradient(180deg, #fbfbfb 0%, #f5f5f5 100%);
+				z-index: -1;
 			}
 
 			.seamless-dashboard-wrapper a:active,
@@ -297,7 +298,6 @@ class WelcomePage
 				color: #6c5ce7;
 			}
 
-			/* Sticky Top Navigation */
 			.seamless-top-nav {
 				position: sticky;
 				top: 32px;
@@ -314,7 +314,6 @@ class WelcomePage
 			}
 
 			.seamless-top-nav-content {
-				/* max-width: 1400px; */
 				margin: 0 auto;
 				display: flex;
 				align-items: center;
@@ -325,7 +324,8 @@ class WelcomePage
 			.seamless-top-nav-left {
 				display: flex;
 				align-items: center;
-				gap: 48px;
+				gap: 32px;
+				flex-wrap: wrap;
 			}
 
 			.seamless-top-nav-right {
@@ -349,7 +349,6 @@ class WelcomePage
 				height: 16px;
 			}
 
-			/* Logo */
 			.seamless-logo-container {
 				display: flex;
 				align-items: center;
@@ -363,14 +362,14 @@ class WelcomePage
 				object-fit: contain;
 			}
 
-			/* Navigation Tabs */
 			.seamless-nav-tabs {
 				display: flex;
 				gap: 8px;
+				flex-wrap: wrap;
 			}
 
 			.seamless-nav-tab {
-				display: flex;
+				display: inline-flex;
 				align-items: center;
 				gap: 8px;
 				padding: 8px 16px;
@@ -398,14 +397,57 @@ class WelcomePage
 				color: #6c5ce7;
 			}
 
-			/* Dashboard Container */
-			.seamless-dashboard-container {
-				max-width: 1400px;
-				/* margin: 0 auto; */
-				padding: 48px 32px;
+			.seamless-nav-tab:focus {
+				box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.18);
+				outline: none;
 			}
 
-			/* Dashboard Header */
+			.seamless-dashboard-container {
+				min-height: 100vh;
+				inset: 0;
+				background-image: url('<?php echo esc_url($white_grid_url); ?>');
+				opacity: 1;
+				background-position: center;
+				background-size: cover;
+			}
+
+			.seamless-dashboard-container::before {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: rgba(255, 255, 255, 0.7);
+				opacity: 0.9;
+				z-index: 0;
+			}
+
+			.seamless-dashboard-container:has(.seamless-settings-content) {
+				background: none;
+			}
+
+			.seamless-dashboard-wrapper:has(.seamless-settings-content) .seamless-dashboard-container::before {
+				background: none;
+			}
+
+			.seamless-dashboard-wrapper:has(.seamless-settings-content) {
+				background: #f5f5f5;
+			}
+
+			.seamless-dashboard-container>* {
+				position: relative;
+				z-index: 1;
+			}
+
+			section.seamless-overview-panel {
+				max-width: 1400px;
+				margin: 0 auto;
+				padding: 30px;
+			}
+
+			.seamless-overview-panel-inner {
+				position: relative;
+				padding: 12px 18px 40px;
+			}
+
 			.seamless-dashboard-header,
 			.seamless-settings-header {
 				text-align: center;
@@ -413,7 +455,7 @@ class WelcomePage
 			}
 
 			.seamless-dashboard-title {
-				font-size: 36px;
+				font-size: 42px;
 				font-weight: 700;
 				color: #1a1a1a;
 				margin: 0 0 30px 0;
@@ -425,7 +467,6 @@ class WelcomePage
 				margin: 0;
 			}
 
-			/* Feature Grid */
 			.seamless-feature-grid {
 				display: grid;
 				grid-template-columns: repeat(3, 1fr);
@@ -445,7 +486,42 @@ class WelcomePage
 				}
 			}
 
-			/* Feature Card */
+			@media screen and (max-width: 782px) {
+				.seamless-top-nav {
+					padding: 0 20px;
+				}
+
+				.seamless-top-nav-content {
+					height: auto;
+					padding: 14px 0;
+					align-items: flex-start;
+					gap: 16px;
+				}
+
+				.seamless-top-nav-left,
+				.seamless-top-nav-right {
+					width: 100%;
+				}
+
+				.seamless-dashboard-container {
+					padding: 24px 20px 36px;
+				}
+
+				.seamless-dashboard-header,
+				.seamless-settings-header {
+					margin: 32px auto;
+				}
+
+				.seamless-dashboard-title {
+					font-size: 30px;
+					margin-bottom: 18px;
+				}
+
+				.seamless-dashboard-subtitle {
+					font-size: 16px;
+				}
+			}
+
 			.seamless-feature-card {
 				background: #ffffff;
 				border: 1px solid #e5e5e5;
@@ -456,7 +532,6 @@ class WelcomePage
 			}
 
 			.seamless-feature-card:hover {
-				/* transform: translateY(-4px); */
 				box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 				border-color: #6c5ce7;
 			}
@@ -525,15 +600,14 @@ class WelcomePage
 				font-weight: 500;
 			}
 
-			/* Settings Content Styling - inherits from SettingsPage.php */
 			.seamless-settings-content {
 				background: transparent;
 				border-radius: 0;
-				padding: 0;
+				padding: 48px 32px;
 				box-shadow: none;
+				max-width: 1400px;
 			}
 
-			/* Ensure proper rounded corners on tabs */
 			.seamless-settings-content .nav-tab-wrapper {
 				border-radius: 12px 12px 0 0;
 				border: 1px solid #e1e5e9;
@@ -543,23 +617,14 @@ class WelcomePage
 				padding: 0;
 			}
 		</style>
-	<?php
+<?php
 	}
 
-	/**
-	 * Render page scripts
-	 */
 	private function render_scripts(): void
 	{
-	?>
+?>
 		<script>
 			jQuery(document).ready(function($) {
-				// Smooth navigation between views
-				$('.seamless-nav-tab').on('click', function(e) {
-					// Let the link work normally
-				});
-
-				// Feature card interactions
 				$('.seamless-feature-card').on('click', function(e) {
 					if (!$(this).hasClass('seamless-feature-card-disabled')) {
 						var link = $(this).find('.seamless-feature-card-link');

@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
+import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 
 /**
  * Seamless API Client - Dual Mode
@@ -40,6 +41,13 @@ const getAjaxNonce = () => {
 const api = axios.create({
   baseURL: getBaseURL(),
   timeout: 30000,
+});
+
+const buildApiCacheKey = (config: AxiosRequestConfig) => buildBrowserCacheKey('api', {
+  method: (config.method || 'GET').toUpperCase(),
+  url: config.url || '',
+  params: config.params || null,
+  data: config.data || null,
 });
 
 // ─── Request Interceptor ─────────────────────────────────────────────────────
@@ -114,5 +122,31 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const requestWithCache = async <T>(
+  config: AxiosRequestConfig,
+  options?: { preferCache?: boolean }
+): Promise<AxiosResponse<T>> => {
+  const preferCache = options?.preferCache !== false;
+  const cacheKey = buildApiCacheKey(config);
+
+  if (preferCache) {
+    const cachedData = getBrowserCache<T>(cacheKey);
+
+    if (cachedData !== null) {
+      return {
+        data: cachedData,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: config as any,
+      } as AxiosResponse<T>;
+    }
+  }
+
+  const response = await api.request<T>(config);
+  setBrowserCache(cacheKey, response.data);
+  return response;
+};
 
 export default api;

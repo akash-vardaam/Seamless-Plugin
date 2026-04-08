@@ -22,6 +22,7 @@ class SettingsPage
 		add_action('admin_menu', [$this, 'add_submenu_pages']);
 		add_action('admin_menu', [$this, 'add_submenu_pages']);
 		add_action('admin_init', [$this, 'register_settings']);
+		add_action('admin_head', [$this, 'output_menu_icon_css']);
 		add_action('wp_ajax_seamless_save_and_connect', [$this, 'handle_save_and_connect']);
 		add_action('updated_option', [$this, 'maybe_flush_permalinks'], 10, 3);
 		add_action('update_option_seamless_event_list_endpoint', [$this, 'schedule_rewrite_flush']);
@@ -50,9 +51,34 @@ class SettingsPage
 			'manage_options',
 			'seamless',
 			[$this, 'render_welcome_page'],
-			'dashicons-admin-generic',
+			$this->get_menu_icon(),
 			60
 		);
+	}
+
+	private function get_menu_icon(): string
+	{
+		$icon_svg = '<svg width="412" height="416" viewBox="0 0 412 416" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#a)"><mask id="b" fill="#fff"><path d="M227.09 112.208a98.52 98.52 0 0 1 77.23 106.616 98.517 98.517 0 0 1-97.723 88.213 98.515 98.515 0 0 1-98.181-87.704 98.52 98.52 0 0 1 76.675-107.016l5.743 26.002a71.892 71.892 0 1 0 30.648-.08z"/></mask><path d="M227.09 112.208a98.52 98.52 0 0 1 77.23 106.616 98.517 98.517 0 0 1-97.723 88.213 98.515 98.515 0 0 1-98.181-87.704 98.52 98.52 0 0 1 76.675-107.016l5.743 26.002a71.892 71.892 0 1 0 30.648-.08z" stroke="#9ca2a7" stroke-width="31.04" mask="url(#b)"/><mask id="c" fill="#fff"><path d="M351.187 252.587A151.399 151.399 0 0 0 68.28 146.383a151.401 151.401 0 0 0 267.108 141.313l-22.817-14.001a124.63 124.63 0 1 1 13.006-28.901z"/></mask><path d="M351.187 252.587A151.399 151.399 0 0 0 68.28 146.383a151.401 151.401 0 0 0 267.108 141.313l-22.817-14.001a124.63 124.63 0 1 1 13.006-28.901z" stroke="#9ca2a7" stroke-width="33.04" mask="url(#c)"/><mask id="d" fill="#fff"><path d="M97.113 381.188a204.503 204.503 0 0 0 274.6-52.584 204.5 204.5 0 1 0-315.624 18.422l19.128-17.66A178.465 178.465 0 0 1 320.543 71.158a178.465 178.465 0 0 1 30.118 242.131 178.467 178.467 0 0 1-239.642 45.89z"/></mask><path d="M97.113 381.188a204.503 204.503 0 0 0 274.6-52.584 204.5 204.5 0 1 0-315.624 18.422l19.128-17.66A178.465 178.465 0 0 1 320.543 71.158a178.465 178.465 0 0 1 30.118 242.131 178.467 178.467 0 0 1-239.642 45.89z" stroke="#9ca2a7" stroke-width="95.04" mask="url(#d)"/><path d="M205.842 108.742c10.937 0 20.099 9.058 20.099 20.6s-9.162 20.599-20.099 20.599-20.1-9.057-20.1-20.599 9.163-20.6 20.1-20.6Zm124.039 136c10.938 0 20.1 9.058 20.1 20.6s-9.162 20.599-20.1 20.599c-10.937 0-20.099-9.057-20.099-20.599s9.162-20.6 20.099-20.6Z" stroke="#9ca2a7" stroke-width="21.8"/><path d="M85.881 335.202c10.654 0 19.6 8.826 19.6 20.1 0 11.273-8.946 20.099-19.6 20.099-10.653 0-19.6-8.826-19.6-20.099s8.947-20.1 19.6-20.1Z" stroke="#9ca2a7" stroke-width="22.8"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h412v416H0z"/></clipPath></defs></svg>';
+
+		return 'data:image/svg+xml;base64,' . base64_encode($icon_svg);
+	}
+
+	public function output_menu_icon_css(): void
+	{
+?>
+		<style>
+			#adminmenu .toplevel_page_seamless .wp-menu-image.svg {
+				filter: none;
+				transition: filter 0.15s ease;
+			}
+
+			#adminmenu li.toplevel_page_seamless:hover .wp-menu-image.svg,
+			#adminmenu li.toplevel_page_seamless.wp-has-current-submenu .wp-menu-image.svg,
+			#adminmenu li.toplevel_page_seamless.current .wp-menu-image.svg {
+				filter: brightness(0) invert(1);
+			}
+		</style>
+<?php
 	}
 
 	public function add_submenu_pages(): void
@@ -263,7 +289,7 @@ class SettingsPage
 
 	public function render_welcome_page(): void
 	{
-		$welcome_page = new WelcomePage();
+		$welcome_page = new WelcomePage($this);
 		$welcome_page->render();
 	}
 
@@ -994,14 +1020,16 @@ class SettingsPage
 					}
 				}
 
-				// Update all forms to include current tab
+				// Update all forms to include current tab and top-level view
 				var activeTab = new URLSearchParams(window.location.search).get('tab') || 'authentication';
+				var activeView = new URLSearchParams(window.location.search).get('view') || 'settings';
 				$('form[action="options.php"]').each(function() {
 					var form = $(this);
-					// Remove existing tab inputs to avoid duplicates
+					// Remove existing navigation inputs to avoid duplicates
 					form.find('input[name="_seamless_return_tab"]').remove();
-					// Add hidden input for current tab
+					form.find('input[name="_seamless_return_view"]').remove();
 					form.append('<input type="hidden" name="_seamless_return_tab" value="' + activeTab + '">');
+					form.append('<input type="hidden" name="_seamless_return_view" value="' + activeView + '">');
 				});
 
 				// Run tab-specific JS
@@ -1052,6 +1080,8 @@ class SettingsPage
 							var form = $(this);
 							form.find('input[name="_seamless_return_tab"]').remove();
 							form.append('<input type="hidden" name="_seamless_return_tab" value="' + targetTab + '">');
+							form.find('input[name="_seamless_return_view"]').remove();
+							form.append('<input type="hidden" name="_seamless_return_view" value="settings">');
 						});
 
 						// Ensure Advanced tab UI is initialized when activated via JS
@@ -3079,6 +3109,14 @@ class SettingsPage
 
 			// Use add_query_arg to properly add/update the tab parameter
 			$location = \add_query_arg('tab', $tab, $location);
+		}
+
+		if (isset($_POST['_seamless_return_view']) && !empty($_POST['_seamless_return_view'])) {
+			$view = sanitize_key($_POST['_seamless_return_view']);
+
+			if (in_array($view, ['overview', 'settings'], true)) {
+				$location = \add_query_arg('view', $view, $location);
+			}
 		}
 
 		return $location;

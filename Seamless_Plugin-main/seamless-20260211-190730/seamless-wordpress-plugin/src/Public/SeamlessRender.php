@@ -171,6 +171,125 @@ class SeamlessRender
 		return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT) . str_pad(dechex($g), 2, '0', STR_PAD_LEFT) . str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
 	}
 
+	private function normalize_css_dimension($value): ?string
+	{
+		if (is_array($value)) {
+			$size = $value['size'] ?? null;
+			$unit = $value['unit'] ?? 'px';
+
+			if ($size === null || $size === '') {
+				return null;
+			}
+
+			return $this->normalize_css_dimension($size . $unit);
+		}
+
+		if (is_numeric($value)) {
+			$size = (float) $value;
+			return $size > 0 ? rtrim(rtrim((string) $size, '0'), '.') . 'px' : null;
+		}
+
+		if (!is_string($value)) {
+			return null;
+		}
+
+		$value = trim($value);
+		if ($value === '') {
+			return null;
+		}
+
+		return preg_match('/^-?\d+(?:\.\d+)?(?:px|rem|em|vw|vh|%)$/i', $value) ? $value : null;
+	}
+
+	private function get_elementor_container_max_width(): ?string
+	{
+		if (!class_exists('\Elementor\Plugin') || !isset(Plugin::$instance->kits_manager)) {
+			return null;
+		}
+
+		try {
+			$kit_manager = Plugin::$instance->kits_manager;
+			$kit = null;
+
+			if (method_exists($kit_manager, 'get_active_kit_for_frontend')) {
+				$kit = $kit_manager->get_active_kit_for_frontend();
+			}
+
+			if (!$kit && method_exists($kit_manager, 'get_active_kit')) {
+				$kit = $kit_manager->get_active_kit();
+			}
+
+			if (!$kit) {
+				return null;
+			}
+
+			$candidates = [];
+
+			if (method_exists($kit, 'get_settings_for_display')) {
+				$candidates[] = $kit->get_settings_for_display('container_width');
+			}
+
+			if (method_exists($kit, 'get_frontend_settings')) {
+				$frontend_settings = $kit->get_frontend_settings();
+				$candidates[] = $frontend_settings['container_width'] ?? null;
+			}
+
+			if (method_exists($kit, 'get_settings')) {
+				$settings = $kit->get_settings();
+				$candidates[] = $settings['container_width'] ?? null;
+			}
+
+			foreach ($candidates as $candidate) {
+				$normalized = $this->normalize_css_dimension($candidate);
+				if ($normalized) {
+					return $normalized;
+				}
+			}
+		} catch (\Throwable $e) {
+			return null;
+		}
+
+		return null;
+	}
+
+	private function get_react_container_max_width(): string
+	{
+		$fallback = '80rem';
+		$elementor_width = $this->get_elementor_container_max_width();
+		if ($elementor_width) {
+			return $elementor_width;
+		}
+
+		$has_elementor = class_exists('\Elementor\Plugin');
+		if ($has_elementor) {
+			// Elementor's own default content width is 1140px.
+			// Avoid falling back to WordPress theme.json contentSize, which is often 800px
+			// and does not match Elementor layouts.
+			return '1140px';
+		}
+
+		if (function_exists('wp_get_global_settings')) {
+			$global_content_width = wp_get_global_settings(['layout', 'contentSize']);
+			$normalized = $this->normalize_css_dimension($global_content_width);
+			if ($normalized) {
+				return $normalized;
+			}
+		}
+
+		global $content_width;
+		$normalized = $this->normalize_css_dimension($content_width ?? null);
+		if ($normalized) {
+			return $normalized;
+		}
+
+		$normalized = $this->normalize_css_dimension(get_theme_mod('content_width'));
+		if ($normalized) {
+			return $normalized;
+		}
+
+		return $fallback;
+	}
+
 	public function enqueue_seamless_assets()
 	{
 		wp_enqueue_style(
@@ -217,6 +336,8 @@ class SeamlessRender
 
 	public function add_wordpress_config_meta_tags(): void
 	{
+		$container_max_width = $this->get_react_container_max_width();
+		$list_view_layout = get_option('seamless_list_view_layout', 'option_1');
 		?>
 		<meta name="wordpress-site-url" content="<?php echo esc_url(home_url()); ?>" />
 		<meta name="rest-api-base-url" content="<?php echo esc_url(rest_url()); ?>" />
@@ -228,6 +349,8 @@ class SeamlessRender
 				ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
 				ajaxNonce: '<?php echo wp_create_nonce('seamless_nonce'); ?>',
 				clientDomain: '<?php echo esc_js(rtrim(get_option('seamless_client_domain', ''), '/')); ?>',
+				listViewLayout: '<?php echo esc_js($list_view_layout); ?>',
+				containerMaxWidth: '<?php echo esc_js($container_max_width); ?>',
 				isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
 				userEmail: '<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->user_email) : ''; ?>',
 				logoutUrl: '<?php echo is_user_logged_in() ? esc_js(wp_logout_url(home_url())) : ''; ?>'
@@ -321,6 +444,8 @@ class SeamlessRender
 		if ($client_domain && strpos($client_domain, 'http') !== 0) {
 			$client_domain = 'https://' . $client_domain;
 		}
+		$container_max_width = $this->get_react_container_max_width();
+		$list_view_layout = get_option('seamless_list_view_layout', 'option_1');
 
 		// Pass WordPress config to the React app
 		wp_localize_script('seamless-react-js', 'seamlessReactConfig', [
@@ -330,6 +455,8 @@ class SeamlessRender
 			'ajaxUrl' => admin_url('admin-ajax.php'),
 			'ajaxNonce' => wp_create_nonce('seamless_nonce'),
 			'clientDomain' => $client_domain,
+			'listViewLayout' => $list_view_layout,
+			'containerMaxWidth' => $container_max_width,
 			'isLoggedIn' => is_user_logged_in(),
 			'userEmail' => is_user_logged_in() ? wp_get_current_user()->user_email : '',
 			// Query-param logout: works without needing rewrite rules flushed.
@@ -388,6 +515,7 @@ JS,
 
 		$data_attrs = 'data-seamless-view="' . esc_attr($view) . '"';
 		$data_attrs .= ' data-site-url="' . esc_url(home_url()) . '"';
+		$data_attrs .= ' data-container-max-width="' . esc_attr($this->get_react_container_max_width()) . '"';
 
 		if ($view === 'single-event') {
 			if (isset($extras['seamless-slug'])) {

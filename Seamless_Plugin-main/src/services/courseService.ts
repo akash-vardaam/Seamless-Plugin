@@ -1,4 +1,4 @@
-import api from './api';
+import { requestWithCache } from './api';
 import type { CoursesApiResponse, CourseFilters } from '../types/course';
 
 export const fetchCourses = async (
@@ -25,6 +25,10 @@ export const fetchCourses = async (
     // The API does not accept sort parameters, so we do not send them.
     // They will be handled purely in the frontend React hook.
 
-    const response = await api.get<CoursesApiResponse>('/courses', { params });
+    const response = await requestWithCache<CoursesApiResponse>({
+        method: 'GET',
+        url: '/courses',
+        params
+    });
     return response.data;
 };

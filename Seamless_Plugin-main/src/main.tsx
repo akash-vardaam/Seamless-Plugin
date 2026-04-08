@@ -20,13 +20,25 @@ interface MountConfig {
   view: string;
   slug: string;
   type: string;
+  containerMaxWidth: string;
   siteUrl: string;
 }
 
-const renderMount = ({ container, view, slug, type, siteUrl }: MountConfig) => {
+const getGlobalContainerMaxWidth = () => {
+  const cfg = (window as any).seamlessReactConfig;
+  return cfg?.containerMaxWidth || '';
+};
+
+const renderMount = ({ container, view, slug, type, containerMaxWidth, siteUrl }: MountConfig) => {
   createRoot(container).render(
     <StrictMode>
-      <App initialView={view} initialSlug={slug} initialType={type} siteUrl={siteUrl} />
+      <App
+        initialView={view}
+        initialSlug={slug}
+        initialType={type}
+        containerMaxWidth={containerMaxWidth}
+        siteUrl={siteUrl}
+      />
     </StrictMode>,
   );
 };
@@ -38,6 +50,7 @@ const mounts: MountConfig[] = Array.from(shortcodeContainers).map((container) =>
   view: container.getAttribute('data-seamless-view') || 'events',
   slug: container.getAttribute('data-seamless-slug') || '',
   type: container.getAttribute('data-seamless-type') || '',
+  containerMaxWidth: container.getAttribute('data-container-max-width') || getGlobalContainerMaxWidth(),
   siteUrl: container.getAttribute('data-site-url') || window.location.origin,
 }));
 
@@ -56,6 +69,9 @@ if (mounts.length === 0) {
         legacySingleEventContainer.getAttribute('data-event-type') ||
         new URLSearchParams(window.location.search).get('type') ||
         '',
+      containerMaxWidth:
+        legacySingleEventContainer.getAttribute('data-container-max-width') ||
+        getGlobalContainerMaxWidth(),
       siteUrl: window.location.origin,
     });
   }
@@ -74,7 +90,7 @@ if (mounts.length > 0) {
     containerElement.id = 'seamless-event-container';
     createRoot(containerElement).render(
       <StrictMode>
-        <App />
+        <App containerMaxWidth={getGlobalContainerMaxWidth()} />
       </StrictMode>,
     );
   } else {
