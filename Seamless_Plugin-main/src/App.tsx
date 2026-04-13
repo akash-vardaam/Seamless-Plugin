@@ -5,9 +5,18 @@ import { SingleEventPage } from './components/SingleEventPage';
 import { MembershipListView } from './components/MembershipView';
 import { CoursesView } from './components/CoursesView';
 import { UserDashboardView } from './components/UserDashboardView';
+import { ShopCartView } from './components/shop/ShopCartView';
+import { ShopListView } from './components/shop/ShopListView';
+import { ShopProductView } from './components/shop/ShopProductView';
 import { ShadowRoot } from './components/ShadowRoot';
 import { getRuntimeThemeSettings } from './theme';
-import { getEventListRoutePath, getSingleEventRoutePath } from './utils/urlHelper';
+import {
+  getEventListRoutePath,
+  getShopCartRoutePath,
+  getShopListRoutePath,
+  getSingleEventRoutePath,
+  getSingleProductRoutePath,
+} from './utils/urlHelper';
 
 import variablesStyles from './styles/variables.css?inline';
 import resetStyles from './styles/reset.css?inline';
@@ -27,6 +36,7 @@ import membershipStyles from './styles/membership.css?inline';
 import accordionStyles from './styles/seamless-accordion.css?inline';
 import calendarNewStyles from './styles/calendar-new.css?inline';
 import indexUtilStyles from './styles/index.css?inline';
+import shopStyles from './styles/shop.css?inline';
 
 interface AppProps {
   initialView?: string;
@@ -65,18 +75,25 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, contai
       accordionStyles,
       calendarNewStyles,
       indexUtilStyles,
+      shopStyles,
       runtimeThemeSettings.styleOverrides,
     ].join('\n'),
   ] as string[], [runtimeThemeSettings.styleOverrides]);
 
   const singleEventRoutePath = getSingleEventRoutePath();
   const eventListRoutePath = getEventListRoutePath();
+  const shopListRoutePath = getShopListRoutePath();
+  const singleProductRoutePath = getSingleProductRoutePath();
+  const shopCartRoutePath = getShopCartRoutePath();
   const viewRoutes: Record<string, { path: string; element: React.ReactNode }> = {
     events: { path: eventListRoutePath, element: <EventListView /> },
     'single-event': { path: singleEventRoutePath, element: <SingleEventPage /> },
     memberships: { path: '/', element: <MembershipListView /> },
     courses: { path: '/', element: <CoursesView /> },
     dashboard: { path: '/', element: <UserDashboardView /> },
+    shop: { path: shopListRoutePath, element: <ShopListView /> },
+    'single-product': { path: singleProductRoutePath, element: <ShopProductView /> },
+    cart: { path: shopCartRoutePath, element: <ShopCartView /> },
   };
 
   if (initialView) {
@@ -108,6 +125,8 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, contai
       if (isGroupEvent) {
         initialEntry += '?type=group-event';
       }
+    } else if (initialView === 'single-product' && initialSlug) {
+      initialEntry = singleProductRoutePath.replace(':slug', initialSlug);
     } else {
       const qs = searchParams.toString();
       if (qs) {
@@ -122,6 +141,7 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, contai
             <Routes>
               <Route path={route.path} element={route.element} />
               <Route path={singleEventRoutePath} element={<SingleEventPage />} />
+              <Route path={singleProductRoutePath} element={<ShopProductView />} />
               <Route path="*" element={route.element} />
             </Routes>
           </div>
@@ -141,6 +161,9 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, contai
             <Route path="/memberships" element={<MembershipListView />} />
             <Route path="/courses" element={<CoursesView />} />
             <Route path="/dashboard" element={<UserDashboardView />} />
+            <Route path={shopListRoutePath} element={<ShopListView />} />
+            <Route path={singleProductRoutePath} element={<ShopProductView />} />
+            <Route path={shopCartRoutePath} element={<ShopCartView />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

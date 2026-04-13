@@ -28,6 +28,9 @@ class SettingsPage
 		add_action('update_option_seamless_event_list_endpoint', [$this, 'schedule_rewrite_flush']);
 		add_action('update_option_seamless_single_event_endpoint', [$this, 'schedule_rewrite_flush']);
 		add_action('update_option_seamless_ams_content_endpoint', [$this, 'schedule_rewrite_flush']);
+		add_action('update_option_seamless_shop_list_endpoint', [$this, 'schedule_rewrite_flush']);
+		add_action('update_option_seamless_single_product_endpoint', [$this, 'schedule_rewrite_flush']);
+		add_action('update_option_seamless_shop_cart_endpoint', [$this, 'schedule_rewrite_flush']);
 		add_action('update_option_seamless_client_domain', [$this, 'handle_domain_change'], 10, 3);
 		add_action('wp_ajax_seamless_connect', [$this, 'handle_connect']);
 		add_action('wp_ajax_seamless_disconnect', [$this, 'handle_disconnect']);
@@ -110,6 +113,15 @@ class SettingsPage
 		]);
 		register_setting('seamless_endpoints_group', 'seamless_ams_content_endpoint', [
 			'sanitize_callback' => 'sanitize_title_with_dashes'
+		]);
+		register_setting('seamless_endpoints_group', 'seamless_shop_list_endpoint', [
+			'sanitize_callback' => 'sanitize_title_with_dashes'
+		]);
+		register_setting('seamless_endpoints_group', 'seamless_single_product_endpoint', [
+			'sanitize_callback' => 'sanitize_title_with_dashes'
+		]);
+		register_setting('seamless_endpoints_group', 'seamless_shop_cart_endpoint', [
+			'sanitize_callback' => 'sanitize_text_field'
 		]);
 
 		// Content restriction settings
@@ -214,6 +226,9 @@ class SettingsPage
 				<a href="?page=seamless&tab=events" data-tab="events" class="nav-tab <?php if ($active_tab == 'events') echo 'nav-tab-active'; ?>">
 					<span class="dashicons dashicons-calendar"></span> Events
 				</a>
+				<a href="?page=seamless&tab=shop" data-tab="shop" class="nav-tab <?php if ($active_tab == 'shop') echo 'nav-tab-active'; ?>">
+					<span class="dashicons dashicons-cart"></span> Shop
+				</a>
 				<a href="?page=seamless&tab=membership" data-tab="membership" class="nav-tab <?php if ($active_tab == 'membership') echo 'nav-tab-active'; ?>">
 					<span class="dashicons dashicons-groups"></span> Membership
 				</a>
@@ -260,6 +275,9 @@ class SettingsPage
 					</div>
 					<div class="seamless-tab-panel <?php echo ($active_tab === 'events') ? 'is-active' : ''; ?>" data-tab="events">
 						<?php $this->render_events_tab(); ?>
+					</div>
+					<div class="seamless-tab-panel <?php echo ($active_tab === 'shop') ? 'is-active' : ''; ?>" data-tab="shop">
+						<?php $this->render_shop_tab(); ?>
 					</div>
 					<div class="seamless-tab-panel <?php echo ($active_tab === 'membership') ? 'is-active' : ''; ?>" data-tab="membership">
 						<?php $this->render_membership_tab(); ?>
@@ -314,6 +332,9 @@ class SettingsPage
 			<a href="#" data-tab="events" class="nav-tab <?php if ($active_tab == 'events') echo 'nav-tab-active'; ?>">
 				<span class="dashicons dashicons-calendar"></span> Events
 			</a>
+			<a href="#" data-tab="shop" class="nav-tab <?php if ($active_tab == 'shop') echo 'nav-tab-active'; ?>">
+				<span class="dashicons dashicons-cart"></span> Shop
+			</a>
 			<a href="#" data-tab="membership" class="nav-tab <?php if ($active_tab == 'membership') echo 'nav-tab-active'; ?>">
 				<span class="dashicons dashicons-groups"></span> Membership
 			</a>
@@ -356,6 +377,9 @@ class SettingsPage
 				</div>
 				<div class="seamless-tab-panel <?php echo ($active_tab === 'events') ? 'is-active' : ''; ?>" data-tab="events">
 					<?php $this->render_events_tab(); ?>
+				</div>
+				<div class="seamless-tab-panel <?php echo ($active_tab === 'shop') ? 'is-active' : ''; ?>" data-tab="shop">
+					<?php $this->render_shop_tab(); ?>
 				</div>
 				<div class="seamless-tab-panel <?php echo ($active_tab === 'membership') ? 'is-active' : ''; ?>" data-tab="membership">
 					<?php $this->render_membership_tab(); ?>
@@ -760,6 +784,34 @@ class SettingsPage
 						<p class="description">URL endpoint for displaying AMS content</p>
 					</td>
 				</tr>
+				<tr>
+					<th scope="row">Shop List Endpoint</th>
+					<td>
+						<code><?php echo esc_url(home_url('/')); ?></code>
+						<input type="text" name="seamless_shop_list_endpoint"
+							value="<?php echo esc_attr(get_option('seamless_shop_list_endpoint', 'shop')); ?>"
+							class="regular-text" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">Single Product Endpoint</th>
+					<td>
+						<code><?php echo esc_url(home_url('/')); ?></code>
+						<input type="text" name="seamless_single_product_endpoint"
+							value="<?php echo esc_attr(get_option('seamless_single_product_endpoint', 'product')); ?>"
+							class="regular-text" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">Shop Cart Endpoint</th>
+					<td>
+						<code><?php echo esc_url(home_url('/')); ?></code>
+						<input type="text" name="seamless_shop_cart_endpoint"
+							value="<?php echo esc_attr(get_option('seamless_shop_cart_endpoint', 'shops/cart')); ?>"
+							class="regular-text" />
+						<p class="description">Use a nested path when you want the cart URL separate from the main shop listing.</p>
+					</td>
+				</tr>
 				<!-- <tr>
 					<th scope="row">Single Donation Endpoint</th>
 					<td>
@@ -878,6 +930,53 @@ class SettingsPage
 					</tbody>
 				</table>
 				<div id="seamless-events-pagination" class="seamless-pagination-wrapper"></div>
+			</div>
+		<?php endif; ?>
+	<?php
+	}
+
+	public function render_shop_tab(): void
+	{
+	?>
+		<div class="seamless-section-container">
+			<ul class="seamless-shortcodes-list">
+				<li>
+					<strong>Shop Listing:</strong>
+					<span class="shortcode-container" style="display: inline-flex; vertical-align: middle;">
+						<code class="seamless-code-block">[seamless_shop_list]</code>
+						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_shop_list]">
+							<span class="dashicons dashicons-admin-page"></span>
+						</button>
+					</span>
+				</li>
+				<li>
+					<strong>Single Product:</strong>
+					<span class="shortcode-container" style="display: inline-flex; vertical-align: middle;">
+						<code class="seamless-code-block">[seamless_single_product slug="my-product-slug"]</code>
+						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode='[seamless_single_product slug="my-product-slug"]'>
+							<span class="dashicons dashicons-admin-page"></span>
+						</button>
+					</span>
+				</li>
+				<li>
+					<strong>Cart:</strong>
+					<span class="shortcode-container" style="display: inline-flex; vertical-align: middle;">
+						<code class="seamless-code-block">[seamless_cart]</code>
+						<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_cart]">
+							<span class="dashicons dashicons-admin-page"></span>
+						</button>
+					</span>
+				</li>
+			</ul>
+		</div>
+
+		<?php if (!$this->auth->is_authenticated()): ?>
+			<div class="seamless-api-notice" style="padding: 20px; background: #fff; border: 1px solid #ccd0d4; margin-top: 10px;border-radius: 12px;">
+				<p>Please authenticate to view the shop pages.</p>
+			</div>
+		<?php else: ?>
+			<div class="seamless-api-notice" style="padding: 20px; background: #fff; border: 1px solid #ccd0d4; margin-top: 10px;border-radius: 12px;">
+				<p>Use the shortcodes above for embedded shop pages, or visit the configured shop endpoints for the full public routes.</p>
 			</div>
 		<?php endif; ?>
 	<?php
@@ -3029,7 +3128,10 @@ class SettingsPage
 	{
 		$target_options = [
 			'seamless_event_list_endpoint',
-			'seamless_single_event_endpoint'
+			'seamless_single_event_endpoint',
+			'seamless_shop_list_endpoint',
+			'seamless_single_product_endpoint',
+			'seamless_shop_cart_endpoint'
 			// 'seamless_single_donation_endpoint',
 			// 'seamless_membership_list_endpoint',
 			// 'seamless_single_membership_endpoint',

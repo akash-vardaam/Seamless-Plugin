@@ -338,6 +338,9 @@ class SeamlessRender
 	{
 		$container_max_width = $this->get_react_container_max_width();
 		$list_view_layout = get_option('seamless_list_view_layout', 'option_1');
+		$ams_user_id = is_user_logged_in()
+			? (string) get_user_meta(get_current_user_id(), 'seamless_ams_user_id', true)
+			: '';
 		?>
 		<meta name="wordpress-site-url" content="<?php echo esc_url(home_url()); ?>" />
 		<meta name="rest-api-base-url" content="<?php echo esc_url(rest_url()); ?>" />
@@ -352,8 +355,17 @@ class SeamlessRender
 				listViewLayout: '<?php echo esc_js($list_view_layout); ?>',
 				containerMaxWidth: '<?php echo esc_js($container_max_width); ?>',
 				isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
+				amsUserId: '<?php echo esc_js($ams_user_id); ?>',
 				userEmail: '<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->user_email) : ''; ?>',
-				logoutUrl: '<?php echo is_user_logged_in() ? esc_js(wp_logout_url(home_url())) : ''; ?>'
+				logoutUrl: '<?php echo is_user_logged_in() ? esc_js(wp_logout_url(home_url())) : ''; ?>',
+				eventListEndpoint: '<?php echo esc_js(get_option('seamless_event_list_endpoint', 'events')); ?>',
+				singleEventEndpoint: '<?php echo esc_js(get_option('seamless_single_event_endpoint', 'event')); ?>',
+				amsContentEndpoint: '<?php echo esc_js(get_option('seamless_ams_content_endpoint', 'ams-content')); ?>',
+				shopListEndpoint: '<?php echo esc_js(get_option('seamless_shop_list_endpoint', 'shop')); ?>',
+				singleProductEndpoint: '<?php echo esc_js(get_option('seamless_single_product_endpoint', 'product')); ?>',
+				shopCartEndpoint: '<?php echo esc_js(get_option('seamless_shop_cart_endpoint', 'shops/cart')); ?>',
+				shopProductTypeLabel: '<?php echo esc_js(__('Physical', 'seamless')); ?>',
+				shopAvailabilityLabel: '<?php echo esc_js(__('Available', 'seamless')); ?>'
 			};
 		</script>
 		<?php
@@ -362,6 +374,9 @@ class SeamlessRender
 	private function register_shortcodes(): void
 	{
 		add_shortcode('seamless_events_list', [$this, 'shortcode_react_events_list']);
+		add_shortcode('seamless_shop_list', [$this, 'shortcode_react_shop_list']);
+		add_shortcode('seamless_single_product', [$this, 'shortcode_react_single_product']);
+		add_shortcode('seamless_cart', [$this, 'shortcode_react_cart']);
 		add_shortcode('seamless_memberships', [$this, 'shortcode_react_memberships']);
 		add_shortcode('seamless_courses', [$this, 'shortcode_react_courses']);
 		add_shortcode('seamless_dashboard', [$this, 'shortcode_react_dashboard']);
@@ -446,6 +461,9 @@ class SeamlessRender
 		}
 		$container_max_width = $this->get_react_container_max_width();
 		$list_view_layout = get_option('seamless_list_view_layout', 'option_1');
+		$ams_user_id = is_user_logged_in()
+			? (string) get_user_meta(get_current_user_id(), 'seamless_ams_user_id', true)
+			: '';
 
 		// Pass WordPress config to the React app
 		wp_localize_script('seamless-react-js', 'seamlessReactConfig', [
@@ -458,7 +476,16 @@ class SeamlessRender
 			'listViewLayout' => $list_view_layout,
 			'containerMaxWidth' => $container_max_width,
 			'isLoggedIn' => is_user_logged_in(),
+			'amsUserId' => $ams_user_id,
 			'userEmail' => is_user_logged_in() ? wp_get_current_user()->user_email : '',
+			'eventListEndpoint' => get_option('seamless_event_list_endpoint', 'events'),
+			'singleEventEndpoint' => get_option('seamless_single_event_endpoint', 'event'),
+			'amsContentEndpoint' => get_option('seamless_ams_content_endpoint', 'ams-content'),
+			'shopListEndpoint' => get_option('seamless_shop_list_endpoint', 'shop'),
+			'singleProductEndpoint' => get_option('seamless_single_product_endpoint', 'product'),
+			'shopCartEndpoint' => get_option('seamless_shop_cart_endpoint', 'shops/cart'),
+			'shopProductTypeLabel' => __('Physical', 'seamless'),
+			'shopAvailabilityLabel' => __('Available', 'seamless'),
 			// Query-param logout: works without needing rewrite rules flushed.
 			'logoutUrl' => is_user_logged_in()
 				? add_query_arg('sso_logout_redirect', '1', home_url('/'))
@@ -564,6 +591,19 @@ JS,
 		return $this->react_mount_html('events');
 	}
 
+	/**
+	 * [seamless_shop_list]
+	 * Renders the React-powered Shop listing page.
+	 */
+	public function shortcode_react_shop_list($atts = []): string
+	{
+		if (!$this->auth->is_authenticated()) {
+			return $this->get_authentication_required_message();
+		}
+
+		return $this->react_mount_html('shop');
+	}
+
 	// ── Shortcode: Single Event ──────────────────────────────────────────────
 
 	/**
@@ -592,6 +632,45 @@ JS,
 	}
 
 	// ── Shortcode: Memberships ───────────────────────────────────────────────
+
+	/**
+	 * [seamless_single_product slug="my-product-slug"]
+	 * Renders the React-powered product detail page.
+	 */
+	public function shortcode_react_single_product($atts = []): string
+	{
+		if (!$this->auth->is_authenticated()) {
+			return $this->get_authentication_required_message();
+		}
+
+		$atts = shortcode_atts([
+			'slug' => '',
+		], $atts, 'seamless_single_product');
+
+		$slug = sanitize_text_field((string) $atts['slug']);
+		if ($slug === '') {
+			$slug = sanitize_text_field((string) get_query_var('product_slug', ''));
+		}
+
+		if ($slug === '') {
+			return '<div class="seamless-shop-detail seamless-shop-detail-empty"><p class="event-message">' . esc_html__('No product slug was provided.', 'seamless') . '</p></div>';
+		}
+
+		return $this->react_mount_html('single-product', [
+			'seamless-slug' => $slug,
+		]);
+	}
+
+	/**
+	 * [seamless_cart]
+	 * Renders the React-powered cart page.
+	 */
+	public function shortcode_react_cart($atts = []): string
+	{
+		return $this->react_mount_html('cart');
+	}
+
+	// â”€â”€ Shortcode: Memberships â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	/**
 	 * [seamless_memberships]

@@ -3,6 +3,9 @@ export interface EventURLConfig {
   singleEventEndpoint: string;
   eventListEndpoint: string;
   amsContentEndpoint?: string;
+  shopListEndpoint?: string;
+  singleProductEndpoint?: string;
+  shopCartEndpoint?: string;
 }
 
 const LIST_QUERY_KEYS = ['search', 'status', 'audience', 'focus', 'localChapter', 'year', 'page', 'view', 'date'];
@@ -62,6 +65,9 @@ export const getSeamlessConfig = (): EventURLConfig | null => {
       singleEventEndpoint: normalizeEndpoint(config.singleEventEndpoint, 'event'),
       eventListEndpoint: normalizeEndpoint(config.eventListEndpoint, 'events'),
       amsContentEndpoint: normalizeEndpoint(config.amsContentEndpoint, 'ams-content'),
+      shopListEndpoint: normalizeEndpoint(config.shopListEndpoint, 'shop'),
+      singleProductEndpoint: normalizeEndpoint(config.singleProductEndpoint, 'product'),
+      shopCartEndpoint: normalizeEndpoint(config.shopCartEndpoint, 'shops/cart'),
     };
   }
 
@@ -72,6 +78,9 @@ export const getSeamlessConfig = (): EventURLConfig | null => {
       singleEventEndpoint: 'event',
       eventListEndpoint: 'events',
       amsContentEndpoint: 'ams-content',
+      shopListEndpoint: 'shop',
+      singleProductEndpoint: 'product',
+      shopCartEndpoint: 'shops/cart',
     };
   }
 
@@ -151,6 +160,21 @@ export const getAmsContentRoutePath = (): string => {
   return `/${config?.amsContentEndpoint || 'ams-content'}`;
 };
 
+export const getShopListRoutePath = (): string => {
+  const config = getSeamlessConfig();
+  return `/${config?.shopListEndpoint || 'shop'}`;
+};
+
+export const getSingleProductRoutePath = (): string => {
+  const config = getSeamlessConfig();
+  return `/${config?.singleProductEndpoint || 'product'}/:slug`;
+};
+
+export const getShopCartRoutePath = (): string => {
+  const config = getSeamlessConfig();
+  return `/${config?.shopCartEndpoint || 'shops/cart'}`;
+};
+
 export const getEventsListURL = (): string => {
   if (typeof window !== 'undefined') {
     const currentUrl = new URL(window.location.href);
@@ -168,4 +192,31 @@ export const getEventsListURL = (): string => {
   }
 
   return '/events';
+};
+
+export const getShopListURL = (): string => {
+  const config = getSeamlessConfig();
+
+  if (config) {
+    return `${config.siteUrl}/${config.shopListEndpoint || 'shop'}`;
+  }
+
+  return '/shop';
+};
+
+export const getProductPageURL = (productSlug: string): string => {
+  const config = getSeamlessConfig();
+  const baseUrl = config?.siteUrl || window.location.origin;
+  const endpoint = config?.singleProductEndpoint || 'product';
+  return `${baseUrl.replace(/\/+$/g, '')}/${endpoint}/${encodeURIComponent(productSlug)}`;
+};
+
+export const getShopCartURL = (): string => {
+  const config = getSeamlessConfig();
+
+  if (config) {
+    return `${config.siteUrl}/${config.shopCartEndpoint || 'shops/cart'}`;
+  }
+
+  return '/shops/cart';
 };
