@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Check,
   ChevronDown,
   Funnel,
   Search,
   ShoppingCart,
-  SlidersHorizontal,
 } from 'lucide-react';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { useShadowRoot } from '../ShadowRoot';
@@ -26,11 +26,12 @@ import {
   truncateText,
 } from '../../utils/shopHelpers';
 
-type ShopSortKey = 'newest' | 'oldest' | 'title_asc' | 'title_desc';
+type ShopSortKey = 'featured' | 'price_asc' | 'price_desc' | 'title_asc' | 'title_desc';
 
 const SORT_LABELS: Record<ShopSortKey, string> = {
-  newest: 'Newest First',
-  oldest: 'Oldest First',
+  featured: 'Featured',
+  price_asc: 'Price: Low to High',
+  price_desc: 'Price: High to Low',
   title_asc: 'Title (A-Z)',
   title_desc: 'Title (Z-A)',
 };
@@ -65,6 +66,16 @@ const buildFallbackCategoriesFromProducts = (products: ShopProduct[]): ShopCateg
 const filterCheckboxClass =
   'seamless-shop__checkbox';
 
+const handleActionKeyDown = (
+  event: React.KeyboardEvent<HTMLElement>,
+  action: () => void,
+) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    action();
+  }
+};
+
 export const ShopListView: React.FC = () => {
   const shadowRoot = useShadowRoot();
   const [products, setProducts] = useState<ShopProduct[]>([]);
@@ -78,7 +89,7 @@ export const ShopListView: React.FC = () => {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [selectedProductTypes, setSelectedProductTypes] = useState<string[]>([]);
   const [selectedAvailabilities, setSelectedAvailabilities] = useState<string[]>([]);
-  const [sort, setSort] = useState<ShopSortKey>('newest');
+  const [sort, setSort] = useState<ShopSortKey>('featured');
 
   useEffect(() => {
     let cancelled = false;
@@ -138,27 +149,36 @@ export const ShopListView: React.FC = () => {
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
-      const clickedSortControl = event
-        .composedPath()
-        .some((entry) => entry instanceof HTMLElement && Boolean(entry.closest('[data-shop-sort-wrap]')));
+      const eventPath = event.composedPath();
+      const clickedSortControl = eventPath.some(
+        (entry) => entry instanceof HTMLElement && Boolean(entry.closest('[data-shop-sort-wrap]')),
+      );
+      const clickedFilterControl = eventPath.some(
+        (entry) => entry instanceof HTMLElement && Boolean(entry.closest('[data-shop-filter-wrap]')),
+      );
 
       if (!clickedSortControl) {
         setSortOpen(false);
+      }
+
+      if (!clickedFilterControl) {
+        setFiltersOpen(false);
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setSortOpen(false);
+        setFiltersOpen(false);
       }
     };
 
-    const eventRoot = shadowRoot || document;
-
-    eventRoot.addEventListener('click', handleClick as EventListener);
+    shadowRoot?.addEventListener('click', handleClick as EventListener);
+    document.addEventListener('click', handleClick as EventListener);
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      eventRoot.removeEventListener('click', handleClick as EventListener);
+      shadowRoot?.removeEventListener('click', handleClick as EventListener);
+      document.removeEventListener('click', handleClick as EventListener);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [shadowRoot]);
@@ -215,15 +235,21 @@ export const ShopListView: React.FC = () => {
     });
 
     return [...matchesFilters].sort((left, right) => {
-      if (sort === 'newest') {
+      if (sort === 'featured') {
+        if (left.featured !== right.featured) {
+          return left.featured ? -1 : 1;
+        }
         const timestampDelta = right.sortTimestamp - left.sortTimestamp;
         if (timestampDelta !== 0) return timestampDelta;
         return String(left.title || '').localeCompare(String(right.title || ''));
       }
 
-      if (sort === 'oldest') {
-        const timestampDelta = left.sortTimestamp - right.sortTimestamp;
-        if (timestampDelta !== 0) return timestampDelta;
+      if (sort === 'price_asc' || sort === 'price_desc') {
+        const nullPriceFallback = sort === 'price_asc' ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+        const leftPrice = left.price ?? nullPriceFallback;
+        const rightPrice = right.price ?? nullPriceFallback;
+        const priceDelta = sort === 'price_asc' ? leftPrice - rightPrice : rightPrice - leftPrice;
+        if (priceDelta !== 0) return priceDelta;
         return String(left.title || '').localeCompare(String(right.title || ''));
       }
 
@@ -255,7 +281,7 @@ export const ShopListView: React.FC = () => {
     setSelectedCategoryIds([]);
     setSelectedProductTypes([]);
     setSelectedAvailabilities([]);
-    setSort('newest');
+    setSort('featured');
     setSortOpen(false);
   };
 
@@ -274,26 +300,28 @@ export const ShopListView: React.FC = () => {
   }
 
   return (
-    <div className="seamless-shop">
+    <div className="seamless-shop seamless-shop--list">
       <section className="seamless-shop__section">
         <div className="seamless-shop__topbar">
           <div className="seamless-shop__count">Showing {filteredProducts.length} product{filteredProducts.length === 1 ? '' : 's'}</div>
 
           <div className="seamless-shop__actions">
-            <button
-              type="button"
+            <div
               className={`seamless-shop__button ${activeFilterCount ? 'seamless-shop__button--active' : ''}`}
+              role="button"
+              tabIndex={0}
               aria-expanded={filtersOpen}
+              data-shop-filter-wrap
               onClick={() => setFiltersOpen((current) => !current)}
+              onKeyDown={(event) => handleActionKeyDown(event, () => setFiltersOpen((current) => !current))}
             >
               <Funnel className="seamless-shop__icon" />
               <span>Filters</span>
-              {activeFilterCount > 0 ? (
-                <span className="seamless-shop__badge seamless-shop__badge--primary">
-                  {activeFilterCount}
-                </span>
-              ) : null}
-            </button>
+              <span className="seamless-shop__badge seamless-shop__badge--primary">
+                {activeFilterCount}
+              </span>
+              <ChevronDown className={`seamless-shop__icon ${filtersOpen ? 'seamless-shop__rotate' : ''}`} />
+            </div>
 
             <div className="seamless-shop__sort-wrap" data-shop-sort-wrap>
               <button
@@ -302,7 +330,6 @@ export const ShopListView: React.FC = () => {
                 aria-expanded={sortOpen}
                 onClick={() => setSortOpen((current) => !current)}
               >
-                <SlidersHorizontal className="seamless-shop__icon" />
                 <span>{SORT_LABELS[sort]}</span>
                 <ChevronDown className={`seamless-shop__icon ${sortOpen ? 'seamless-shop__rotate' : ''}`} />
               </button>
@@ -320,7 +347,7 @@ export const ShopListView: React.FC = () => {
                       }}
                     >
                       <span>{label}</span>
-                      {sort === value ? <span>Selected</span> : null}
+                      {sort === value ? <Check className="seamless-shop__icon" /> : null}
                     </button>
                   ))}
                 </div>
@@ -329,10 +356,10 @@ export const ShopListView: React.FC = () => {
 
             <a
               href={buildCartUrl()}
-              className="seamless-shop__button-link"
+              className="seamless-shop__button-link seamless-shop__button-link--cart"
             >
               <ShoppingCart className="seamless-shop__icon" />
-              <span>View Cart</span>
+              <span>VIEW CART</span>
               <span className="seamless-shop__badge">
                 {cartCount}
               </span>
@@ -341,7 +368,7 @@ export const ShopListView: React.FC = () => {
         </div>
 
         {filtersOpen ? (
-          <div className="seamless-shop__filters">
+          <div className="seamless-shop__filters" data-shop-filter-wrap>
             <div className="seamless-shop__filter-group">
               <label className="seamless-shop__label">Search</label>
               <div className="seamless-shop__search-wrap">
@@ -435,13 +462,15 @@ export const ShopListView: React.FC = () => {
                   <span>{option.label}</span>
                 </label>
               ))}
-              <button
-                type="button"
+              <div
                 className="seamless-shop__button"
+                role="button"
+                tabIndex={0}
                 onClick={resetFilters}
+                onKeyDown={(event) => handleActionKeyDown(event, resetFilters)}
               >
                 Clear All Filters
-              </button>
+              </div>
             </div>
           </div>
         ) : null}

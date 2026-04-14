@@ -77,6 +77,15 @@ export const ShopProductView: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [zoomState, setZoomState] = useState<ZoomState>({ open: false, scale: 1, x: 0, y: 0 });
+  const galleryThumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const scrollLockRef = useRef<{
+    scrollY: number;
+    bodyOverflow: string;
+    bodyPosition: string;
+    bodyTop: string;
+    bodyWidth: string;
+    htmlOverflow: string;
+  } | null>(null);
   const dragStateRef = useRef<{ active: boolean; startX: number; startY: number; baseX: number; baseY: number }>({
     active: false,
     startX: 0,
@@ -146,6 +155,22 @@ export const ShopProductView: React.FC = () => {
   useEffect(() => {
     if (!zoomState.open) return;
 
+    const scrollY = window.scrollY;
+    scrollLockRef.current = {
+      scrollY,
+      bodyOverflow: document.body.style.overflow,
+      bodyPosition: document.body.style.position,
+      bodyTop: document.body.style.top,
+      bodyWidth: document.body.style.width,
+      htmlOverflow: document.documentElement.style.overflow,
+    };
+
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setZoomState({ open: false, scale: 1, x: 0, y: 0 });
@@ -153,7 +178,20 @@ export const ShopProductView: React.FC = () => {
     };
 
     document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+
+      const lockedScroll = scrollLockRef.current;
+      if (!lockedScroll) return;
+
+      document.documentElement.style.overflow = lockedScroll.htmlOverflow;
+      document.body.style.overflow = lockedScroll.bodyOverflow;
+      document.body.style.position = lockedScroll.bodyPosition;
+      document.body.style.top = lockedScroll.bodyTop;
+      document.body.style.width = lockedScroll.bodyWidth;
+      window.scrollTo(0, lockedScroll.scrollY);
+      scrollLockRef.current = null;
+    };
   }, [zoomState.open]);
 
   useEffect(() => subscribeToShopCart((cart) => setCartCount(cart.itemCount)), []);
@@ -210,6 +248,14 @@ export const ShopProductView: React.FC = () => {
   useEffect(() => {
     setGalleryIndex((current) => Math.min(current, Math.max(galleryImages.length - 1, 0)));
   }, [galleryImages.length]);
+
+  useEffect(() => {
+    galleryThumbRefs.current[galleryIndex]?.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: 'smooth',
+    });
+  }, [galleryIndex]);
 
   const currentImage = galleryImages[galleryIndex] || product?.featuredImage || getPlaceholderImage(product?.title || 'Product');
   const productCategories = useMemo(() => (product ? resolveProductCategories(product, categoryMap) : []), [categoryMap, product]);
@@ -280,6 +326,7 @@ export const ShopProductView: React.FC = () => {
 
   const handleZoomWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
+    event.stopPropagation();
     setZoomState((current) => {
       const scale = clampScale(current.scale * (event.deltaY > 0 ? 0.9 : 1.1));
       return { ...current, scale };
@@ -333,7 +380,7 @@ export const ShopProductView: React.FC = () => {
   }
 
   return (
-    <div className="seamless-shop">
+    <div className="seamless-shop seamless-shop--product">
       <nav className="seamless-shop__breadcrumb">
         <a href={getShopUrlHome()} >
           Home
@@ -344,7 +391,8 @@ export const ShopProductView: React.FC = () => {
         </a>
         <span>/</span>
         <span>{product.title}</span>
-        <a
+      </nav>
+      <a
           href={buildCartUrl()}
           className="seamless-shop__breadcrumb-cart"
         >
@@ -354,7 +402,6 @@ export const ShopProductView: React.FC = () => {
             {cartCount}
           </span>
         </a>
-      </nav>
 
       {notice ? (
         <div className={`seamless-shop__alert ${notice.includes('Unable') ? '' : 'seamless-shop__alert--success'}`}>
@@ -364,49 +411,71 @@ export const ShopProductView: React.FC = () => {
 
       <section className="seamless-shop__product-layout">
         <div className="seamless-shop__gallery">
+          <div className="seamless-shop__gallery-stage">
+            {galleryImages.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous image"
+                  className="seamless-shop__gallery-nav seamless-shop__gallery-nav--prev"
+                  disabled={galleryImages.length <= 1}
+                  onClick={() => setGalleryIndex((current) => (current - 1 + galleryImages.length) % galleryImages.length)}
+                >
+                  <ChevronLeft className="seamless-shop__icon--md" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next image"
+                  className="seamless-shop__gallery-nav seamless-shop__gallery-nav--next"
+                  disabled={galleryImages.length <= 1}
+                  onClick={() => setGalleryIndex((current) => (current + 1) % galleryImages.length)}
+                >
+                  <ChevronRight className="seamless-shop__icon--md" />
+                </button>
+              </>
+            ) : null}
+
+            <button
+              type="button"
+              aria-label="Zoom image"
+              className="seamless-shop__icon-button seamless-shop__zoom-button"
+              onClick={() => setZoomState({ open: true, scale: 1, x: 0, y: 0 })}
+            >
+              <Search className="seamless-shop__icon" />
+            </button>
+
+            <button
+              type="button"
+              className="seamless-shop__image-button"
+              onClick={() => setZoomState({ open: true, scale: 1, x: 0, y: 0 })}
+            >
+              <img
+                src={currentImage}
+                alt={product.title}
+                className="seamless-shop__image-contain"
+              />
+            </button>
+          </div>
+
           {galleryImages.length > 1 ? (
-            <>
-              <button
-                type="button"
-                aria-label="Previous image"
-                className="seamless-shop__gallery-nav seamless-shop__gallery-nav--prev"
-                disabled={galleryImages.length <= 1}
-                onClick={() => setGalleryIndex((current) => (current - 1 + galleryImages.length) % galleryImages.length)}
-              >
-                <ChevronLeft className="seamless-shop__icon--md" />
-              </button>
-              <button
-                type="button"
-                aria-label="Next image"
-                className="seamless-shop__gallery-nav seamless-shop__gallery-nav--next"
-                disabled={galleryImages.length <= 1}
-                onClick={() => setGalleryIndex((current) => (current + 1) % galleryImages.length)}
-              >
-                <ChevronRight className="seamless-shop__icon--md" />
-              </button>
-            </>
+            <div className="seamless-shop__gallery-thumbs" aria-label="Product images">
+              {galleryImages.map((image, index) => (
+                <button
+                  key={`${image}-${index}`}
+                  ref={(node) => {
+                    galleryThumbRefs.current[index] = node;
+                  }}
+                  type="button"
+                  className={`seamless-shop__gallery-thumb ${galleryIndex === index ? 'seamless-shop__gallery-thumb--active' : ''}`}
+                  aria-label={`Show product image ${index + 1}`}
+                  aria-current={galleryIndex === index ? 'true' : undefined}
+                  onClick={() => setGalleryIndex(index)}
+                >
+                  <img src={image} alt={`${product.title} ${index + 1}`} loading="lazy" />
+                </button>
+              ))}
+            </div>
           ) : null}
-
-          <button
-            type="button"
-            aria-label="Zoom image"
-            className="seamless-shop__icon-button seamless-shop__zoom-button"
-            onClick={() => setZoomState({ open: true, scale: 1, x: 0, y: 0 })}
-          >
-            <Search className="seamless-shop__icon" />
-          </button>
-
-          <button
-            type="button"
-            className="seamless-shop__image-button"
-            onClick={() => setZoomState({ open: true, scale: 1, x: 0, y: 0 })}
-          >
-            <img
-              src={currentImage}
-              alt={product.title}
-              className="seamless-shop__image-contain"
-            />
-          </button>
         </div>
 
         <div className="seamless-shop__product-info">
@@ -433,44 +502,51 @@ export const ShopProductView: React.FC = () => {
                     <div className="seamless-shop__label">
                       {formatAttributeLabel(group.attributeType)}
                     </div>
-                    <div className="seamless-shop__variant-options">
-                      {group.options.map((option) => {
-                        const isSelected = selectedOption?.id === option.id;
+                    <div className="seamless-shop__variant-picker">
+                      <div className="seamless-shop__variant-options">
+                        {group.options.map((option) => {
+                          const isSelected = selectedOption?.id === option.id;
+                          const swatchClassName = [
+                            'seamless-shop__variant-swatch',
+                            isSelected ? 'is-selected' : '',
+                            !option.isAvailable ? 'is-disabled' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ');
 
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            aria-pressed={isSelected}
-                            disabled={!option.isAvailable}
-                            className={`seamless-shop__variant-button ${option.isAvailable ? '' : 'seamless-shop__variant-button--disabled'}`}
-                            onClick={() => {
-                              setSelectedVariantIds((current) => {
-                                const next = [...current];
-                                next[groupIndex] = option.id;
-                                return next;
-                              });
-                              setGalleryIndex(0);
-                              setQuantity(1);
-                            }}
-                          >
-                            <span
-                              className={`seamless-shop__swatch ${isSelected ? 'seamless-shop__swatch--selected' : ''}`}
-                              style={{ backgroundColor: option.swatch || '#ffffff' }}
-                            >
-                              <span
-                                className="seamless-shop__swatch-inner"
-                                style={{ backgroundColor: option.swatch || '#ffffff' }}
+                          return (
+                            <div key={option.id} className="seamless-shop__variant-option">
+                              <button
+                                type="button"
+                                data-variant-group-index={groupIndex}
+                                data-variant-id={option.id}
+                                aria-pressed={isSelected}
+                                aria-disabled={!option.isAvailable}
+                                aria-label={option.value}
+                                disabled={!option.isAvailable}
+                                className={swatchClassName}
+                                style={{ '--swatch-color': option.swatch || '#ffffff' } as React.CSSProperties}
+                                onClick={() => {
+                                  setSelectedVariantIds((current) => {
+                                    const next = [...current];
+                                    next[groupIndex] = option.id;
+                                    return next;
+                                  });
+                                  setGalleryIndex(0);
+                                  setQuantity(1);
+                                }}
                               >
-                                {!option.isAvailable ? <span className="seamless-shop__swatch-unavailable" /> : null}
-                              </span>
-                            </span>
-                            {isSelected ? (
-                              <span className="seamless-shop__variant-label">{option.value}</span>
-                            ) : null}
-                          </button>
-                        );
-                      })}
+                                <span className="seamless-shop__variant-swatch-inner">
+                                  {!option.isAvailable ? <span className="seamless-shop__swatch-unavailable" /> : null}
+                                </span>
+                              </button>
+                              {isSelected ? (
+                                <span className="seamless-shop__variant-label">{option.value}</span>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
@@ -535,7 +611,7 @@ export const ShopProductView: React.FC = () => {
         </div>
       </section>
 
-      <section className="seamless-shop__section">
+      <section className="seamless-shop__section seamless-shop__details-section">
         <h2 className="seamless-shop__heading-small">Product Details</h2>
         <div className="seamless-shop__rich-text">
           {richDescriptionBlocks.length ? (
@@ -562,7 +638,7 @@ export const ShopProductView: React.FC = () => {
       </section>
 
       {similarProducts.length ? (
-        <section className="seamless-shop__section">
+        <section className="seamless-shop__section seamless-shop__similar-section">
           <div className="seamless-shop__similar-heading">
             <h2 className="seamless-shop__heading-small">Similar Products</h2>
             <a href={buildShopUrl()} className="seamless-shop__link-primary seamless-shop__heading-small">
@@ -659,4 +735,3 @@ const getProductTypeLabel = (value: string): string => {
 
   return formatAttributeLabel(value || 'physical');
 };
-
