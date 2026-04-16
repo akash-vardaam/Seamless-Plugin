@@ -112,7 +112,7 @@ jQuery(document).ready(function ($) {
   function renderEventsPagination() {
     if (!eventsPagination.length) return;
 
-    eventsPagination.empty();
+    eventsPagination.empty().hide();
     const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
     if (totalPages <= 1) return;
 
@@ -139,7 +139,7 @@ jQuery(document).ready(function ($) {
         eventsPage + 1
       }">Next »</a>`;
     }
-    eventsPagination.html(html);
+    eventsPagination.html(html).show();
   }
 
   async function loadEvents(force = false) {
@@ -303,7 +303,7 @@ jQuery(document).ready(function ($) {
   function renderMemPagination() {
     if (!memPagination.length) return;
 
-    memPagination.empty();
+    memPagination.empty().hide();
     const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
     if (totalPages <= 1) return;
 
@@ -330,7 +330,7 @@ jQuery(document).ready(function ($) {
         memPage + 1
       }">Next »</a>`;
     }
-    memPagination.html(html);
+    memPagination.html(html).show();
   }
 
   async function loadMemberships(force = false) {
@@ -460,12 +460,37 @@ jQuery(document).ready(function ($) {
   // Copy shortcode handler
   $(document).on("click", ".copy-shortcode-btn", function () {
     const shortcode = $(this).data("shortcode");
+    const $button = $(this);
+
     navigator.clipboard.writeText(shortcode).then(() => {
-      const originalIcon = $(this).html();
-      $(this).html('<span class="dashicons dashicons-yes"></span>');
+      const originalIcon = $button.html();
+      $button.addClass("copied");
+      $button.html('<span class="dashicons dashicons-yes"></span>');
+      showCopyToast();
       setTimeout(() => {
-        $(this).html(originalIcon);
+        $button.html(originalIcon);
+        $button.removeClass("copied");
       }, 1500);
     });
   });
+
+  function showCopyToast() {
+    $(".seamless-toast-copy").remove();
+
+    const $toast = $(
+      '<div class="seamless-toast seamless-toast-success seamless-toast-copy">Copied to clipboard</div>'
+    );
+    $("body").append($toast);
+
+    setTimeout(() => {
+      $toast.addClass("show");
+    }, 10);
+
+    setTimeout(() => {
+      $toast.removeClass("show");
+      setTimeout(() => {
+        $toast.remove();
+      }, 300);
+    }, 2200);
+  }
 });

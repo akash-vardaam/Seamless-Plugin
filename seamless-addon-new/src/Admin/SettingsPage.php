@@ -271,8 +271,8 @@ class SettingsPage
             ];
         }
     ?>
-        <div class="seamless-addon-event-templates-wrapper">
-            <table class="widefat striped seamless-addon-event-templates-table">
+        <div class="seamless-addon-event-templates-wrapper seamless-table-area">
+            <table class="wp-list-table widefat striped seamless-table seamless-addon-event-templates-table">
                 <thead>
                     <tr>
                         <th><?php _e('Event', 'seamless-addon'); ?></th>
@@ -310,9 +310,11 @@ class SettingsPage
                                 <button type="button" class="button seamless-addon-add-row" title="<?php esc_attr_e('Add row', 'seamless-addon'); ?>">
                                     <span class="dashicons dashicons-plus-alt2"></span>
                                 </button>
-                                <button type="button" class="button seamless-addon-remove-row" title="<?php esc_attr_e('Remove row', 'seamless-addon'); ?>">
-                                    <span class="dashicons dashicons-minus"></span>
-                                </button>
+                                <?php if ($index > 0 && !empty($event_slug)): ?>
+                                    <button type="button" class="button seamless-addon-remove-row" title="<?php esc_attr_e('Remove row', 'seamless-addon'); ?>">
+                                        <span class="dashicons dashicons-minus"></span>
+                                    </button>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -356,41 +358,53 @@ class SettingsPage
 
         <style>
             .seamless-addon-event-templates-wrapper {
-                max-width: 800px;
+                max-width: 100%;
             }
 
             .seamless-addon-event-templates-table {
-                margin-top: 8px;
-                border-radius: 12px;
-                border-color: var(--seamless-medium-border-color, #e5e5e5);
-                overflow: hidden;
+                margin: 0;
+                border: 0 !important;
+                box-shadow: none !important;
             }
 
-            .seamless-addon-event-templates-table thead tr {
-                background-color: var(--seamless-light-background-color, #f8fafc);
+            .seamless-addon-event-templates-table thead th {
+                padding: 14px 16px !important;
+                border-bottom: 1px solid var(--seamless-border, #e6e9f0) !important;
+                background: #f7f8fc !important;
+                color: #6c7690 !important;
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                text-transform: uppercase;
+                letter-spacing: .04em;
             }
 
-            .seamless-addon-event-templates-table th {
-                padding: 10px 12px;
-                font-weight: 600;
-                color: var(--seamless-dark-text-color, #111);
-                border-bottom: 1px solid var(--seamless-medium-border-color, #e5e5e5);
-            }
-
-            .seamless-addon-event-templates-table td {
-                padding: 10px 12px;
+            .seamless-addon-event-templates-table tbody td {
+                padding: 16px !important;
+                border-bottom: 1px solid #eef1f6 !important;
                 vertical-align: middle;
+            }
+
+            .seamless-addon-event-templates-table tbody tr:last-child td {
+                border-bottom: 0 !important;
+            }
+
+            .seamless-addon-event-templates-table tbody tr:hover {
+                background: #fafbff;
             }
 
             .seamless-addon-event-templates-table select.regular-text,
             .form-table select.regular-text {
-                /* width: 100%; */
+                width: 100%;
                 max-width: 100%;
+                min-height: 42px;
                 border-radius: 8px;
+                border: 1px solid var(--seamless-border, #e6e9f0);
+                box-shadow: none;
             }
 
             .seamless-addon-template-actions {
                 text-align: center;
+                white-space: nowrap;
             }
 
             .seamless-addon-remove-row {
@@ -413,18 +427,27 @@ class SettingsPage
             }
 
             td.seamless-addon-template-actions {
-                display: flex;
-                align-items: center;
                 margin: 0;
-                justify-content: flex-start;
-                gap: 15px;
             }
 
             .seamless-addon-template-row .seamless-addon-template-actions button {
-                font-size: 10px !important;
-                padding: 6px !important;
-                border-radius: 50% !important;
-                color: #6c757d;
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 34px;
+                height: 34px;
+                min-width: 34px;
+                padding: 0 !important;
+                border-radius: 8px !important;
+                border: 1px solid var(--seamless-border, #e6e9f0) !important;
+                background: #fff !important;
+                color: #65708a;
+                box-shadow: none !important;
+                vertical-align: middle;
+            }
+
+            .seamless-addon-template-row .seamless-addon-template-actions button + button {
+                margin-left: 8px;
             }
 
             .seamless-addon-template-row .seamless-addon-template-actions button:focus {

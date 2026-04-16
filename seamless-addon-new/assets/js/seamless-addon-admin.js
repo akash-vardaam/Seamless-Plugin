@@ -24,6 +24,29 @@ jQuery(document).ready(function ($) {
     });
 
     $select.prop("disabled", false);
+    updateRemoveButtons();
+  }
+
+  function updateRemoveButtons() {
+    const $rows = $(".seamless-addon-event-templates-table tbody .seamless-addon-template-row");
+
+    $rows.each(function (index) {
+      const $row = $(this);
+      const hasEvent = !!$row.find(".seamless-event-select").val();
+      let $removeButton = $row.find(".seamless-addon-remove-row");
+
+      if (index === 0 || !hasEvent || $rows.length <= 1) {
+        $removeButton.remove();
+        return;
+      }
+
+      if (!$removeButton.length) {
+        $removeButton = $(
+          '<button type="button" class="button seamless-addon-remove-row" title="Remove row"><span class="dashicons dashicons-minus"></span></button>',
+        );
+        $row.find(".seamless-addon-template-actions").append($removeButton);
+      }
+    });
   }
 
   // Load events from API
@@ -104,7 +127,14 @@ jQuery(document).ready(function ($) {
     }
 
     rowIndex++;
+    updateRemoveButtons();
   });
+
+  $(document).on(
+    "change",
+    '.seamless-addon-event-templates-table select[name*="[event_slug]"]',
+    updateRemoveButtons,
+  );
 
   // Remove row button click
   $(document).on("click", ".seamless-addon-remove-row", function (e) {
@@ -113,13 +143,17 @@ jQuery(document).ready(function ($) {
     const $row = $(this).closest("tr");
     const $tbody = $row.closest("tbody");
 
-    // Don't remove if it's the last row
-    if ($tbody.find(".seamless-addon-template-row").length <= 1) {
+    // The first row is required; clear it instead of removing it.
+    if ($row.index() === 0 || $tbody.find(".seamless-addon-template-row").length <= 1) {
       // Just clear the values instead
       $row.find("select").val("");
+      updateRemoveButtons();
       return;
     }
 
     $row.remove();
+    updateRemoveButtons();
   });
+
+  updateRemoveButtons();
 });
