@@ -10,11 +10,52 @@ jQuery(document).ready(function ($) {
   const isMembershipTab =
     $('.nav-tab-active[data-tab="membership"]').length > 0 ||
     new URLSearchParams(window.location.search).get("tab") === "membership";
+  const $settingsLoadingSurface = $('[data-seamless-page-loading="settings"]');
 
   let allEvents = [];
   let filteredEvents = [];
   let eventsPage = 1;
   const itemsPerPage = 15;
+
+  function showSettingsPageLoading() {
+    $settingsLoadingSurface.addClass("is-page-loading");
+  }
+
+  function hideSettingsPageLoading() {
+    $settingsLoadingSurface.removeClass("is-page-loading");
+  }
+
+  function getSkeletonColumnCount($tbody) {
+    const headerCount = $tbody.closest("table").find("thead th").length;
+    return headerCount > 0 ? headerCount : 1;
+  }
+
+  function renderTableSkeleton($tbody, columns, rows = 6) {
+    let html = "";
+
+    for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
+      html += '<tr class="seamless-skeleton-row" aria-hidden="true">';
+      for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
+        html += `<td><span class="seamless-skeleton-line seamless-skeleton-cell seamless-skeleton-cell-${
+          (columnIndex % 4) + 1
+        }"></span></td>`;
+      }
+      html += "</tr>";
+    }
+
+    $tbody.html(html);
+  }
+
+  function showTableSkeleton($tbody, columns) {
+    const $area = $tbody.closest(".seamless-table-area");
+    $area.addClass("is-loading");
+    $area.find(".seamless-pagination-wrapper").empty().hide();
+    renderTableSkeleton($tbody, columns || getSkeletonColumnCount($tbody));
+  }
+
+  function hideTableSkeleton($tbody) {
+    $tbody.closest(".seamless-table-area").removeClass("is-loading");
+  }
 
   // Helper to get tab from link
   function getTabFromLink(link) {
@@ -145,27 +186,21 @@ jQuery(document).ready(function ($) {
   async function loadEvents(force = false) {
     if (!eventsTableBody.length) {
       console.log("Seamless Admin: Events table not found.");
+      hideSettingsPageLoading();
       return;
     }
 
     // Skip if already loaded unless forcing
     if (!force && eventsTableBody.data("loaded") === "true") {
       console.log("Seamless Admin: Events already loaded.");
+      hideSettingsPageLoading();
       return;
     }
 
     console.log("Seamless Admin: Loading events...");
 
-    // Show loader scoped to table
-    const loader = $(
-      '<div class="seamless-admin-loader"><div class="seamless-admin-spinner"></div><div class="seamless-admin-loading-text">Loading Events...</div></div>'
-    );
-    $(".seamless-table-area").has(eventsTableBody).append(loader); // Append to wrapper
-
-    // Also simple fallback
-    eventsTableBody.html(
-      '<tr><td colspan="6" style="text-align:center; padding: 20px;">Loading...</td></tr>'
-    );
+    showSettingsPageLoading();
+    showTableSkeleton(eventsTableBody, 6);
 
     try {
       if (!window.SeamlessAPI) {
@@ -173,7 +208,7 @@ jQuery(document).ready(function ($) {
         eventsTableBody.html(
           '<tr><td colspan="6" style="text-align:center; color:red;">API Client not loaded. Refresh page.</td></tr>'
         );
-        loader.remove();
+        hideTableSkeleton(eventsTableBody);
         return;
       }
 
@@ -209,7 +244,8 @@ jQuery(document).ready(function ($) {
         }</td></tr>`
       );
     } finally {
-      loader.remove();
+      hideTableSkeleton(eventsTableBody);
+      hideSettingsPageLoading();
     }
   }
 
@@ -334,24 +370,21 @@ jQuery(document).ready(function ($) {
   }
 
   async function loadMemberships(force = false) {
-    if (!memTableBody.length) return;
+    if (!memTableBody.length) {
+      hideSettingsPageLoading();
+      return;
+    }
 
     if (!force && memTableBody.data("loaded") === "true") {
       console.log("Seamless Admin: Memberships already loaded.");
+      hideSettingsPageLoading();
       return;
     }
 
     console.log("Seamless Admin: Loading memberships...");
 
-    // Loader
-    const loader = $(
-      '<div class="seamless-admin-loader"><div class="seamless-admin-spinner"></div><div class="seamless-admin-loading-text">Loading Memberships...</div></div>'
-    );
-    $(".seamless-table-area").has(memTableBody).append(loader);
-
-    memTableBody.html(
-      '<tr><td colspan="8" style="text-align:center; padding: 20px;">Loading...</td></tr>'
-    );
+    showSettingsPageLoading();
+    showTableSkeleton(memTableBody, 8);
 
     try {
       if (!window.SeamlessAPI) {
@@ -359,7 +392,7 @@ jQuery(document).ready(function ($) {
         memTableBody.html(
           '<tr><td colspan="8" style="text-align:center; color:red;">API Client not loaded. Refresh page.</td></tr>'
         );
-        loader.remove();
+        hideTableSkeleton(memTableBody);
         return;
       }
       const response = await window.SeamlessAPI.getAllMembershipPlans();
@@ -374,7 +407,8 @@ jQuery(document).ready(function ($) {
         `<tr><td colspan="8" style="text-align:center; color:red;">Error loading memberships: ${error.message}</td></tr>`
       );
     } finally {
-      loader.remove();
+      hideTableSkeleton(memTableBody);
+      hideSettingsPageLoading();
     }
   }
 
@@ -441,6 +475,8 @@ jQuery(document).ready(function ($) {
     handleTabSwitch("events");
   } else if (isMembershipTab) {
     handleTabSwitch("membership");
+  } else {
+    hideSettingsPageLoading();
   }
 
   // Listen for tab clicks

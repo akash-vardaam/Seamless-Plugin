@@ -48,7 +48,7 @@ class WelcomePage
 	private function render_overview_view(): void
 	{
 ?>
-		<section class="seamless-overview-panel">
+		<section class="seamless-overview-panel seamless-loading-surface is-page-loading" data-seamless-page-loading="overview">
 				<?php $this->render_welcome_header(); ?>
 				<?php $this->render_stats_row(); ?>
 				<?php $this->render_quick_access_header(); ?>
@@ -168,15 +168,26 @@ class WelcomePage
 ?>
 		<div class="seamless-stats-grid">
 			<?php foreach ($stats as $stat) : ?>
-				<div class="seamless-stat-card<?php echo !empty($stat['dynamic']) ? ' is-dynamic' : ''; ?>"<?php echo !empty($stat['dynamic_key']) ? ' data-stat-key="' . esc_attr($stat['dynamic_key']) . '"' : ''; ?>>
+				<?php $accent_class = $stat['accent_class'] ?? 'is-primary'; ?>
+				<div class="seamless-stat-card<?php echo !empty($stat['dynamic']) ? ' is-dynamic is-loading' : ''; ?>"<?php echo !empty($stat['dynamic_key']) ? ' data-stat-key="' . esc_attr($stat['dynamic_key']) . '"' : ''; ?>>
 					<div class="seamless-stat-card-top">
 						<span class="seamless-stat-label"><?php echo esc_html($stat['label']); ?></span>
-						<span class="seamless-stat-icon <?php echo esc_attr($stat['accent_class']); ?>">
+						<span class="seamless-stat-icon <?php echo esc_attr($accent_class); ?>">
 							<span class="dashicons <?php echo esc_attr($stat['icon_class']); ?>"></span>
 						</span>
 					</div>
-					<p class="seamless-stat-value" data-stat-value><?php echo esc_html($stat['value']); ?></p>
-					<p class="seamless-stat-trend" data-stat-trend><?php echo esc_html($stat['trend']); ?></p>
+					<?php if (!empty($stat['dynamic'])) : ?>
+						<p class="seamless-stat-value" data-stat-value aria-live="polite">
+							<span class="seamless-skeleton-line seamless-skeleton-stat-value" aria-hidden="true"></span>
+							<span class="screen-reader-text"><?php esc_html_e('Loading event total', 'seamless'); ?></span>
+						</p>
+						<p class="seamless-stat-trend" data-stat-trend>
+							<span class="seamless-skeleton-line seamless-skeleton-stat-trend" aria-hidden="true"></span>
+						</p>
+					<?php else : ?>
+						<p class="seamless-stat-value" data-stat-value><?php echo esc_html($stat['value']); ?></p>
+						<p class="seamless-stat-trend" data-stat-trend><?php echo esc_html($stat['trend']); ?></p>
+					<?php endif; ?>
 				</div>
 			<?php endforeach; ?>
 		</div>
@@ -348,7 +359,7 @@ class WelcomePage
 		return [
 			[
 				'label' => __('Synced Events', 'seamless'),
-				'value' => __('Loading...', 'seamless'),
+				'value' => '',
 				'trend' => __('Latest Seamless event feed', 'seamless'),
 				'icon_class' => 'dashicons-calendar-alt',
 				'dynamic' => true,
@@ -470,6 +481,12 @@ class WelcomePage
 ?>
 		<script>
 			jQuery(document).ready(function($) {
+				const $overviewSurface = $('[data-seamless-page-loading="overview"]');
+
+				function finishOverviewLoading() {
+					$overviewSurface.removeClass('is-page-loading');
+				}
+
 				$('.seamless-feature-card').on('click', function(e) {
 					if (!$(this).hasClass('seamless-feature-card-disabled')) {
 						var link = $(this).find('.seamless-feature-card-link');
@@ -484,13 +501,24 @@ class WelcomePage
 					window.SeamlessAPI.fetchAllEvents()
 						.then(function(events) {
 							var total = Array.isArray(events) ? events.length : 0;
+							$eventStat.removeClass('is-loading');
 							$eventStat.find('[data-stat-value]').text(total);
 							$eventStat.find('[data-stat-trend]').text(total > 0 ? 'Published events' : 'No events returned from Seamless');
+							finishOverviewLoading();
 						})
 						.catch(function() {
+							$eventStat.removeClass('is-loading');
 							$eventStat.find('[data-stat-value]').text('0');
 							$eventStat.find('[data-stat-trend]').text('Connect Seamless to load event totals');
+							finishOverviewLoading();
 						});
+				} else if ($eventStat.length) {
+					$eventStat.removeClass('is-loading');
+					$eventStat.find('[data-stat-value]').text('0');
+					$eventStat.find('[data-stat-trend]').text('Connect Seamless to load event totals');
+					finishOverviewLoading();
+				} else {
+					finishOverviewLoading();
 				}
 
 				const storageKey = 'seamless_sidebar_collapsed';

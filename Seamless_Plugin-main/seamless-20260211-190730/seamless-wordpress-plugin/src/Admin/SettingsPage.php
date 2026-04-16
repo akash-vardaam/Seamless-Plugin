@@ -301,7 +301,7 @@ class SettingsPage
 		$active_tab = $this->get_active_tab();
 	?>
 		<div class="seamless-settings-content">
-			<div class="seamless-page-surface">
+			<div class="seamless-page-surface seamless-loading-surface is-page-loading" data-seamless-page-loading="settings" data-seamless-loading-tab="<?php echo esc_attr($active_tab); ?>">
 				<div class="seamless-tab-panel is-active" data-tab="<?php echo esc_attr($active_tab); ?>">
 					<?php $this->render_tab_content($active_tab); ?>
 				</div>
@@ -1028,7 +1028,9 @@ class SettingsPage
 									<th><?php esc_html_e('Shortcode', 'seamless'); ?></th>
 								</tr>
 							</thead>
-							<tbody id="seamless-events-table-body"></tbody>
+							<tbody id="seamless-events-table-body">
+								<?php $this->render_table_skeleton_rows(6); ?>
+							</tbody>
 						</table>
 						<div id="seamless-events-pagination" class="seamless-pagination-wrapper"></div>
 					</div>
@@ -1174,7 +1176,9 @@ class SettingsPage
 									<th><?php esc_html_e('Shortcode', 'seamless'); ?></th>
 								</tr>
 							</thead>
-							<tbody id="seamless-membership-table-body"></tbody>
+							<tbody id="seamless-membership-table-body">
+								<?php $this->render_table_skeleton_rows(8); ?>
+							</tbody>
 						</table>
 						<div id="seamless-membership-pagination" class="seamless-pagination-wrapper"></div>
 					</div>
@@ -1368,12 +1372,29 @@ class SettingsPage
 				}
 
 				// Scoped loader overlay helpers for table areas
+				function getSkeletonColumnCount($tbody) {
+					var headerCount = $tbody.closest('table').find('thead th').length;
+					return headerCount > 0 ? headerCount : 1;
+				}
+
+				function renderTableSkeleton($tbody, columns, rows) {
+					rows = rows || 6;
+					var html = '';
+
+					for (var rowIndex = 0; rowIndex < rows; rowIndex++) {
+						html += '<tr class="seamless-skeleton-row" aria-hidden="true">';
+						for (var columnIndex = 0; columnIndex < columns; columnIndex++) {
+							html += '<td><span class="seamless-skeleton-line seamless-skeleton-cell seamless-skeleton-cell-' + ((columnIndex % 4) + 1) + '"></span></td>';
+						}
+						html += '</tr>';
+					}
+
+					$tbody.html(html);
+				}
+
 				function ensureScopedLoaders() {
 					$('.seamless-table-area').each(function() {
 						var $area = $(this);
-						if ($area.find('.seamless-admin-loader').length === 0) {
-							$area.append('<div class="seamless-admin-loader hidden"><div class="seamless-admin-spinner"></div><div class="seamless-admin-loading-text">Loading latest data...</div></div>');
-						}
 						// Ensure the area can contain an absolutely positioned overlay
 						if ($area.css('position') === 'static') {
 							$area.css('position', 'relative');
@@ -1383,11 +1404,22 @@ class SettingsPage
 
 				function showScopedLoading() {
 					ensureScopedLoaders();
-					$('.seamless-table-area .seamless-admin-loader').removeClass('hidden');
+					$('[data-seamless-page-loading="settings"]').addClass('is-page-loading');
+					$('.seamless-table-area').each(function() {
+						var $area = $(this);
+						var $tbody = $area.find('tbody').first();
+
+						if ($tbody.length) {
+							$area.addClass('is-loading');
+							renderTableSkeleton($tbody, getSkeletonColumnCount($tbody));
+							$area.find('.seamless-pagination-wrapper').empty().hide();
+						}
+					});
 				}
 
 				function hideScopedLoading() {
-					$('.seamless-table-area .seamless-admin-loader').addClass('hidden');
+					$('.seamless-table-area').removeClass('is-loading');
+					$('[data-seamless-page-loading="settings"]').removeClass('is-page-loading');
 				}
 
 				// If a previous action triggered a reload with loading intent, keep showing overlay until window load
@@ -2847,6 +2879,7 @@ class SettingsPage
 				flex-direction: column;
 				align-items: center;
 				justify-content: center;
+				border-radius: 8px;
 			}
 
 			.seamless-admin-loader.hidden {
@@ -2860,12 +2893,6 @@ class SettingsPage
 				border-top-color: #6c5ce7;
 				border-radius: 50%;
 				animation: seamless-admin-spin 1s linear infinite;
-			}
-
-			.seamless-admin-loading-text {
-				margin-top: 12px;
-				font-weight: 600;
-				color: #333;
 			}
 
 			@keyframes seamless-admin-spin {
@@ -2886,6 +2913,75 @@ class SettingsPage
 				left: 0;
 				right: 0;
 				bottom: 0;
+			}
+
+			.seamless-skeleton-line {
+				display: block;
+				position: relative;
+				overflow: hidden;
+				border-radius: 8px;
+				background: #eef1f6;
+				color: transparent;
+			}
+
+			.seamless-skeleton-line::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				transform: translateX(-100%);
+				background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+				animation: seamless-skeleton-shimmer 1.35s ease-in-out infinite;
+			}
+
+			.seamless-stat-card.is-loading .seamless-stat-value,
+			.seamless-stat-card.is-loading .seamless-stat-trend {
+				min-height: 1em;
+			}
+
+			.seamless-skeleton-stat-value {
+				width: 82px;
+				height: 34px;
+				margin-top: 2px;
+			}
+
+			.seamless-skeleton-stat-trend {
+				width: 72%;
+				height: 14px;
+			}
+
+			.seamless-table-area.is-loading .seamless-table tbody tr:hover {
+				background: transparent;
+			}
+
+			.seamless-skeleton-row td {
+				pointer-events: none;
+			}
+
+			.seamless-skeleton-cell {
+				height: 18px;
+				max-width: 100%;
+			}
+
+			.seamless-skeleton-cell-1 {
+				width: 42px;
+			}
+
+			.seamless-skeleton-cell-2 {
+				width: 86%;
+			}
+
+			.seamless-skeleton-cell-3 {
+				width: 64%;
+			}
+
+			.seamless-skeleton-cell-4 {
+				width: 118px;
+			}
+
+			@keyframes seamless-skeleton-shimmer {
+				100% {
+					transform: translateX(100%);
+				}
 			}
 
 			/* Modern table + search styles */
@@ -3305,6 +3401,20 @@ class SettingsPage
 		// Remove all actions that add notices
 		remove_all_actions('admin_notices');
 		remove_all_actions('all_admin_notices');
+	}
+
+	private function render_table_skeleton_rows(int $columns, int $rows = 6): void
+	{
+		for ($row = 0; $row < $rows; $row++) {
+			echo '<tr class="seamless-skeleton-row" aria-hidden="true">';
+
+			for ($column = 0; $column < $columns; $column++) {
+				$cell_class = 'seamless-skeleton-cell-' . (($column % 4) + 1);
+				echo '<td><span class="seamless-skeleton-line seamless-skeleton-cell ' . esc_attr($cell_class) . '"></span></td>';
+			}
+
+			echo '</tr>';
+		}
 	}
 
 	public function schedule_rewrite_flush(): void
