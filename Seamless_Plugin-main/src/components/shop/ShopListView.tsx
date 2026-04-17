@@ -9,6 +9,7 @@ import {
 import { LoadingSpinner } from '../LoadingSpinner';
 import { useShadowRoot } from '../ShadowRoot';
 import {
+  addItemToCart,
   fetchAllShopProducts,
   fetchCurrentCart,
   fetchShopCategories,
@@ -81,6 +82,7 @@ export const ShopListView: React.FC = () => {
   const [products, setProducts] = useState<ShopProduct[]>([]);
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [cartCount, setCartCount] = useState(0);
+  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -128,6 +130,16 @@ export const ShopListView: React.FC = () => {
   }, []);
 
   useEffect(() => subscribeToShopCart((cart) => setCartCount(cart.itemCount)), []);
+
+  useEffect(() => {
+    if (!notice) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setNotice('');
+    }, 5000);
+
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     const refreshCartCount = () => {
@@ -283,6 +295,18 @@ export const ShopListView: React.FC = () => {
     setSelectedAvailabilities([]);
     setSort('featured');
     setSortOpen(false);
+  };
+
+  const handleSimpleAddToCart = async (product: ShopProduct) => {
+    if (!product.isAvailable) return;
+
+    try {
+      const nextCart = await addItemToCart(product, 1, {});
+      setCartCount(nextCart.itemCount);
+      setNotice(`${product.title} is added to cart.`);
+    } catch (cartError: any) {
+      setNotice(cartError?.message || 'Unable to add this product right now.');
+    }
   };
 
   if (loading) {
@@ -476,24 +500,53 @@ export const ShopListView: React.FC = () => {
         ) : null}
       </section>
 
+      {notice ? (
+        <div className={`seamless-shop__alert ${notice.includes('Unable') ? '' : 'seamless-shop__alert--success'}`}>
+          {notice}
+        </div>
+      ) : null}
+
       {filteredProducts.length ? (
         <div className="seamless-shop__grid">
           {filteredProducts.map((product) => {
             const productCategories = resolveProductCategories(product, categoryMap);
             const categoryLabel = productCategories[0]?.name || 'Uncategorized';
+            const hasVariants = Boolean(product.hasVariants || product.variants?.length);
+            const isSimpleOutOfStock = !hasVariants && product.isAvailable === false;
 
             return (
               <article key={product.id} className="seamless-shop__product-card">
-                <a href={buildProductUrl(product)} className="seamless-shop__product-link">
-                  <div className="seamless-shop__image-square">
+                <div className="seamless-shop__image-square">
+                  <a href={buildProductUrl(product)} className="seamless-shop__product-link">
                     <img
                       src={product.featuredImage || getPlaceholderImage(product.title)}
                       alt={product.title}
                       loading="lazy"
                       className="seamless-shop__image"
                     />
+                  </a>
+                  <div className="seamless-shop__card-action-wrap">
+                    {hasVariants ? (
+                      <button
+                        onClick={() => window.location.href = buildProductUrl(product)}
+                        className="seamless-shop__primary-button seamless-shop__card-action"
+                      >
+                        <span className="seamless-shop-card-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-settings2-icon lucide-settings-2"><path d="M14 17H5"></path><path d="M19 7h-9"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg></span>
+                        Choose Options
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={isSimpleOutOfStock}
+                        className="seamless-shop__primary-button seamless-shop__card-action"
+                        onClick={() => void handleSimpleAddToCart(product)}
+                      >
+                        <span className="seamless-shop-card-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-shopping-bag-icon lucide-shopping-bag"><path d="M16 10a4 4 0 0 1-8 0"></path><path d="M3.103 6.034h17.794"></path><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"></path></svg></span>
+                        {isSimpleOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                      </button>
+                    )}
                   </div>
-                </a>
+                </div>
                 <div className="seamless-shop__card-body">
                   <div className="seamless-shop__eyebrow">{categoryLabel}</div>
                   <h3 className="seamless-shop__title">

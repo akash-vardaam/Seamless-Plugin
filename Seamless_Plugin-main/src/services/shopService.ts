@@ -251,13 +251,7 @@ export const subscribeToShopCart = (listener: (cart: ShopCart) => void): (() => 
 const getRawCartItems = (source: Record<string, unknown>): unknown[] =>
   toArray<unknown>(source.items ?? source.line_items ?? source.cart_items);
 
-const getRawCartItemCount = (source: Record<string, unknown>, items: ShopCartItem[]): number =>
-  getNumericValue(
-    source.item_count,
-    source.itemCount,
-    source.quantity,
-    items.reduce((total, item) => total + item.quantity, 0),
-  );
+const getRawCartItemCount = (_source: Record<string, unknown>, items: ShopCartItem[]): number => items.length;
 
 const getRawCartTotal = (source: Record<string, unknown>, fallbackSubtotal: number): number =>
   getNumericValue(source.total, source.grand_total, source.cart_total, fallbackSubtotal);
@@ -322,6 +316,133 @@ const hasMorePages = (pagination: Record<string, unknown>, batchLength: number):
   }
 
   return batchLength === PRODUCTS_PER_PAGE;
+};
+
+const normalizeVariantOptions = (
+  rawOptions: unknown,
+  attributeType: string,
+): ShopProduct['variants'][number]['options'] => {
+  const optionsSource = Array.isArray(rawOptions)
+    ? rawOptions
+    : isRecord(rawOptions)
+      ? Object.values(rawOptions)
+      : [];
+
+  return optionsSource
+    .map((option) => {
+      if (option === null || option === undefined) return null;
+
+      if (typeof option === 'string' || typeof option === 'number') {
+        const primitiveValue = String(option).trim();
+        if (!primitiveValue) return null;
+
+        return {
+          id: `${attributeType}-${primitiveValue}`,
+          value: primitiveValue,
+          swatch: '',
+          image: '',
+          images: [],
+          stockQuantity: 0,
+          isAvailable: true,
+        };
+      }
+
+      if (!isRecord(option)) return null;
+
+      const optionImages: string[] = [];
+      if (typeof option.image === 'string' && option.image.trim()) {
+        optionImages.push(option.image);
+      }
+      toArray<unknown>(option.images ?? option.gallery ?? option.image_urls).forEach((image) => {
+        if (typeof image === 'string' && image.trim()) {
+          optionImages.push(image);
+        }
+      });
+
+      const optionStockQuantity = Number(
+        option.stock_quantity ??
+          option.inventory_quantity ??
+          option.quantity ??
+          option.stock ??
+          0,
+      );
+
+      const optionValue = String(
+        option.value ??
+          option.label ??
+          option.name ??
+          option.option ??
+          option.term ??
+          '',
+      ).trim();
+
+      if (!optionValue) return null;
+
+      return {
+        id: String(option.variant_id ?? option.id ?? `${attributeType}-${optionValue}`),
+        value: optionValue,
+        swatch: String(option.swatch ?? option.color ?? option.hex ?? '').trim(),
+        image: String(option.image ?? optionImages[0] ?? ''),
+        images: Array.from(new Set(optionImages.filter(Boolean))),
+        stockQuantity: Number.isFinite(optionStockQuantity) ? optionStockQuantity : 0,
+        isAvailable:
+          typeof option.is_available === 'boolean' || typeof option.available === 'boolean'
+            ? Boolean(option.is_available ?? option.available)
+            : optionStockQuantity > 0 || !Number.isFinite(optionStockQuantity) || optionStockQuantity === 0,
+      };
+    })
+    .filter(Boolean) as ShopProduct['variants'][number]['options'];
+};
+
+const normalizeProductVariants = (source: Record<string, unknown>): ShopProduct['variants'] => {
+  const rawGroups = [
+    ...toArray<unknown>(source.variants),
+    ...toArray<unknown>(source.variant_attributes),
+    ...toArray<unknown>(source.attributes),
+    ...toArray<unknown>(source.options),
+  ];
+
+  const normalized = rawGroups
+    .map((group) => {
+      if (!group) return null;
+
+      if (isRecord(group)) {
+        const attributeType = String(
+          group.attribute_type ?? group.attributeType ?? group.name ?? group.type ?? group.key ?? 'Variant',
+        ).trim();
+
+        const options = normalizeVariantOptions(
+          group.options ?? group.values ?? group.terms ?? group.items ?? group.choices,
+          attributeType || 'Variant',
+        );
+
+        if (!options.length) return null;
+
+        return {
+          attributeType: attributeType || 'Variant',
+          options,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean) as ShopProduct['variants'];
+
+  if (normalized.length) {
+    return normalized;
+  }
+
+  if (isRecord(source.variants)) {
+    return Object.entries(source.variants)
+      .map(([attributeType, values]) => {
+        const options = normalizeVariantOptions(values, attributeType);
+        if (!options.length) return null;
+        return { attributeType, options };
+      })
+      .filter(Boolean) as ShopProduct['variants'];
+  }
+
+  return [];
 };
 
 const normalizeShopProduct = (product: unknown): ShopProduct | null => {
@@ -418,54 +539,7 @@ const normalizeShopProduct = (product: unknown): ShopProduct | null => {
       ? stockQuantity > 0
       : true;
 
-  const variants = toArray<unknown>(source.variants)
-    .map((group) => {
-      if (!group || typeof group !== 'object') return null;
-
-      const groupValue = group as Record<string, unknown>;
-      const options = toArray<unknown>(groupValue.options)
-        .map((option) => {
-          if (!option || typeof option !== 'object') return null;
-
-          const optionValue = option as Record<string, unknown>;
-          const optionImages: string[] = [];
-          if (typeof optionValue.image === 'string' && optionValue.image.trim()) {
-            optionImages.push(optionValue.image);
-          }
-          toArray<unknown>(optionValue.images).forEach((image) => {
-            if (typeof image === 'string' && image.trim()) {
-              optionImages.push(image);
-            }
-          });
-
-          const optionStockQuantity = Number(
-            optionValue.stock_quantity ?? optionValue.inventory_quantity ?? optionValue.quantity ?? 0,
-          );
-
-          return {
-            id: String(
-              optionValue.variant_id ??
-                optionValue.id ??
-                `${String(groupValue.attribute_type ?? 'variant')}-${String(optionValue.value ?? '')}`,
-            ),
-            value: String(optionValue.value ?? optionValue.label ?? ''),
-            swatch: String(optionValue.swatch ?? optionValue.color ?? '').trim(),
-            image: String(optionValue.image ?? optionImages[0] ?? ''),
-            images: Array.from(new Set(optionImages.filter(Boolean))),
-            stockQuantity: Number.isFinite(optionStockQuantity) ? optionStockQuantity : 0,
-            isAvailable: optionStockQuantity > 0,
-          };
-        })
-        .filter(Boolean);
-
-      if (!options.length) return null;
-
-      return {
-        attributeType: String(groupValue.attribute_type ?? groupValue.name ?? groupValue.type ?? 'Variant'),
-        options,
-      };
-    })
-    .filter(Boolean) as ShopProduct['variants'];
+  const variants = normalizeProductVariants(source);
 
   return {
     id,
@@ -598,10 +672,27 @@ const normalizeCartItem = (item: unknown): ShopCartItem | null => {
 
 const normalizeCart = (value: unknown): ShopCart => extractCart(value);
 
+const getCartItemIdentifier = (item: ShopCartItem): string =>
+  getStringValue(item.key, item.id, item.raw?.['key'], item.raw?.['item_key'], item.raw?.['id']);
+
 const isInvalidGuestCartError = (error: unknown): boolean => {
   const message = String((error as any)?.message || error || '');
   const status = Number((error as any)?.response?.status || 0);
   return [401, 403, 422].includes(status) || /401|403|422|invalid/i.test(message);
+};
+
+const getApiMessage = (value: unknown): string => {
+  if (!value || typeof value !== 'object') return '';
+
+  const source = value as Record<string, unknown>;
+  const directMessage = getStringValue(source.message, source.error);
+  if (directMessage) return directMessage;
+
+  if (source.data && typeof source.data === 'object') {
+    return getApiMessage(source.data);
+  }
+
+  return '';
 };
 
 const getCartRequestParams = (config: ShopRuntimeConfig, guestToken: string): Record<string, string> => {
@@ -633,16 +724,29 @@ const mutateCart = async (
     ...(typeof payload.quantity !== 'undefined' ? { quantity: payload.quantity } : {}),
   };
 
-  const response =
-    method === 'post'
-      ? await api.post(requestEndpoint, payload, { params })
-      : method === 'patch'
-        ? await api.patch(requestEndpoint, payload, { params })
-        : await api.delete(requestEndpoint, { data: payload, params });
+  let response;
+  try {
+    response =
+      method === 'post'
+        ? await api.post(requestEndpoint, payload, { params })
+        : method === 'patch'
+          ? await api.patch(requestEndpoint, payload, { params })
+          : await api.delete(requestEndpoint, { data: payload, params });
+  } catch (requestError: any) {
+    throw new Error(
+      getApiMessage(requestError?.response?.data) ||
+        requestError?.message ||
+        'Unable to update cart right now.',
+    );
+  }
 
   const responseGuestToken = findGuestToken(response.data);
   if (responseGuestToken) {
     setGuestToken(responseGuestToken);
+  }
+
+  if ((response.data as any)?.success === false) {
+    throw new Error(getApiMessage(response.data) || 'Unable to update cart right now.');
   }
 
   const responseCart = normalizeCart(response.data);
@@ -795,11 +899,19 @@ export const addItemToCart = async (product: ShopProduct, quantity: number, vari
 export const updateCartItemQuantity = async (item: ShopCartItem, desiredQuantity: number): Promise<ShopCart> => {
   const config = getShopRuntimeConfig();
   const guestToken = getGuestToken();
+  const currentQuantity = Math.max(1, item.quantity);
   const nextQuantity = Math.max(1, desiredQuantity);
+  const itemIdentifier = getCartItemIdentifier(item);
 
-  if (nextQuantity === Math.max(1, item.quantity)) return fetchCurrentCart();
+  if (!itemIdentifier) {
+    throw new Error('Unable to update this cart item right now.');
+  }
 
-  const payload: Record<string, unknown> = { quantity: nextQuantity };
+  if (nextQuantity === currentQuantity) return fetchCurrentCart();
+
+  const delta = nextQuantity - currentQuantity;
+
+  const payload: Record<string, unknown> = { quantity: Math.abs(delta) };
 
   if (guestToken) {
     payload.guest_token = guestToken;
@@ -807,12 +919,20 @@ export const updateCartItemQuantity = async (item: ShopCartItem, desiredQuantity
     payload.user_id = config.amsUserId;
   }
 
-  return mutateCart('patch', `/shop/cart/items/${encodeURIComponent(item.key)}`, payload);
+  return delta > 0
+    ? mutateCart('patch', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload)
+    : mutateCart('delete', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload);
 };
 
-export const removeCartItem = async (itemKey: string): Promise<ShopCart> => {
+export const removeCartItem = async (item: ShopCartItem, quantity = item.quantity): Promise<ShopCart> => {
   const config = getShopRuntimeConfig();
   const guestToken = getGuestToken();
+  const itemIdentifier = getCartItemIdentifier(item);
+
+  if (!itemIdentifier) {
+    throw new Error('Unable to remove this cart item right now.');
+  }
+
   const payload: Record<string, unknown> = {};
 
   if (config.isLoggedIn) {
@@ -822,5 +942,8 @@ export const removeCartItem = async (itemKey: string): Promise<ShopCart> => {
     payload.guest_token = guestToken;
   }
 
-  return mutateCart('delete', `/shop/cart/items/${encodeURIComponent(itemKey)}`, payload);
+  payload.quantity = Math.max(1, quantity);
+
+  await mutateCart('delete', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload);
+  return fetchCurrentCart();
 };

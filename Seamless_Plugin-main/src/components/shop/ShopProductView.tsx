@@ -19,14 +19,17 @@ import {
   fetchShopProduct,
   subscribeToShopCart,
 } from '../../services/shopService';
-import type { ShopCategory, ShopProduct } from '../../types/shop';
+import type { ShopCart, ShopCategory, ShopProduct } from '../../types/shop';
 import {
   buildCartUrl,
   buildProductUrl,
   buildSafeRichTextBlocks,
+  buildSiteUrl,
   buildShopUrl,
+  buildVariantSelectionMap,
   flattenCategories,
   formatAttributeLabel,
+  getCartQuantityForSelection,
   getInitialVariantSelection,
   getPlaceholderImage,
   normalizeGalleryImages,
@@ -67,12 +70,14 @@ export const ShopProductView: React.FC = () => {
   const { slug = '' } = useParams();
   const [product, setProduct] = useState<ShopProduct | null>(null);
   const [allProducts, setAllProducts] = useState<ShopProduct[]>([]);
+  const [cart, setCart] = useState<ShopCart | null>(null);
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [cartCount, setCartCount] = useState(0);
   const [notice, setNotice] = useState('');
+  const [stockWarning, setStockWarning] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,8 +113,7 @@ export const ShopProductView: React.FC = () => {
       setError(null);
 
       try {
-        const [singleProduct, loadedProducts, loadedCategories, cart] = await Promise.all([
-          fetchShopProduct(slug),
+        const [loadedProducts, loadedCategories, cart] = await Promise.all([
           fetchAllShopProducts(),
           fetchShopCategories().catch(() => []),
           fetchCurrentCart().catch(() => null),
@@ -117,9 +121,17 @@ export const ShopProductView: React.FC = () => {
 
         if (cancelled) return;
 
+        const preferredSlug =
+          loadedProducts.find((candidate) => candidate.slug === slug || candidate.id === slug)?.slug ||
+          slug;
+
+        const singleProduct = await fetchShopProduct(preferredSlug);
+
+        if (cancelled) return;
+
         const resolvedProduct =
           singleProduct ||
-          loadedProducts.find((candidate) => candidate.slug === slug || candidate.id === slug) ||
+          loadedProducts.find((candidate) => candidate.slug === preferredSlug) ||
           null;
 
         if (!resolvedProduct) {
@@ -129,11 +141,13 @@ export const ShopProductView: React.FC = () => {
 
         setProduct(resolvedProduct);
         setAllProducts(loadedProducts);
+        setCart(cart);
         setCategories(loadedCategories.length ? loadedCategories : buildFallbackCategoriesFromProducts(loadedProducts));
         setSelectedVariantIds(getInitialVariantSelection(resolvedProduct));
         setGalleryIndex(0);
         setQuantity(1);
         setCartCount(cart?.itemCount ?? 0);
+        setStockWarning('');
       } catch (productError: any) {
         if (!cancelled) {
           setError(productError?.message || 'Unable to load this product right now.');
@@ -194,13 +208,23 @@ export const ShopProductView: React.FC = () => {
     };
   }, [zoomState.open]);
 
-  useEffect(() => subscribeToShopCart((cart) => setCartCount(cart.itemCount)), []);
+  useEffect(
+    () =>
+      subscribeToShopCart((nextCart) => {
+        setCart(nextCart);
+        setCartCount(nextCart.itemCount);
+      }),
+    [],
+  );
 
   useEffect(() => {
     const refreshCartCount = () => {
       if (document.visibilityState === 'visible') {
         void fetchCurrentCart()
-          .then((cart) => setCartCount(cart.itemCount))
+          .then((nextCart) => {
+            setCart(nextCart);
+            setCartCount(nextCart.itemCount);
+          })
           .catch(() => undefined);
       }
     };
@@ -264,17 +288,68 @@ export const ShopProductView: React.FC = () => {
     () => buildSafeRichTextBlocks(product?.descriptionHtml || product?.shortDescription || ''),
     [product?.descriptionHtml, product?.shortDescription],
   );
+  const currentVariantSelectionMap = useMemo(
+    () =>
+      buildVariantSelectionMap(
+        selectedOptions.map((option, index) => ({
+          attributeType: product?.variants[index]?.attributeType || '',
+          attributeLabel: product?.variants[index]?.attributeType || '',
+          value: String(option?.value || ''),
+          valueLabel: String(option?.value || ''),
+        })),
+      ),
+    [product?.variants, selectedOptions],
+  );
+  const quantityInCart = useMemo(
+    () => getCartQuantityForSelection(cart, String(product?.id || ''), currentVariantSelectionMap),
+    [cart, currentVariantSelectionMap, product?.id],
+  );
 
   const selectedStock = primaryOption?.stockQuantity ?? product?.stockQuantity ?? 0;
-  const isOutOfStock = product?.hasVariants && primaryOption ? !primaryOption.isAvailable : !product?.isAvailable;
+  const availableStock = selectedStock > 0 ? Math.max(selectedStock - quantityInCart, 0) : 0;
+  const hasTrackedStock = selectedStock > 0;
+  const isOutOfStock =
+    product?.hasVariants && primaryOption
+      ? !primaryOption.isAvailable || (hasTrackedStock && availableStock <= 0)
+      : !product?.isAvailable || (hasTrackedStock && availableStock <= 0);
 
   useEffect(() => {
     setQuantity((current) => {
       if (current < 1) return 1;
-      if (selectedStock > 0 && current > selectedStock) return selectedStock;
+      if (availableStock > 0 && current > availableStock) return availableStock;
       return current;
     });
-  }, [selectedStock]);
+  }, [availableStock]);
+
+  useEffect(() => {
+    if (!notice) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setNotice('');
+    }, 9000);
+
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
+  const getCartQuantityForVariantOption = (groupIndex: number, optionId: string, optionValue: string): number => {
+    if (!product) return 0;
+
+    const nextSelections = { ...currentVariantSelectionMap };
+    const attributeType = String(product.variants[groupIndex]?.attributeType || '')
+      .trim()
+      .toLowerCase();
+
+    if (attributeType) {
+      nextSelections[attributeType] = String(optionValue || '').trim().toLowerCase();
+    }
+
+    const selectedId = selectedVariantIds[groupIndex];
+    if (!selectedId || selectedId !== optionId) {
+      return getCartQuantityForSelection(cart, product.id, nextSelections);
+    }
+
+    return quantityInCart;
+  };
 
   const similarProducts = useMemo(() => {
     if (!product) return [];
@@ -300,6 +375,7 @@ export const ShopProductView: React.FC = () => {
     if (!product || isOutOfStock || submitting) return;
 
     setSubmitting(true);
+    setStockWarning('');
 
     try {
       const variantSelections = product.variants.reduce<Record<string, string>>((accumulator, group, index) => {
@@ -314,11 +390,29 @@ export const ShopProductView: React.FC = () => {
         return accumulator;
       }, {});
 
-      const cart = await addItemToCart(product, quantity, variantSelections);
-      setCartCount(cart.itemCount);
+      if (availableStock <= 0) {
+        setStockWarning('This selected variant is out of stock. Choose another available option.');
+        return;
+      }
+
+      if (quantity > availableStock) {
+        setQuantity(availableStock);
+        setStockWarning(
+          availableStock === 1
+            ? 'Only 1 item is available for this selection.'
+            : `Only ${availableStock} items are available for this selection.`,
+        );
+        return;
+      }
+
+      const nextCart = await addItemToCart(product, quantity, variantSelections);
+      setCart(nextCart);
+      setCartCount(nextCart.itemCount);
       setNotice(`${product.title} is added to cart.`);
     } catch (cartError: any) {
-      setNotice(cartError?.message || 'Unable to add this product right now.');
+      setStockWarning(
+        cartError?.message || 'This selected variant is out of stock. Choose another available option.',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -381,27 +475,29 @@ export const ShopProductView: React.FC = () => {
 
   return (
     <div className="seamless-shop seamless-shop--product">
-      <nav className="seamless-shop__breadcrumb">
-        <a href={getShopUrlHome()} >
-          Home
-        </a>
-        <span>/</span>
-        <a href={buildShopUrl()} >
-          Shop
-        </a>
-        <span>/</span>
-        <span>{product.title}</span>
-      </nav>
-      <a
-          href={buildCartUrl()}
-          className="seamless-shop__breadcrumb-cart"
-        >
-          <ShoppingCart className="seamless-shop__icon" />
-          <span>View Cart</span>
-          <span className="seamless-shop__badge">
-            {cartCount}
-          </span>
-        </a>
+      <div className="seamless_breadcrum_container">
+        <nav className="seamless-shop__breadcrumb">
+          <a href={buildSiteUrl()} >
+            Home
+          </a>
+          <span>/</span>
+          <a href={buildShopUrl()} >
+            Shop
+          </a>
+          <span>/</span>
+          <span>{product.title}</span>
+        </nav>
+        <a
+            href={buildCartUrl()}
+            className="seamless-shop__breadcrumb-cart"
+          >
+            <ShoppingCart className="seamless-shop__icon" />
+            <span>View Cart</span>
+            <span className="seamless-shop__badge">
+              {cartCount}
+            </span>
+          </a>
+        </div>
 
       {notice ? (
         <div className={`seamless-shop__alert ${notice.includes('Unable') ? '' : 'seamless-shop__alert--success'}`}>
@@ -506,10 +602,15 @@ export const ShopProductView: React.FC = () => {
                       <div className="seamless-shop__variant-options">
                         {group.options.map((option) => {
                           const isSelected = selectedOption?.id === option.id;
-                          const swatchClassName = [
-                            'seamless-shop__variant-swatch',
-                            isSelected ? 'is-selected' : '',
-                            !option.isAvailable ? 'is-disabled' : '',
+                          const optionStockQuantity = Number(option.stockQuantity ?? 0) || 0;
+                          const optionCartQuantity = getCartQuantityForVariantOption(groupIndex, option.id, option.value);
+                          const optionIsSoldOut = optionStockQuantity > 0 && optionCartQuantity >= optionStockQuantity;
+                          const isOptionDisabled = !option.isAvailable || optionIsSoldOut;
+                          const hasSwatch = Boolean(option.swatch);
+                          const optionClassName = [
+                            hasSwatch ? 'seamless-shop__variant-swatch' : 'seamless-shop__button',
+                            isSelected ? 'is-selected seamless-shop__button--active' : '',
+                            isOptionDisabled ? 'is-disabled' : '',
                           ]
                             .filter(Boolean)
                             .join(' ');
@@ -521,11 +622,11 @@ export const ShopProductView: React.FC = () => {
                                 data-variant-group-index={groupIndex}
                                 data-variant-id={option.id}
                                 aria-pressed={isSelected}
-                                aria-disabled={!option.isAvailable}
+                                aria-disabled={isOptionDisabled}
                                 aria-label={option.value}
-                                disabled={!option.isAvailable}
-                                className={swatchClassName}
-                                style={{ '--swatch-color': option.swatch || '#ffffff' } as React.CSSProperties}
+                                disabled={isOptionDisabled}
+                                className={optionClassName}
+                                style={hasSwatch ? ({ '--swatch-color': option.swatch || '#ffffff' } as React.CSSProperties) : undefined}
                                 onClick={() => {
                                   setSelectedVariantIds((current) => {
                                     const next = [...current];
@@ -534,11 +635,16 @@ export const ShopProductView: React.FC = () => {
                                   });
                                   setGalleryIndex(0);
                                   setQuantity(1);
+                                  setStockWarning('');
                                 }}
                               >
-                                <span className="seamless-shop__variant-swatch-inner">
-                                  {!option.isAvailable ? <span className="seamless-shop__swatch-unavailable" /> : null}
-                                </span>
+                                {hasSwatch ? (
+                                  <span className="seamless-shop__variant-swatch-inner">
+                                    {isOptionDisabled ? <span className="seamless-shop__swatch-unavailable" /> : null}
+                                  </span>
+                                ) : (
+                                  <span>{formatAttributeLabel(option.value)}</span>
+                                )}
                               </button>
                               {isSelected ? (
                                 <span className="seamless-shop__variant-label">{option.value}</span>
@@ -551,12 +657,7 @@ export const ShopProductView: React.FC = () => {
                   </div>
                 );
               })
-            ) : (
-              <div className="seamless-shop__variant-group">
-                <span className="seamless-shop__eyebrow">Product Type</span>
-                <strong className="seamless-shop__price">{getProductTypeLabel(product.productType)}</strong>
-              </div>
-            )}
+            ) : null}
           </div>
 
           <div className="seamless-shop__purchase-row">
@@ -565,7 +666,10 @@ export const ShopProductView: React.FC = () => {
                 type="button"
                 className="seamless-shop__quantity-button"
                 disabled={isOutOfStock}
-                onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+                onClick={() => {
+                  setQuantity((current) => Math.max(1, current - 1));
+                  setStockWarning('');
+                }}
               >
                 <Minus className="seamless-shop__icon" />
               </button>
@@ -575,12 +679,15 @@ export const ShopProductView: React.FC = () => {
               <button
                 type="button"
                 className="seamless-shop__quantity-button"
-                disabled={isOutOfStock || (selectedStock > 0 && quantity >= selectedStock)}
+                disabled={isOutOfStock || (availableStock > 0 && quantity >= availableStock)}
                 onClick={() =>
-                  setQuantity((current) => {
-                    if (selectedStock > 0) return Math.min(selectedStock, current + 1);
-                    return current + 1;
-                  })
+                  {
+                    setQuantity((current) => {
+                      if (availableStock > 0) return Math.min(availableStock, current + 1);
+                      return current + 1;
+                    });
+                    setStockWarning('');
+                  }
                 }
               >
                 <Plus className="seamless-shop__icon" />
@@ -598,9 +705,9 @@ export const ShopProductView: React.FC = () => {
             </button>
           </div>
 
-          {isOutOfStock && primaryOption ? (
+          {isOutOfStock || stockWarning ? (
             <p className="seamless-shop__stock-note">
-              This selected variant is out of stock. Choose another available option.
+              {stockWarning || 'This selected variant is out of stock. Choose another available option.'}
             </p>
           ) : (
             <div className="seamless-shop__trust-note">
@@ -647,30 +754,25 @@ export const ShopProductView: React.FC = () => {
           </div>
           <div className="seamless-shop__similar-grid">
             {similarProducts.map((item) => (
-              <article key={item.id} className="seamless-shop__product-card">
-                <a href={buildProductUrl(item)} className="seamless-shop__product-link">
-                  <div className="seamless-shop__image-square">
+              <article key={item.id} className="seamless-shop__similar-item">
+                <a href={buildProductUrl(item)} className="seamless-shop__similar-link">
+                  <div className="seamless-shop__similar-image-frame">
                     <img
                       src={item.featuredImage || getPlaceholderImage(item.title)}
                       alt={item.title}
                       loading="lazy"
-                      className="seamless-shop__image"
+                      className="seamless-shop__similar-image"
                     />
+                    <span className="seamless-shop__similar-overlay">View Item</span>
                   </div>
                 </a>
-                <div className="seamless-shop__card-body">
-                  <div className="seamless-shop__eyebrow">
-                    {resolveProductCategories(item, categoryMap)[0]?.name || 'Uncategorized'}
-                  </div>
-                  <h3 className="seamless-shop__title">
+                <div className="seamless-shop__similar-copy">
+                  <h3 className="seamless-shop__similar-title">
                     <a href={buildProductUrl(item)}>
                       {item.title}
                     </a>
                   </h3>
-                  <p className="seamless-shop__text seamless-shop__clamp">
-                    {item.shortDescription}
-                  </p>
-                  <strong className="seamless-shop__price">{item.priceLabel}</strong>
+                  <strong className="seamless-shop__similar-price">{item.priceLabel}</strong>
                 </div>
               </article>
             ))}
@@ -720,11 +822,6 @@ export const ShopProductView: React.FC = () => {
       ) : null}
     </div>
   );
-};
-
-const getShopUrlHome = (): string => {
-  const config = (window as any).seamlessReactConfig || {};
-  return String(config.siteUrl || window.location.origin).replace(/\/+$/g, '');
 };
 
 const getProductTypeLabel = (value: string): string => {

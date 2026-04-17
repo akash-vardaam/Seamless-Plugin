@@ -5,6 +5,7 @@ import type {
   ShopProduct,
   ShopRichTextBlock,
   ShopRuntimeConfig,
+  ShopVariantSelection,
   ShopVariantOption,
 } from '../types/shop';
 
@@ -21,6 +22,9 @@ export const slugify = (value: string): string =>
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+
+const looksLikeOpaqueProductId = (value: string): boolean =>
+  /^[0-9a-f]{8,}-[0-9a-f-]{8,}$/i.test(String(value || '').trim());
 
 export const stripHtml = (value: string): string => {
   if (!value) return '';
@@ -109,7 +113,11 @@ export const buildShopUrl = (): string => {
 
 export const buildProductUrl = (product: Pick<ShopProduct, 'slug' | 'id' | 'title'>): string => {
   const config = getShopRuntimeConfig();
-  const slug = product.slug || product.id || slugify(product.title || 'product');
+  const normalizedSlug = String(product.slug || '').trim();
+  const titleSlug = slugify(product.title || 'product');
+  const slug = normalizedSlug && !looksLikeOpaqueProductId(normalizedSlug)
+    ? normalizedSlug
+    : titleSlug || String(product.id || '').trim() || 'product';
   return appendGuestToken(`${config.siteUrl}/${config.singleProductEndpoint}/${encodeURIComponent(slug)}`);
 };
 
@@ -122,6 +130,11 @@ export const buildCheckoutUrl = (guestToken = ''): string => {
   const config = getShopRuntimeConfig();
   const baseUrl = `${config.apiDomain}/shop/checkout`;
   return appendGuestToken(baseUrl, guestToken);
+};
+
+export const buildSiteUrl = (): string => {
+  const config = getShopRuntimeConfig();
+  return config.siteUrl;
 };
 
 export const flattenCategories = (categories: ShopCategory[], accumulator: ShopCategory[] = []): ShopCategory[] => {
@@ -193,6 +206,52 @@ export const normalizeGalleryImages = (product: ShopProduct, selectedOption: Sho
 
 export const getInitialVariantSelection = (product: ShopProduct): string[] =>
   (product.variants || []).map(() => '');
+
+export const buildVariantSelectionMap = (
+  variantSelections: ShopVariantSelection[],
+): Record<string, string> =>
+  variantSelections.reduce<Record<string, string>>((accumulator, selection) => {
+    const key = String(selection.attributeType || selection.attributeLabel || '')
+      .trim()
+      .toLowerCase();
+    const value = String(selection.value || selection.valueLabel || '')
+      .trim()
+      .toLowerCase();
+
+    if (key && value) {
+      accumulator[key] = value;
+    }
+
+    return accumulator;
+  }, {});
+
+export const getCartQuantityForSelection = (
+  cart: ShopCart | null,
+  productId: string,
+  variantSelections: Record<string, string>,
+): number => {
+  const items = Array.isArray(cart?.items) ? cart.items : [];
+  const normalizedProductId = String(productId || '').trim();
+  const selectionKeys = Object.keys(variantSelections).sort();
+
+  return items.reduce((total, item) => {
+    if (String(item.productId || '').trim() !== normalizedProductId) {
+      return total;
+    }
+
+    const itemSelections = buildVariantSelectionMap(item.variantSelections || []);
+    const itemSelectionKeys = Object.keys(itemSelections).sort();
+    const sameSelection =
+      selectionKeys.length === itemSelectionKeys.length &&
+      selectionKeys.every((key) => itemSelections[key] === variantSelections[key]);
+
+    if (!sameSelection) {
+      return total;
+    }
+
+    return total + Math.max(0, Number(item.quantity || 0));
+  }, 0);
+};
 
 export const formatPrice = (value: number | null, currencySymbol = '$'): string => {
   if (value === null || Number.isNaN(value)) {
