@@ -101,7 +101,7 @@ const appendGuestToken = (url: string, token = ''): string => {
     parsedUrl.searchParams.set('guest_token', guestToken);
     return parsedUrl.toString();
   } catch {
-    const separator = url.includes('?') ? '&' : '?';
+    const separator = url.includes('?') ;
     return `${url}${separator}guest_token=${encodeURIComponent(guestToken)}`;
   }
 };
@@ -348,6 +348,32 @@ const setCookie = (name: string, value: string, days?: number): void => {
   document.cookie = `${name}=${cookieValue}${maxAgeAttribute}; Path=/; SameSite=Lax${secure ? '; Secure' : ''}`;
 };
 
+const getLegacyGuestToken = (): string => {
+  if (typeof window === 'undefined') return '';
+
+  return (
+    window.sessionStorage?.getItem('seamless_guest_token') ||
+    window.localStorage?.getItem('seamless_guest_token') ||
+    ''
+  ).trim();
+};
+
+const setLegacyGuestToken = (token: string): void => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    if (token) {
+      window.sessionStorage?.setItem('seamless_guest_token', token);
+      window.localStorage?.setItem('seamless_guest_token', token);
+    } else {
+      window.sessionStorage?.removeItem('seamless_guest_token');
+      window.localStorage?.removeItem('seamless_guest_token');
+    }
+  } catch {
+    // Ignore storage sync failures.
+  }
+};
+
 export const getGuestToken = (): string => {
   const urlToken = getGuestTokenFromUrl();
   if (urlToken) {
@@ -356,30 +382,20 @@ export const getGuestToken = (): string => {
   }
 
   const cookieToken = decodeURIComponent(getCookie(SEAMLESS_AMS_GUEST_COOKIE) || '');
+  const legacyToken = getLegacyGuestToken();
+
+  if (legacyToken && legacyToken !== cookieToken) {
+    setGuestToken(legacyToken);
+    return legacyToken;
+  }
+
   if (cookieToken) {
+    setLegacyGuestToken(cookieToken);
     return cookieToken;
   }
 
-  const legacyToken =
-    window.sessionStorage?.getItem('seamless_guest_token') ||
-    window.localStorage?.getItem('seamless_guest_token') ||
-    '';
-
   if (legacyToken) {
     setGuestToken(legacyToken);
-
-    try {
-      window.sessionStorage?.removeItem('seamless_guest_token');
-    } catch {
-      // Ignore storage cleanup failures.
-    }
-
-    try {
-      window.localStorage?.removeItem('seamless_guest_token');
-    } catch {
-      // Ignore storage cleanup failures.
-    }
-
     return legacyToken;
   }
 
@@ -389,10 +405,12 @@ export const getGuestToken = (): string => {
 export const setGuestToken = (token: string): void => {
   if (!token) return;
   setCookie(SEAMLESS_AMS_GUEST_COOKIE, token);
+  setLegacyGuestToken(token);
 };
 
 export const clearGuestToken = (): void => {
   setCookie(SEAMLESS_AMS_GUEST_COOKIE, '', 0);
+  setLegacyGuestToken('');
 };
 
 export const getEmptyCart = (): ShopCart => ({

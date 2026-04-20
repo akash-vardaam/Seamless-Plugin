@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Check,
   ChevronLeft,
   ChevronRight,
   Minus,
@@ -647,7 +646,7 @@ export const ShopProductView: React.FC = () => {
                                 )}
                               </button>
                               {isSelected ? (
-                                <span className="seamless-shop__variant-label">{option.value}</span>
+                                <span style={{ display: 'none' }} className="seamless-shop__variant-label">{option.value}</span>
                               ) : null}
                             </div>
                           );
@@ -711,7 +710,15 @@ export const ShopProductView: React.FC = () => {
             </p>
           ) : (
             <div className="seamless-shop__trust-note">
-              <Check className="seamless-shop__icon" />
+              <svg
+                className="seamless-shop__icon seamless-shop-variant-helper-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle cx="12" cy="12" r="12" />
+                <path d="M8 12.2L10.7 15L16.2 8.8" />
+              </svg>
               <span>Fast, trackable worldwide shipping available</span>
             </div>
           )}

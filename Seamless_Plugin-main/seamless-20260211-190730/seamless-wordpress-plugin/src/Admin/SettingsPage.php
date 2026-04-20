@@ -1629,13 +1629,16 @@ class SettingsPage
 					e.preventDefault();
 
 					var button = $(this);
-					var originalText = button.html();
 
 					showConfirmToast(
 						'Are you sure you want to disconnect from Seamless? You will need to re-authenticate to access your data.',
 						function() {
 							// User confirmed - proceed with disconnect
-							button.html('<span class="dashicons dashicons-update spin"></span> Disconnecting...').prop('disabled', true);
+							button
+								.css('width', button.outerWidth() + 'px')
+								.addClass('seamless-btn--loading')
+								.prop('disabled', true)
+								.attr('aria-busy', 'true');
 
 							$.post(ajaxurl, {
 								action: 'seamless_disconnect',
@@ -1648,11 +1651,19 @@ class SettingsPage
 									window.location.href = redirectUrl;
 								} else {
 									showToast('Failed to disconnect: ' + (response.data || 'Unknown error'), 'error');
-									button.html(originalText).prop('disabled', false);
+									button
+										.removeClass('seamless-btn--loading')
+										.prop('disabled', false)
+										.css('width', '')
+										.removeAttr('aria-busy');
 								}
 							}).fail(function() {
 								showToast('Failed to disconnect. Please try again.', 'error');
-								button.html(originalText).prop('disabled', false);
+								button
+									.removeClass('seamless-btn--loading')
+									.prop('disabled', false)
+									.css('width', '')
+									.removeAttr('aria-busy');
 							});
 						},
 						function() {
@@ -2410,11 +2421,36 @@ class SettingsPage
 				display: inline-flex !important;
 				align-items: center !important;
 				gap: 8px !important;
+				justify-content: center !important;
+				min-width: 148px;
+				position: relative;
+				overflow: hidden;
 			}
 
 			#seamless-disconnect-btn:hover {
 				background: #dc2626 !important;
 				border-color: #dc2626 !important;
+			}
+
+			#seamless-disconnect-btn.seamless-btn--loading,
+			#seamless-disconnect-btn.seamless-btn--loading:hover {
+				color: transparent !important;
+				background: #e2e8f0 !important;
+				border-color: #e2e8f0 !important;
+				box-shadow: none !important;
+			}
+
+			#seamless-disconnect-btn.seamless-btn--loading > * {
+				opacity: 0;
+			}
+
+			#seamless-disconnect-btn.seamless-btn--loading::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 50%, #e2e8f0 100%);
+				background-size: 200% 100%;
+				animation: seamless-button-skeleton 1.2s ease-in-out infinite;
 			}
 
 			#seamless-connect-btn {
@@ -2860,6 +2896,16 @@ class SettingsPage
 
 				to {
 					transform: rotate(360deg);
+				}
+			}
+
+			@keyframes seamless-button-skeleton {
+				0% {
+					background-position: 200% 0;
+				}
+
+				100% {
+					background-position: -200% 0;
 				}
 			}
 

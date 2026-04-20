@@ -210,7 +210,7 @@ export const ShopCartView: React.FC = () => {
               <span>/</span>
               <span>Cart</span>
             </nav>
-            <a href={buildShopUrl()} className="seamless-shop__cart-backlink">
+            <a href={buildShopUrl()} className="seamless-shop__cart-backlink shopping-cart__button-link">
               <ArrowLeft className="seamless-shop__icon" />
               <span>Continue Shopping</span>
             </a>

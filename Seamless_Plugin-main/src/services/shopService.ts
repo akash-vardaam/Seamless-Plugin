@@ -266,12 +266,14 @@ const extractCart = (value: unknown): ShopCart => {
   const source = findCartSource(value);
   if (!source) return getEmptyCart();
 
-  const items = getRawCartItems(source).map(normalizeCartItem).filter(Boolean) as ShopCartItem[];
+  const items = dedupeCartItems(
+    getRawCartItems(source).map(normalizeCartItem).filter(Boolean) as ShopCartItem[],
+  );
   const subtotal = getRawCartSubtotal(source);
   const total = getRawCartTotal(source, subtotal);
   const cart: ShopCart = {
     items,
-    itemCount: getRawCartItemCount(source, items),
+    itemCount: getNumericValue(source.item_count, source.itemCount, getRawCartItemCount(source, items)),
     subtotal,
     total,
     guestToken: getRawCartGuestToken(source),
@@ -636,19 +638,110 @@ const normalizeVariantSelections = (value: unknown): ShopVariantSelection[] => {
   return [];
 };
 
+const getCartItemSourceIdentifier = (source: Record<string, unknown>): string =>
+  getStringValue(
+    source.key,
+    source.item_key,
+    source.cart_item_key,
+    source.line_item_key,
+    source.line_key,
+    source.id,
+    source.uuid,
+  );
+
+const getImageUrlFromCandidate = (candidate: unknown): string => {
+  if (typeof candidate === 'string') {
+    return candidate.trim();
+  }
+
+  if (!isRecord(candidate)) {
+    return '';
+  }
+
+  return getStringValue(
+    candidate.url,
+    candidate.src,
+    candidate.image,
+    candidate.image_url,
+    candidate.thumbnail,
+    candidate.thumbnail_url,
+    candidate.featured_image,
+    candidate.primary_image_url,
+  ).trim();
+};
+
+const getCartItemImageUrl = (source: Record<string, unknown>, title: string): string => {
+  const productSource = [
+    source.product,
+    source.product_data,
+    source.product_details,
+    source.product_item,
+  ].find(isRecord) as Record<string, unknown> | undefined;
+
+  const directCandidates = [
+    source.image_url,
+    source.image,
+    source.thumbnail,
+    source.thumbnail_url,
+    source.featured_image,
+    source.primary_image_url,
+    productSource?.image_url,
+    productSource?.image,
+    productSource?.thumbnail,
+    productSource?.thumbnail_url,
+    productSource?.featured_image,
+    productSource?.primary_image_url,
+  ];
+
+  for (const candidate of directCandidates) {
+    const imageUrl = getImageUrlFromCandidate(candidate);
+    if (imageUrl) return imageUrl;
+  }
+
+  const listCandidates = [
+    source.images,
+    source.gallery,
+    productSource?.images,
+    productSource?.gallery,
+  ];
+
+  for (const collection of listCandidates) {
+    for (const candidate of toArray<unknown>(collection)) {
+      const imageUrl = getImageUrlFromCandidate(candidate);
+      if (imageUrl) return imageUrl;
+    }
+  }
+
+  return getPlaceholderImage(title);
+};
+
 const normalizeCartItem = (item: unknown): ShopCartItem | null => {
   if (!item || typeof item !== 'object') return null;
 
   const source = item as Record<string, unknown>;
-  const title = getStringValue(source.product_name, source.name, 'Product');
+  const productSource = [
+    source.product,
+    source.product_data,
+    source.product_details,
+    source.product_item,
+  ].find(isRecord) as Record<string, unknown> | undefined;
+  const title =
+    getStringValue(
+      source.product_name,
+      source.name,
+      productSource?.name,
+      productSource?.title,
+      productSource?.label,
+    ) || 'Product';
   const unitPrice = getNumericValue(source.unit_price, source.price);
   const subtotal = getNumericValue(source.subtotal, source.line_total, source.total, unitPrice);
-  const imageUrl = getStringValue(source.image_url, source.image, getPlaceholderImage(title));
+  const imageUrl = getCartItemImageUrl(source, title);
+  const itemIdentifier = getCartItemSourceIdentifier(source);
 
   return {
-    key: getStringValue(source.key, source.item_key, source.id),
-    id: getStringValue(source.id, source.key, source.item_key),
-    productId: getStringValue(source.product_id, source.id),
+    key: itemIdentifier,
+    id: getStringValue(source.id, source.key, source.item_key, source.cart_item_key, source.line_item_key),
+    productId: getStringValue(source.product_id, productSource?.id, productSource?.product_id, source.id),
     productName: title,
     quantity: Math.max(1, getNumericValue(source.quantity, 1)),
     subtotal,
@@ -665,15 +758,84 @@ const normalizeCartItem = (item: unknown): ShopCartItem | null => {
       source.maxQuantity,
     ),
     stockMessage: getStringValue(source.stock_message),
-    variantSelections: normalizeVariantSelections(source.variant_selections),
+    variantSelections: normalizeVariantSelections(
+      source.variant_selections ?? source.variantSelections ?? source.variant_selection ?? productSource?.variant_selections,
+    ),
     raw: source,
   };
+};
+
+const isPlaceholderCartImage = (imageUrl: string): boolean => imageUrl.startsWith('data:image/svg+xml');
+
+const getCartItemQualityScore = (item: ShopCartItem): number => {
+  let score = 0;
+  if (getCartItemIdentifier(item)) score += 8;
+  if (!isPlaceholderCartImage(item.imageUrl)) score += 4;
+  if (item.variantSelections.length) score += 2;
+  if (item.productName && item.productName !== 'Product') score += 2;
+  if (item.raw && Object.keys(item.raw).length) score += 1;
+  return score;
+};
+
+const dedupeCartItems = (items: ShopCartItem[]): ShopCartItem[] => {
+  const byIdentifier = new Map<string, ShopCartItem>();
+  const passthrough: ShopCartItem[] = [];
+
+  items.forEach((item) => {
+    const itemIdentifier = getCartItemIdentifier(item);
+    if (!itemIdentifier) {
+      passthrough.push(item);
+      return;
+    }
+
+    const existing = byIdentifier.get(itemIdentifier);
+    if (!existing || getCartItemQualityScore(item) >= getCartItemQualityScore(existing)) {
+      byIdentifier.set(itemIdentifier, item);
+    }
+  });
+
+  return [...byIdentifier.values(), ...passthrough];
 };
 
 const normalizeCart = (value: unknown): ShopCart => extractCart(value);
 
 const getCartItemIdentifier = (item: ShopCartItem): string =>
-  getStringValue(item.key, item.id, item.raw?.['key'], item.raw?.['item_key'], item.raw?.['id']);
+  getStringValue(
+    item.key,
+    item.id,
+    item.raw?.['key'],
+    item.raw?.['item_key'],
+    item.raw?.['cart_item_key'],
+    item.raw?.['line_item_key'],
+    item.raw?.['line_key'],
+    item.raw?.['id'],
+    item.raw?.['uuid'],
+  );
+
+const getCartItemMatchSignature = (item: ShopCartItem): string =>
+  [
+    String(item.productId || ''),
+    String(item.productName || ''),
+    String(item.unitPrice || 0),
+    item.variantSelections
+      .map((selection) => `${selection.attributeType}:${selection.value}`)
+      .sort()
+      .join('|'),
+  ].join('::');
+
+const findMatchingCartItemInCart = (cart: ShopCart, targetItem: ShopCartItem): ShopCartItem | null => {
+  const targetIdentifier = getCartItemIdentifier(targetItem);
+  if (targetIdentifier) {
+    const exactMatch = cart.items.find((item) => getCartItemIdentifier(item) === targetIdentifier);
+    if (exactMatch) return exactMatch;
+  }
+
+  const targetSignature = getCartItemMatchSignature(targetItem);
+  return cart.items.find((item) => getCartItemMatchSignature(item) === targetSignature) || null;
+};
+
+const isCartItemNotFoundError = (error: unknown): boolean =>
+  /cart item was not found in the current cart/i.test(String((error as any)?.message || error || ''));
 
 const isInvalidGuestCartError = (error: unknown): boolean => {
   const message = String((error as any)?.message || error || '');
@@ -901,49 +1063,85 @@ export const updateCartItemQuantity = async (item: ShopCartItem, desiredQuantity
   const guestToken = getGuestToken();
   const currentQuantity = Math.max(1, item.quantity);
   const nextQuantity = Math.max(1, desiredQuantity);
-  const itemIdentifier = getCartItemIdentifier(item);
-
-  if (!itemIdentifier) {
-    throw new Error('Unable to update this cart item right now.');
-  }
 
   if (nextQuantity === currentQuantity) return fetchCurrentCart();
 
   const delta = nextQuantity - currentQuantity;
+  const mutateQuantity = async (targetItem: ShopCartItem): Promise<ShopCart> => {
+    const itemIdentifier = getCartItemIdentifier(targetItem);
 
-  const payload: Record<string, unknown> = { quantity: Math.abs(delta) };
+    if (!itemIdentifier) {
+      throw new Error('Unable to update this cart item right now.');
+    }
 
-  if (guestToken) {
-    payload.guest_token = guestToken;
-  } else if (config.isLoggedIn && config.amsUserId) {
-    payload.user_id = config.amsUserId;
+    const payload: Record<string, unknown> = { quantity: Math.abs(delta) };
+
+    if (guestToken) {
+      payload.guest_token = guestToken;
+    } else if (config.isLoggedIn && config.amsUserId) {
+      payload.user_id = config.amsUserId;
+    }
+
+    return delta > 0
+      ? mutateCart('patch', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload)
+      : mutateCart('delete', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload);
+  };
+
+  try {
+    return await mutateQuantity(item);
+  } catch (error) {
+    if (!isCartItemNotFoundError(error)) {
+      throw error;
+    }
+
+    const latestCart = await fetchCurrentCart();
+    const latestItem = findMatchingCartItemInCart(latestCart, item);
+    if (!latestItem) {
+      throw new Error('This cart item is no longer available in the current cart.');
+    }
+
+    return mutateQuantity(latestItem);
   }
-
-  return delta > 0
-    ? mutateCart('patch', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload)
-    : mutateCart('delete', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload);
 };
 
 export const removeCartItem = async (item: ShopCartItem, quantity = item.quantity): Promise<ShopCart> => {
   const config = getShopRuntimeConfig();
   const guestToken = getGuestToken();
-  const itemIdentifier = getCartItemIdentifier(item);
+  const performRemove = async (targetItem: ShopCartItem): Promise<ShopCart> => {
+    const itemIdentifier = getCartItemIdentifier(targetItem);
 
-  if (!itemIdentifier) {
-    throw new Error('Unable to remove this cart item right now.');
+    if (!itemIdentifier) {
+      throw new Error('Unable to remove this cart item right now.');
+    }
+
+    const payload: Record<string, unknown> = {};
+
+    if (config.isLoggedIn) {
+      if (config.amsUserId) payload.user_id = config.amsUserId;
+      if (guestToken) payload.guest_token = guestToken;
+    } else if (guestToken) {
+      payload.guest_token = guestToken;
+    }
+
+    payload.quantity = Math.max(1, quantity);
+
+    await mutateCart('delete', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload);
+    return fetchCurrentCart();
+  };
+
+  try {
+    return await performRemove(item);
+  } catch (error) {
+    if (!isCartItemNotFoundError(error)) {
+      throw error;
+    }
+
+    const latestCart = await fetchCurrentCart();
+    const latestItem = findMatchingCartItemInCart(latestCart, item);
+    if (!latestItem) {
+      throw new Error('This cart item is no longer available in the current cart.');
+    }
+
+    return performRemove(latestItem);
   }
-
-  const payload: Record<string, unknown> = {};
-
-  if (config.isLoggedIn) {
-    if (config.amsUserId) payload.user_id = config.amsUserId;
-    if (guestToken) payload.guest_token = guestToken;
-  } else if (guestToken) {
-    payload.guest_token = guestToken;
-  }
-
-  payload.quantity = Math.max(1, quantity);
-
-  await mutateCart('delete', `/shop/cart/items/${encodeURIComponent(itemIdentifier)}`, payload);
-  return fetchCurrentCart();
 };
