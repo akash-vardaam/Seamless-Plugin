@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from 'react';
-import LoadingSpinner from './components/ui/LoadingSpinner';
+import React, { Suspense } from 'react';
+import { AppLoadingSkeleton } from './components/ui/PageSkeletons';
 
 import EventsList from './views/EventsList';
 import SingleEvent from './views/SingleEvent';
@@ -53,7 +53,7 @@ export default function App({ view, extras }: AppProps) {
 
   return (
     <div className="seamless-app">
-      <Suspense fallback={<LoadingSpinner />}>
+      <Suspense fallback={<AppLoadingSkeleton />}>
         {renderView()}
       </Suspense>
     </div>

@@ -479,9 +479,9 @@
 }
 
 :host .seamless-shop--list .seamless-shop__button {
-  min-height: 50px !important;
+  min-height: 37px !important;
   border-color: #d7dee8 !important;
-  border-radius: 18px !important;
+  border-radius: 12px !important;
   padding: 0 20px !important;
   color: #0f172a !important;
   font-size: 16px !important;
@@ -854,7 +854,7 @@
   display: inline-flex !important;
   align-items: center !important;
   overflow: hidden !important;
-  border: 1px solid var(--seamless-color-primary) !important;
+  border: 1px solid #d8dee2 !important;
   border-radius: 8px !important;
   background: #ffffff !important;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08) !important;
@@ -867,8 +867,6 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: var(--seamless-color-primary) !important;
-  color: #ffffff !important;
   transition: opacity 160ms ease, background-color 160ms ease !important;
 }
 

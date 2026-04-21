@@ -1488,10 +1488,10 @@ export const UserDashboardView: React.FC = () => {
                                 <div className="seamless-user-dashboard-tabs-wrapper">
                                     <div className="seamless-user-dashboard-tabs-header">
                                         <button className={`seamless-user-dashboard-tab ${activeMembershipTab === 'active' ? 'active' : ''}`} onClick={() => setActiveMembershipTab('active')}>
-                                            Active Memberships <span className="seamless-tab-count">{activeMemberships.length}</span>
+                                            Active Memberships <span className="seamless-tab-count"><span>{activeMemberships.length}</span></span>
                                         </button>
                                         <button className={`seamless-user-dashboard-tab ${activeMembershipTab === 'history' ? 'active' : ''}`} onClick={() => setActiveMembershipTab('history')}>
-                                            Expired Memberships <span className="seamless-tab-count">{historyMemberships.length}</span>
+                                            Expired Memberships <span className="seamless-tab-count"><span>{historyMemberships.length}</span></span>
                                         </button>
                                     </div>
 
@@ -1595,6 +1595,7 @@ export const UserDashboardView: React.FC = () => {
                                                             <div className="seamless-flex-col-gap-16-full">
                                                                 <div className="seamless-flex-col-gap-8 seamless-dashboard-membership">
                                                                     <h3 className="seamless-card-title">{mem.plan?.label || mem.title || mem.name || 'Membership'}</h3>
+                                                                    <div className='semaless-tag-container'>
                                                                     {isGroupMembership && (
                                                                         <span className="seamless-membership-type-tag">
                                                                             <Users size={14} />
@@ -1614,6 +1615,7 @@ export const UserDashboardView: React.FC = () => {
                                                                             </button>
                                                                         </div>
                                                                     )}
+                                                                    </div>
                                                                 </div>
                                                                 <div className="seamless-flex-gap-24-slate">
                                                                     <span>Purchased: {mem.created_at ? new Date(mem.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
@@ -1852,10 +1854,10 @@ export const UserDashboardView: React.FC = () => {
                                 <div className="seamless-user-dashboard-tabs-wrapper">
                                     <div className="seamless-user-dashboard-tabs-header">
                                         <button className={`seamless-user-dashboard-tab ${activeCourseTab === 'enrolled' ? 'active' : ''}`} onClick={() => setActiveCourseTab('enrolled')}>
-                                            Enrolled Courses <span className="seamless-tab-count">{courses?.length || 0}</span>
+                                            Enrolled Courses <span className="seamless-tab-count"><span>{courses?.length || 0}</span></span>
                                         </button>
                                         <button className={`seamless-user-dashboard-tab ${activeCourseTab === 'included' ? 'active' : ''}`} onClick={() => setActiveCourseTab('included')}>
-                                            Included in Membership <span className="seamless-tab-count">{includedCourses?.length || 0}</span>
+                                            Included in Membership <span className="seamless-tab-count"><span>{includedCourses?.length || 0}</span></span>
                                         </button>
                                     </div>
                                     <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">

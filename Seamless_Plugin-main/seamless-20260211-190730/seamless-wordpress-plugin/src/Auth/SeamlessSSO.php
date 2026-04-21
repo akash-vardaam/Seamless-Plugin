@@ -293,9 +293,13 @@ class SeamlessSSO
         $atts = shortcode_atts([
             'text' => 'Login',
             'class' => 'button seamless-sso-login-btn',
+            'style' => '',
             'logout_text' => 'Logout',
             'logout_class' => 'button seamless-sso-logout-btn',
         ], $atts);
+
+        $style_attr = trim((string) $atts['style']);
+        $style_html = $style_attr !== '' ? sprintf(' style="%s"', esc_attr($style_attr)) : '';
 
         if (empty($this->sso_client_id) || empty($this->client_domain)) {
             return '<p>Seamless SSO is not configured.</p>';
@@ -312,9 +316,10 @@ class SeamlessSSO
                 $return_to = self::get_return_to_url();
                 $url = $this->get_login_url($return_to);
                 return sprintf(
-                    '<a class="%s" href="%s">%s</a>',
+                    '<a class="%s" href="%s"%s>%s</a>',
                     esc_attr($atts['class']),
                     esc_url($url),
+                    $style_html,
                     esc_html('Connect SSO Account')
                 );
             }
@@ -338,9 +343,10 @@ class SeamlessSSO
         ], home_url('/'));
 
         return sprintf(
-            '<a class="%s" href="%s">%s</a>',
+            '<a class="%s" href="%s"%s>%s</a>',
             esc_attr($atts['class']),
             esc_url($url),
+            $style_html,
             esc_html($atts['text'])
         );
     }

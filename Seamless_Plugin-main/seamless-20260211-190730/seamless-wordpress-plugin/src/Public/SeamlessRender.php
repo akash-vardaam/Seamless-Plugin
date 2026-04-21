@@ -708,9 +708,10 @@ JS,
 	public function shortcode_react_dashboard($atts = []): string
 	{
 		if (!is_user_logged_in()) {
-			$login_button = do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn"]');
+			$login_button = do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn" style="display: flex; justify-content: center; background-color: #00b2ca; color: white; padding: 5px 30px; border-radius: 15px; font-weight: 500;"]');
 			return sprintf(
-				'<div class="seamless-dashboard-login-state"><div class="seamless-dashboard-login-panel"><p class="seamless-dashboard-login-copy">%s</p>%s</div></div>',
+				'<style> .seamless-login-btn {display: flex; justify-content: center; background-color: #00b2ca; color: white; padding: 5px 30px; border-radius: 15px; font-weight: 500;} .seamless-login-btn:hover {background-color: #009fb8; color:#fff;} </style>
+				<div class="seamless-dashboard-login-state" style="display:flex; justify-content: center;"><div class="seamless-dashboard-login-panel"><p class="seamless-dashboard-login-copy">%s</p>%s</div></div>',
 				esc_html__('Please log in to view your dashboard.', 'seamless-addon'),
 				$login_button
 			);

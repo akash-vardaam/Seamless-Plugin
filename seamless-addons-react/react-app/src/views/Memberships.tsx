@@ -2,8 +2,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMembershipPlans } from '../services/eventService';
 import { ensureArray } from '../services/utils';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorState from '../components/ui/ErrorState';
+import { MembershipsSkeleton } from '../components/ui/PageSkeletons';
 import '../styles/global.css';
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
   extras?: Record<string, string>;
 }
 
-export default function Memberships({ part = 'list', extras = {} }: Props) {
+export default function Memberships({ part = 'list' }: Props) {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['memberships'],
     queryFn: async () => {
@@ -22,8 +22,8 @@ export default function Memberships({ part = 'list', extras = {} }: Props) {
 
   const plans = data ?? [];
 
-  if (isLoading) return <LoadingSpinner text="Loading membership plans…" />;
-  if (isError)   return <ErrorState message={(error as Error).message} onRetry={() => refetch()} />;
+  if (isLoading) return <MembershipsSkeleton part={part} />;
+  if (isError) return <ErrorState message={(error as Error).message} onRetry={() => refetch()} />;
 
   if (plans.length === 0) {
     return (
@@ -50,7 +50,6 @@ export default function Memberships({ part = 'list', extras = {} }: Props) {
               </tr>
             </thead>
             <tbody>
-              {/* This is a simplified comparison. Ideally we'd map all unique features. */}
               <tr style={{ borderBottom: '1px solid var(--sr-border)' }}>
                 <td style={{ padding: '1rem', fontWeight: 600 }}>Access Type</td>
                 {plans.map((plan: any) => (
@@ -67,11 +66,10 @@ export default function Memberships({ part = 'list', extras = {} }: Props) {
                   </td>
                 ))}
               </tr>
-              {/* Dynamic features if available in API */}
             </tbody>
             <tfoot>
               <tr>
-                <td style={{ padding: '1rem' }}></td>
+                <td style={{ padding: '1rem' }} />
                 {plans.map((plan: any) => (
                   <td key={plan.id} style={{ padding: '1rem', textAlign: 'center' }}>
                     <button className="sr-btn sr-btn-primary sr-btn-sm" style={{ width: '100%' }}>Select</button>
@@ -107,10 +105,10 @@ export default function Memberships({ part = 'list', extras = {} }: Props) {
 
               {plan.features && plan.features.length > 0 && (
                 <ul style={{ margin: '0 0 1.25rem', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
-                  {plan.features.map((feat: string, i: number) => (
-                    <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '.5rem', fontSize: '.875rem', color: 'var(--sr-text)' }}>
+                  {plan.features.map((feat: string, index: number) => (
+                    <li key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '.5rem', fontSize: '.875rem', color: 'var(--sr-text)' }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sr-secondary)" strokeWidth="2.5" style={{ flexShrink: 0, marginTop: '2px' }}>
-                        <polyline points="20 6 9 17 4 12"/>
+                        <polyline points="20 6 9 17 4 12" />
                       </svg>
                       {feat}
                     </li>

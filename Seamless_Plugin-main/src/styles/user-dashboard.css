@@ -3974,13 +3974,15 @@
 }
 
 :host .seamless-tab-count {
-    background: #f1f5f9 !important;
-    color: #64748b !important;
     font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
-    padding: 2px 8px 4px 8px !important;
-    border-radius: 12px !important;
+    padding: 4px 12px !important;
+    border-radius: 50px !important;
     margin-left: 8px !important;
+    min-height: 30px !important;
+    min-width: 30px !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 :host .active .seamless-tab-count {
@@ -4052,7 +4054,7 @@
     white-space: nowrap !important;
     background-color: var(--seamless-color-red-50) !important;
     color: var(--seamless-color-red-800) !important;
-    border-radius: 12px !important;
+    border-radius: 6px !important;
     border: 1px solid var(--seamless-color-red-800) !important;
 }
 
@@ -4061,7 +4063,7 @@
     white-space: nowrap !important;
     background-color: #f8fafc !important;
     color: #475569 !important;
-    border-radius: 12px !important;
+    border-radius: 6px !important;
     border: 1px solid #94a3b8 !important;
 }
 
@@ -4071,14 +4073,14 @@
     gap: 6px !important;
     width: fit-content !important;
     padding:3px 15px !important;
-    border-radius: 12px !important;
+    border-radius: 6px !important;
     background: #eef2ff !important;
     color: #3730a3 !important;
     border: 1px solid #c7d2fe !important;
     font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
     line-height: var(--seamless-line-height-1) !important;
-    border-radius: 12px !important;
+    border-radius: 6px !important;
 }
 
 :host .seamless-tag-container {
@@ -4324,6 +4326,7 @@
     color: var(--seamless-color-heading) !important;
     margin: 0 0 16px 0 !important;
     line-height: var(--seamless-line-height-1-3) !important;
+    text-align: left !important;
 }
 
 :host .seamless-course-card-meta {
@@ -4354,8 +4357,7 @@
 }
 
 :host .seamless-course-card-action:hover {
-    color: #4f46e5 !important;
-    text-decoration: underline !important;
+    color: var(--seamless-color-secondary) !important;
 }
 
 /* --- New Orders View Styles --- */
@@ -4433,10 +4435,17 @@
     /* Green text in screenshot */
 }
 
+:host .semaless-tag-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    justify-content: center !important;
+}
+
 :host .seamless-btn-invoice {
     background: var(--seamless-color-primary) !important;
     color: #fff !important;
-    padding: 2px 13px !important;
+    padding: 2px 13px 5px !important;
     border-radius: 6px !important;
     font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
