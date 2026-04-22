@@ -89,11 +89,13 @@ export const EventListView: React.FC = () => {
         typeof window !== 'undefined' && window.innerWidth < 768 ? 'grid' : 'list';
 
     const currentView = (searchParams.get('view') as ViewType) || getDefaultView();
+    const currentSubView = (searchParams.get('cal_view') as any) || 'MONTH';
+    const currentIsListView = searchParams.get('cal_list') === 'true';
 
-    // 6. Calendar Data - fetches by month
+    // 6. Calendar Data - fetches by month or year depending on view
     const {
         events: calendarItems, loading: calendarLoading, error: calendarError
-    } = useCalendarEvents(calendarDate, filters, currentView === 'calendar');
+    } = useCalendarEvents(calendarDate, filters, currentView === 'calendar', currentSubView);
 
     // Determine active data source
     const items = currentView === 'calendar' ? calendarItems : paginatedItems;
@@ -120,6 +122,14 @@ export const EventListView: React.FC = () => {
     const handleViewChange = (view: ViewType) => {
         // Reset page to 1 on view change
         updateUrlParams({ view, page: '1' });
+    };
+
+    const handleCalViewChange = (cal_view: string) => {
+        updateUrlParams({ cal_view });
+    };
+
+    const handleCalListToggle = () => {
+        updateUrlParams({ cal_list: currentIsListView ? null : 'true' });
     };
 
     const handleMonthChange = (date: Date) => {
@@ -249,6 +259,10 @@ export const EventListView: React.FC = () => {
                         events={filteredItems}
                         currentDate={calendarDate}
                         onDateChange={handleMonthChange}
+                        viewMode={currentSubView}
+                        onViewModeChange={handleCalViewChange}
+                        isListView={currentIsListView}
+                        onListViewToggle={handleCalListToggle}
                     />
                 ) : !loading && currentView === 'grid' ? (
                     <>

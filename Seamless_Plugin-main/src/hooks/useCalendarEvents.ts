@@ -20,7 +20,8 @@ const calendarCache = new Map<string, Event[]>();
 export const useCalendarEvents = (
     currentDate: Date,
     filters: FilterState,
-    enabled: boolean = true
+    enabled: boolean = true,
+    viewMode: string = 'MONTH'
 ) => {
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(enabled);
@@ -68,12 +69,29 @@ export const useCalendarEvents = (
         // Unless user explicitly wants "Past events in March 2026", but usually Calendar overrides "Upcoming/Past".
 
         // Add date range
-        const { start_date, end_date } = getMonthRange(currentDate);
-        p.start_date = start_date;
-        p.end_date = end_date;
+        let start, end;
+        if (viewMode === 'YEAR') {
+            const year = currentDate.getFullYear();
+            start = new Date(year, 0, 1);
+            end = new Date(year, 11, 31, 23, 59, 59);
+        } else {
+            const { start_date, end_date } = getMonthRange(currentDate);
+            start = new Date(start_date);
+            end = new Date(end_date);
+        }
+
+        const formatDate = (d: Date) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+
+        p.start_date = formatDate(start);
+        p.end_date = formatDate(end);
 
         return p;
-    }, [currentDate, filters.categories, filters.tags, filters.search]);
+    }, [currentDate, filters.categories, filters.tags, filters.search, viewMode]);
 
     useEffect(() => {
         let cancelled = false;

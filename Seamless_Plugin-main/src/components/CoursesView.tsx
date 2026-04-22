@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useCourses } from '../hooks/useCourses';
 import { SearchInput } from './SearchInput';
 import { CustomDropdown } from './CustomDropdown';
@@ -60,6 +60,31 @@ export const CoursesView: React.FC = () => {
         return text.substr(0, length).trim() + '...';
     };
 
+    const [openPanel, setOpenPanel] = useState<'access' | 'year' | 'sort' | null>(null);
+    const filterContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const path = event.composedPath();
+            if (filterContainerRef.current && !path.includes(filterContainerRef.current)) {
+                setOpenPanel(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const activeFilterCount = (filters.access ? 1 : 0) + (filters.year ? 1 : 0) + (filters.sort && filters.sort !== 'newest' ? 1 : 0);
+
+    const checkIcon = (
+        <span className="seamless-filter-check-icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3.5 8.5 6.5 11.5 12.5 4.5"></polyline>
+            </svg>
+        </span>
+    );
+
     const formatDuration = (minutes: number) => {
         if (!minutes) return '0 mins';
         return `${minutes} mins`; // Or convert to hours if > 60
@@ -79,134 +104,149 @@ export const CoursesView: React.FC = () => {
     return (
         <div className="seamless-courses-container">
             {/* Filter Bar */}
-            <div className="seamless-filter-bar" style={{ marginBottom: '40px' }}>
-                <div className="seamless-filter-bar-content">
-                    <div className="seamless-filter-bar-inner">
-                        {/* Desktop Layout */}
-                        <div className="seamless-filter-bar-desktop">
-                            {/* Search Header and Input - Row 1 */}
-                            <div className="seamless-filter-header-row">
-                                <h3 className="seamless-filter-label seamless-font-montserrat">
-                                    SEARCH AND FILTER
-                                </h3>
-                                <div className="seamless-filter-search-wrapper">
-                                    <SearchInput value={filters.search} onChange={updateSearch} placeholder="Search courses by title or description..." />
-                                </div>
-                            </div>
+            <div className="seamless-filter-shell" ref={filterContainerRef} style={{ marginBottom: '40px' }}>
+                <div className="seamless-filter-topbar">
+                    <div className="seamless-filter-search">
+                        <div className="seamless-filter-search-field">
+                            <span className="seamless-filter-search-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="11" cy="11" r="7"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </span>
+                            <SearchInput value={filters.search} onChange={updateSearch} placeholder="Search courses by title or description..." />
+                        </div>
+                    </div>
 
-                            {/* Filters Row - Row 2 */}
-                            <div className="seamless-filter-controls-row">
-                                {/* Access Dropdown */}
-                                <div className="seamless-filter-control">
-                                    <CustomDropdown
-                                        value={filters.access || ''}
-                                        onChange={(val) => updateAccess(val)}
-                                        options={accessOptions.map(o => ({ ...o, label: o.label.toUpperCase() }))}
-                                        placeholder="ALL COURSES"
-                                    />
+                    <div className="seamless-filter-actions">
+                        {/* Access Filter */}
+                        <div className="seamless-filter-menu-wrap">
+                            <button
+                                type="button"
+                                className={`seamless-filter-menu-button ${openPanel === 'access' ? 'is-open' : ''} ${filters.access ? 'is-active' : ''}`}
+                                onClick={() => setOpenPanel((current) => current === 'access' ? null : 'access')}
+                                aria-expanded={openPanel === 'access'}
+                            >
+                                <span className="seamless-filter-button-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                </span>
+                                <span>{accessOptions.find(o => o.value === filters.access)?.label || 'All Courses'}</span>
+                            </button>
+                            {openPanel === 'access' && (
+                                <div className="seamless-filter-menu">
+                                    {accessOptions.map((option) => (
+                                        <button
+                                            key={option.value || 'all'}
+                                            type="button"
+                                            className={`seamless-filter-menu-item ${filters.access === option.value ? 'is-selected' : ''}`}
+                                            onClick={() => {
+                                                updateAccess(option.value);
+                                                setOpenPanel(null);
+                                            }}
+                                        >
+                                            <span>{option.label}</span>
+                                            {filters.access === option.value && checkIcon}
+                                        </button>
+                                    ))}
                                 </div>
-
-                                {/* Year Dropdown */}
-                                <div className="seamless-filter-control">
-                                    <CustomDropdown
-                                        value={filters.year || ''}
-                                        onChange={(val) => updateYear(val)}
-                                        options={yearOptions.map(o => ({ ...o, label: o.label.toUpperCase() }))}
-                                        placeholder="ALL YEARS"
-                                    />
-                                </div>
-
-                                {/* Sort Dropdown */}
-                                <div className="seamless-filter-control">
-                                    <CustomDropdown
-                                        value={filters.sort}
-                                        onChange={(val) => updateSort(val)}
-                                        options={sortOptions.map(o => ({ ...o, label: o.label.toUpperCase() }))}
-                                        placeholder="NEWEST FIRST"
-                                    />
-                                </div>
-
-                                {/* Reset Button */}
-                                <div className="seamless-filter-control">
-                                    <div
-                                        onClick={resetFilters}
-                                        className="seamless-button seamless-button-primary seamless-button-full seamless-font-montserrat"
-                                        role="button"
-                                        tabIndex={0}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                resetFilters();
-                                            }
-                                        }}
-                                    >
-                                        RESET
-                                    </div>
-                                </div>
-                            </div>
+                            )}
                         </div>
 
-                        {/* Mobile Layout */}
-                        <div className="seamless-filter-bar-mobile">
-                            {/* Title */}
-                            <h3 className="seamless-filter-label seamless-w-full seamless-font-montserrat">
-                                SEARCH AND FILTER
-                            </h3>
-
-                            {/* Search Bar - Full Width */}
-                            <div className="seamless-filter-mobile-control">
-                                <SearchInput value={filters.search} onChange={updateSearch} placeholder="Search courses by title or description..." />
-                            </div>
-
-                            {/* Filter Dropdowns - Stacked */}
-                            <div className="seamless-filter-mobile-controls">
-                                {/* Access Dropdown */}
-                                <select
-                                    value={filters.access || ''}
-                                    onChange={(e) => updateAccess(e.target.value)}
-                                    className="seamless-select-dropdown seamless-filter-mobile-control seamless-font-montserrat"
-                                >
-                                    {accessOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label.toUpperCase()}
-                                        </option>
+                        {/* Year Filter */}
+                        <div className="seamless-filter-menu-wrap">
+                            <button
+                                type="button"
+                                className={`seamless-filter-menu-button ${openPanel === 'year' ? 'is-open' : ''} ${filters.year ? 'is-active' : ''}`}
+                                onClick={() => setOpenPanel((current) => current === 'year' ? null : 'year')}
+                                aria-expanded={openPanel === 'year'}
+                            >
+                                <span className="seamless-filter-button-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                </span>
+                                <span>{filters.year || 'All Years'}</span>
+                            </button>
+                            {openPanel === 'year' && (
+                                <div className="seamless-filter-menu seamless-filter-menu-year">
+                                    {yearOptions.map((option) => (
+                                        <button
+                                            key={option.value || 'all'}
+                                            type="button"
+                                            className={`seamless-filter-menu-item ${filters.year === option.value ? 'is-selected' : ''}`}
+                                            onClick={() => {
+                                                updateYear(option.value);
+                                                setOpenPanel(null);
+                                            }}
+                                        >
+                                            <span>{option.label}</span>
+                                            {filters.year === option.value && checkIcon}
+                                        </button>
                                     ))}
-                                </select>
-
-                                {/* Year Dropdown */}
-                                <select
-                                    value={filters.year || ''}
-                                    onChange={(e) => updateYear(e.target.value)}
-                                    className="seamless-select-dropdown seamless-filter-mobile-control seamless-font-montserrat"
-                                >
-                                    {yearOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label.toUpperCase()}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {/* Sort Dropdown */}
-                                <select
-                                    value={filters.sort}
-                                    onChange={(e) => updateSort(e.target.value)}
-                                    className="seamless-select-dropdown seamless-filter-mobile-control seamless-font-montserrat"
-                                >
-                                    {sortOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label.toUpperCase()}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {/* Reset Button */}
-                                <button
-                                    onClick={resetFilters}
-                                    className="seamless-button seamless-button-primary seamless-button-full seamless-filter-mobile-control seamless-font-montserrat"
-                                >
-                                    RESET
-                                </button>
-                            </div>
+                                </div>
+                            )}
                         </div>
+
+                        {/* Sort Filter */}
+                        <div className="seamless-filter-menu-wrap">
+                            <button
+                                type="button"
+                                className={`seamless-filter-menu-button ${openPanel === 'sort' ? 'is-open' : ''} ${filters.sort && filters.sort !== 'newest' ? 'is-active' : ''}`}
+                                onClick={() => setOpenPanel((current) => current === 'sort' ? null : 'sort')}
+                                aria-expanded={openPanel === 'sort'}
+                            >
+                                <span className="seamless-filter-button-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                                        <polyline points="5 12 12 5 19 12"></polyline>
+                                    </svg>
+                                </span>
+                                <span>{sortOptions.find(o => o.value === filters.sort)?.label || 'Newest First'}</span>
+                            </button>
+                            {openPanel === 'sort' && (
+                                <div className="seamless-filter-menu">
+                                    {sortOptions.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            className={`seamless-filter-menu-item ${filters.sort === option.value ? 'is-selected' : ''}`}
+                                            onClick={() => {
+                                                updateSort(option.value);
+                                                setOpenPanel(null);
+                                            }}
+                                        >
+                                            <span>{option.label}</span>
+                                            {filters.sort === option.value && checkIcon}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Reset Button */}
+                        <button
+                            type="button"
+                            className="seamless-filter-reset"
+                            onClick={() => {
+                                setOpenPanel(null);
+                                resetFilters();
+                            }}
+                        >
+                            <span className="seamless-filter-button-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="1 4 1 10 7 10"></polyline>
+                                    <path d="M3.51 15a9 9 0 1 0 -.49-5"></path>
+                                </svg>
+                            </span>
+                            <span>Reset</span>
+                            {activeFilterCount > 0 && <span className="seamless-filter-badge">{activeFilterCount}</span>}
+                        </button>
                     </div>
                 </div>
             </div>
