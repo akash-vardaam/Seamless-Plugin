@@ -20,6 +20,14 @@ export interface Category {
   name: string;
   slug: string;
   color: string | null;
+  parentId?: string | null;
+  matchIds?: string[];
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface Schedule {
@@ -79,6 +87,7 @@ export interface Event {
   tickets: Ticket[];
   venue: Venue;
   categories?: Category[];
+  tags?: Tag[];
   audiences?: Audience[];
   focuses?: Focus[];
   local_chapters?: LocalChapter[];
@@ -145,9 +154,8 @@ export type StatusFilter = '' | 'upcoming' | 'current' | 'past';
 export interface FilterState {
   search: string;
   status: StatusFilter;
-  audience: string;
-  focus: string;
-  localChapter: string;
+  categories: string[];
+  tags: string[];
   year: string;
 }
 

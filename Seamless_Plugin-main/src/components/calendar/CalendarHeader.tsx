@@ -44,13 +44,13 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           <button className="seamless-calendar-nav-btn" onClick={onNext}>&gt;</button>
         </div>
         <div className="seamless-calendar-view-toggle">
-          <button 
+          <button
             className={`seamless-calendar-view-btn ${viewMode === 'MONTH' ? 'active' : ''}`}
             onClick={() => onViewModeChange('MONTH')}
           >
             {viewMode === 'MONTH' ? '( MONTH )' : 'MONTH'}
           </button>
-          <button 
+          <button
             className={`seamless-calendar-view-btn ${viewMode === 'WEEK' ? 'active' : ''}`}
             onClick={() => onViewModeChange('WEEK')}
           >

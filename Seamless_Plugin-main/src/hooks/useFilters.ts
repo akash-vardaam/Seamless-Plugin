@@ -1,25 +1,26 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { Event, FilterState } from '../types/event';
+import type { Category, Event, FilterState } from '../types/event';
 
 export const DEFAULT_FILTERS: FilterState = {
   search: '',
   status: '',
-  audience: '',
-  focus: '',
-  localChapter: '',
+  categories: [],
+  tags: [],
   year: '',
 };
 
 interface UseFilterStateReturn {
   filters: FilterState;
-  updateFilter: (key: keyof FilterState, value: string) => void;
+  updateFilter: (key: keyof FilterState, value: string | string[]) => void;
   resetFilters: () => void;
 }
 
 export const useFilterState = (): UseFilterStateReturn => {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawStatus = searchParams.get('status');
+  const rawCategories = searchParams.get('categories') || '';
+  const rawTags = searchParams.get('tags') || '';
   const normalizedStatus =
     rawStatus === 'upcoming' || rawStatus === 'current' || rawStatus === 'past'
       ? rawStatus
@@ -29,17 +30,32 @@ export const useFilterState = (): UseFilterStateReturn => {
   const filters: FilterState = useMemo(() => ({
     search: searchParams.get('search') || DEFAULT_FILTERS.search,
     status: normalizedStatus,
-    audience: searchParams.get('audience') || DEFAULT_FILTERS.audience,
-    focus: searchParams.get('focus') || DEFAULT_FILTERS.focus,
-    localChapter: searchParams.get('localChapter') || DEFAULT_FILTERS.localChapter,
+    categories: rawCategories
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    tags: rawTags
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean),
     year: searchParams.get('year') || DEFAULT_FILTERS.year,
-  }), [searchParams, normalizedStatus]);
+  }), [searchParams, normalizedStatus, rawCategories, rawTags]);
 
-  const updateFilter = (key: keyof FilterState, value: string) => {
+  const updateFilter = (key: keyof FilterState, value: string | string[]) => {
     console.log(`Updating filter ${key} to ${value}`);
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev);
-      if (value) {
+
+      if (key === 'categories' || key === 'tags') {
+        const serializedCategories = Array.isArray(value)
+          ? value.join(',')
+          : value;
+        if (serializedCategories) {
+          newParams.set(key, serializedCategories);
+        } else {
+          newParams.delete(key);
+        }
+      } else if (typeof value === 'string' && value) {
         newParams.set(key, value);
       } else {
         newParams.delete(key);
@@ -90,50 +106,45 @@ export const useFilterState = (): UseFilterStateReturn => {
   return { filters, updateFilter, resetFilters };
 };
 
-export const useClientFilters = (events: Event[], filters: FilterState): Event[] => {
+export const useClientFilters = (
+  events: Event[],
+  filters: FilterState,
+  categories: Category[] = [],
+): Event[] => {
   return useMemo(() => {
     return events.filter((event) => {
       const now = new Date();
 
-      // Status filter
+      // Status filter (as fallback for edge cases)
       if (filters.status) {
-        const startDate = new Date(event.start_date);
-        const endDate = new Date(event.end_date);
+        try {
+          const startDate = new Date(event.start_date);
+          const endDate = new Date(event.end_date);
 
-        if (filters.status === 'upcoming' && startDate <= now) return false;
-        if (filters.status === 'current' && (now < startDate || now > endDate)) return false;
-        if (filters.status === 'past' && endDate >= now) return false;
+          if (filters.status === 'upcoming' && startDate <= now) return false;
+          if (filters.status === 'current' && (now < startDate || now > endDate)) return false;
+          if (filters.status === 'past' && endDate >= now) return false;
+        } catch {
+          // If date parsing fails, don't filter on status
+        }
       }
 
-      // Search filter (Client side fallback, though server handles it now)
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        if (!event.title.toLowerCase().includes(searchLower)) return false;
-      }
-
-      // Audience filter
-      if (filters.audience) {
-        const hasAudience = event.categories?.some((c) => c.id === filters.audience);
-        if (!hasAudience) return false;
-      }
-
-      // Focus filter
-      if (filters.focus) {
-        const hasFocus = event.categories?.some((c) => c.id === filters.focus);
-        if (!hasFocus) return false;
-      }
-
-      // Local Chapter filter
-      if (filters.localChapter) {
-        const hasChapter = event.categories?.some((c) => c.id === filters.localChapter);
-        if (!hasChapter) return false;
-      }
-
-      // Year filter
+      // Year filter - only one that requires client-side processing
+      // (API filters by date range, not by year directly)
       if (filters.year) {
-        const eventYear = new Date(event.start_date).getFullYear().toString();
-        if (eventYear !== filters.year) return false;
+        try {
+          const eventYear = new Date(event.start_date).getFullYear().toString();
+          if (eventYear !== filters.year) return false;
+        } catch {
+          // If date parsing fails, don't filter
+          return false;
+        }
       }
+
+      // NOTE: Categories, Tags, and Search filters are already handled by the API
+      // Applying them again client-side causes issues when event.categories or event.tags
+      // are not populated in the response. The server has already filtered the results,
+      // so we don't need to filter them again here.
 
       return true;
     });
@@ -143,6 +154,6 @@ export const useClientFilters = (events: Event[], filters: FilterState): Event[]
 // We will replace usage in ItemsPage
 export const useFilters = (events: Event[]) => {
   const { filters, updateFilter, resetFilters } = useFilterState();
-  const filteredItems = useClientFilters(events, filters);
+  const filteredItems = useClientFilters(events, filters, []);
   return { filters, updateFilter, resetFilters, filteredItems, setFilters: () => { } };
 };

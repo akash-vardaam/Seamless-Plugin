@@ -45,20 +45,39 @@ export const useSegmentedEventPagination = (
     const apiPageRef = useRef(1);
     const mode = filters?.status;
 
-    // Use category_ids instead of category, and include status/search
+    const getYearRange = useCallback((year: string) => {
+        const parsedYear = Number.parseInt(year, 10);
+        if (!Number.isFinite(parsedYear)) return null;
+
+        return {
+            start_date: `${parsedYear}-01-01`,
+            end_date: `${parsedYear}-12-31`
+        };
+    }, []);
+
     const buildParams = useCallback(() => {
         const p: any = { per_page: API_PAGE_SIZE };
         if (filters) {
             if (filters.status) p.status = filters.status;
 
-            const cats = [filters.audience, filters.focus, filters.localChapter]
-                .filter(Boolean).join(',');
+            const cats = filters.categories.filter(Boolean).join(',');
             if (cats) p.category_ids = cats;
 
+            const tags = filters.tags.filter(Boolean).join(',');
+            if (tags) p.tag_ids = tags;
+
             if (filters.search) p.search = filters.search;
+
+            if (filters.year) {
+                const yearRange = getYearRange(filters.year);
+                if (yearRange) {
+                    p.start_date = yearRange.start_date;
+                    p.end_date = yearRange.end_date;
+                }
+            }
         }
         return p;
-    }, [filters?.status, filters?.audience, filters?.focus, filters?.localChapter, filters?.search]);
+    }, [filters?.status, filters?.categories, filters?.tags, filters?.search, filters?.year, getYearRange]);
 
     // Reset accumulators when filters change
     useEffect(() => {

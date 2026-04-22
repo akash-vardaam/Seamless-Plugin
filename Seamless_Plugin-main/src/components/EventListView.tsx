@@ -3,6 +3,7 @@ import React, { useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSegmentedEventPagination } from '../hooks/useSegmentedEventPagination';
 import { useCategories } from '../hooks/useCategories';
+import { useTags } from '../hooks/useTags';
 import { useFilterState, useClientFilters } from '../hooks/useFilters';
 import { FilterBar } from './FilterBar';
 import { ViewSwitcher } from './ViewSwitcher';
@@ -21,9 +22,13 @@ export const EventListView: React.FC = () => {
     const runtimeThemeSettings = useMemo(() => getRuntimeThemeSettings(), []);
     // 1. Categories
     const {
-        audiences, focuses, localChapters,
+        categories,
         loading: categoriesLoading
     } = useCategories();
+    const {
+        tags,
+        loading: tagsLoading
+    } = useTags();
 
     // 2. Filter State
     const { filters, updateFilter, resetFilters } = useFilterState();
@@ -143,7 +148,7 @@ export const EventListView: React.FC = () => {
         return Array.from(s).sort((a, b) => parseInt(b) - parseInt(a));
     }, [items]);
 
-    const loading = itemsLoading || categoriesLoading;
+    const loading = itemsLoading || categoriesLoading || tagsLoading;
     const isModernListLayout = runtimeThemeSettings.cardVariant === 'modern';
 
     const listItems = useMemo(() => {
@@ -182,15 +187,22 @@ export const EventListView: React.FC = () => {
                     onSearchChange={(v) => updateFilter('search', v)}
                     status={filters.status}
                     onStatusChange={(v) => updateFilter('status', v as any)}
-                    audience={filters.audience}
-                    onAudienceChange={(v) => updateFilter('audience', v)}
-                    audiences={audiences}
-                    focus={filters.focus}
-                    onFocusChange={(v) => updateFilter('focus', v)}
-                    focuses={focuses}
-                    localChapter={filters.localChapter}
-                    onLocalChapterChange={(v) => updateFilter('localChapter', v)}
-                    localChapters={localChapters}
+                    categories={categories}
+                    selectedCategories={filters.categories}
+                    onCategoryToggle={(categoryId) => {
+                        const nextCategories = filters.categories.includes(categoryId)
+                            ? filters.categories.filter((id) => id !== categoryId)
+                            : [...filters.categories, categoryId];
+                        updateFilter('categories', nextCategories);
+                    }}
+                    tags={tags}
+                    selectedTags={filters.tags}
+                    onTagToggle={(tagId) => {
+                        const nextTags = filters.tags.includes(tagId)
+                            ? filters.tags.filter((id) => id !== tagId)
+                            : [...filters.tags, tagId];
+                        updateFilter('tags', nextTags);
+                    }}
                     year={filters.year}
                     onYearChange={(v) => updateFilter('year', v)}
                     years={years}

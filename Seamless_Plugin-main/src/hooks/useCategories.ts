@@ -10,9 +10,7 @@ interface ApiCategory {
 }
 
 interface UseCategoriesReturn {
-    audiences: Category[];
-    focuses: Category[];
-    localChapters: Category[];
+    categories: Category[];
     loading: boolean;
     error: string | null;
 }
@@ -52,43 +50,53 @@ export const useCategories = (): UseCategoriesReturn => {
         fetchCategories();
     }, []);
 
-    const { audiences, focuses, localChapters } = useMemo(() => {
-        let audienceList: Category[] = [];
-        let focusList: Category[] = [];
-        let localChapterList: Category[] = [];
-
-        // Helper to convert ApiCategory to application Category
-        const mapToCategory = (c: ApiCategory): Category => ({
-            id: c.id,
-            name: c.label, // Map label to name
-            slug: c.slug,
-            color: null
-        });
-
-        // Iterate through top-level categories to find the main buckets
-        rawCategories.forEach((parent) => {
-            const slug = parent.slug.toLowerCase();
-
-            if (slug === 'audience' && Array.isArray(parent.children)) {
-                audienceList = parent.children.map(mapToCategory);
-            } else if (slug === 'focus' && Array.isArray(parent.children)) {
-                focusList = parent.children.map(mapToCategory);
-            } else if ((slug === 'local-chapters-regions' || slug === 'local-chapter') && Array.isArray(parent.children)) {
-                localChapterList = parent.children.map(mapToCategory);
-            }
-        });
-
-        return {
-            audiences: audienceList,
-            focuses: focusList,
-            localChapters: localChapterList,
+    const categories = useMemo(() => {
+        const normalizeLabel = (value: string | undefined): string => {
+            const trimmedValue = String(value || '').trim();
+            return trimmedValue === '-' ? '' : trimmedValue;
         };
+
+        const flattenedCategories: Category[] = [];
+        const seenIds = new Set<string>();
+
+        const walk = (nodes: ApiCategory[], parentId: string | null = null): string[] => {
+            const collectedIds: string[] = [];
+
+            nodes.forEach((node) => {
+                if (!node?.id || seenIds.has(node.id)) return;
+
+                seenIds.add(node.id);
+
+                const childMatchIds = Array.isArray(node.children) && node.children.length > 0
+                    ? walk(node.children, node.id)
+                    : [];
+
+                const mappedCategory: Category = {
+                    id: node.id,
+                    name: normalizeLabel(node.label),
+                    slug: node.slug,
+                    color: null,
+                    parentId,
+                    matchIds: [node.id, ...childMatchIds]
+                };
+
+                if (!mappedCategory.name) {
+                    return;
+                }
+
+                flattenedCategories.push(mappedCategory);
+                collectedIds.push(node.id, ...childMatchIds);
+            });
+
+            return collectedIds;
+        };
+
+        walk(rawCategories);
+        return flattenedCategories;
     }, [rawCategories]);
 
     return {
-        audiences,
-        focuses,
-        localChapters,
+        categories,
         loading,
         error
     };

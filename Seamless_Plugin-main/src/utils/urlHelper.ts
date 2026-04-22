@@ -8,7 +8,7 @@ export interface EventURLConfig {
   shopCartEndpoint?: string;
 }
 
-const LIST_QUERY_KEYS = ['search', 'status', 'audience', 'focus', 'localChapter', 'year', 'page', 'view', 'date'];
+const LIST_QUERY_KEYS = ['search', 'status', 'categories', 'year', 'page', 'view', 'date'];
 
 const normalizeEndpoint = (value: string | undefined, fallback: string): string => {
   const normalized = (value || fallback).trim().replace(/^\/+|\/+$/g, '');

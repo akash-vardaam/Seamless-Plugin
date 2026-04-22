@@ -1,124 +1,263 @@
-/* ============================================
-   SEAMLESS EVENT DISPLAY - FILTER BAR STYLES
-   ============================================ */
-
-:host .seamless-filter-bar {
+:host .seamless-filter-shell {
   position: relative !important;
-  margin-bottom: var(--seamless-spacing-8) !important;
-  padding: 1.5rem 0 !important;
-  box-sizing: border-box !important;
-}
-
-:host .seamless-filter-bar-content {
-  width: 100% !important;
-  display: flex !important;
-  justify-content: center !important;
-}
-
-:host .seamless-filter-bar-inner {
-  width: 100% !important;
-}
-
-/* Filter bar desktop layout */
-:host .seamless-filter-bar-desktop {
-  display: none !important;
-}
-
-@media (min-width: 768px) {
-  :host .seamless-filter-bar-desktop {
-    display: block !important;
-  }
-}
-
-/* Filter bar header row */
-:host .seamless-filter-header-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: var(--seamless-spacing-6) !important;
-  margin-bottom: var(--seamless-spacing-6) !important;
-  flex-wrap: wrap !important;
-}
-
-:host .seamless-filter-label {
-  font-size: var(--seamless-font-size-base) !important;
-  font-weight: 400 !important;
-  line-height: var(--seamless-line-height-1-5) !important;
-  color: var(--seamless-color-gray-700) !important;
-  white-space: nowrap !important;
-  font-family: var(--seamless-font-family-montserrat) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-}
-
-:host .seamless-filter-search-wrapper {
-  flex: 1 !important;
-  min-width: 200px !important;
-}
-
-/* Filter controls row */
-:host .seamless-filter-controls-row {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
-  gap: 25px !important;
-  align-items: center !important;
-  width: 100% !important;
-}
-
-:host .seamless-filter-control {
-  min-height: 44px !important;
-}
-
-/* Filter bar mobile layout */
-:host .seamless-filter-bar-mobile {
-  display: block !important;
-}
-
-@media (min-width: 768px) {
-  :host .seamless-filter-bar-mobile {
-    display: none !important;
-  }
-}
-
-:host .seamless-filter-mobile-controls {
   display: flex !important;
   flex-direction: column !important;
-  gap: var(--seamless-spacing-2) !important;
-  width: 100% !important;
+  gap: 0.9rem !important;
+  margin-bottom: var(--seamless-spacing-8) !important;
 }
 
-:host .seamless-filter-mobile-control {
-  width: 100% !important;
+:host .seamless-filter-topbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.85rem !important;
+  align-items: center !important;
+  padding: 1.1rem 1.15rem !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  border-radius: 24px !important;
+  background: #ffffff !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05) !important;
 }
 
-:host .seamless-dropdown-trigger {
+:host .seamless-filter-search {
+  flex: 1 1 18rem !important;
+  min-width: 16rem !important;
+}
+
+:host .seamless-filter-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  align-items: center !important;
+}
+
+:host .seamless-filter-search-field {
+  position: relative !important;
+}
+
+:host .seamless-filter-search-field .seamless-search-input {
+  padding-left: 2.8rem !important;
+  min-height: 50px !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: #f8fafc !important;
+}
+
+:host .seamless-filter-search-icon {
+  position: absolute !important;
+  top: 38% !important;
+  left: 1rem !important;
+  height: 1rem !important;
+  color: #7b8597 !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+}
+
+:host .seamless-filter-search-icon svg,
+:host .seamless-filter-button-icon svg,
+:host .seamless-filter-section-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+:host .seamless-filter-menu-wrap {
+  position: relative !important;
+}
+
+:host .seamless-filter-menu-button,
+:host .seamless-filter-reset,
+:host .seamless-filter-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  min-height: 44px !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  background: #ffffff !important;
+  color: var(--seamless-color-font) !important;
+  font-family: var(--seamless-font-family-montserrat) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  transition: all 160ms ease !important;
+}
+
+:host .seamless-filter-menu-button:hover,
+:host .seamless-filter-reset:hover,
+:host .seamless-filter-chip:hover {
+  border-color: rgba(15, 23, 42, 0.24) !important;
+  transform: translateY(-1px) !important;
+}
+
+:host .seamless-filter-menu-button.is-active,
+:host .seamless-filter-menu-button.is-open,
+:host .seamless-filter-chip {
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.2) !important;
+}
+
+:host .seamless-filter-button-icon {
+  width: 1rem !important;
+  height: 1rem !important;
+  color: #5f6b7d !important;
+  flex: 0 0 auto !important;
+}
+
+:host .seamless-filter-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 1.3rem !important;
+  height: 1.3rem !important;
+  padding: 0 0.3rem !important;
+  border-radius: 999px !important;
+  background: var(--seamless-color-primary) !important;
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+}
+
+:host .seamless-filter-menu,
+:host .seamless-filter-panel {
+  position: absolute !important;
+  top: calc(100% + 0.55rem) !important;
+  right: 0 !important;
+  z-index: 60 !important;
+  min-width: 13rem !important;
+  padding: 0.65rem !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14) !important;
+}
+
+:host .seamless-filter-panel {
+  width: min(26rem, 78vw) !important;
+}
+
+:host .seamless-filter-panel-inline {
+  position: static !important;
+  width: 100% !important;
+  padding: 1.5rem !important;
+  border-radius: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.35rem !important;
+  box-shadow: none !important;
+}
+
+:host .seamless-filter-panel-header {
+  margin-bottom: 0.7rem !important;
+  color: var(--seamless-color-gray-700) !important;
+  font-family: var(--seamless-font-family-montserrat) !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 0.5rem !important;
 }
 
-/* TEXT truncates */
-:host .seamless-dropdown-trigger .truncate {
-  flex: 1 !important;
-  min-width: 0 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+:host .seamless-filter-options {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.55rem !important;
+  max-height: 18rem !important;
+  overflow-y: auto !important;
 }
 
-/* ARROW always visible */
-:host .seamless-dropdown-arrow {
-  flex-shrink: 0 !important;
+:host .seamless-filter-section-block {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.9rem !important;
 }
 
-/* Responsive adjustments for smaller screens */
-@media (max-width: 640px) {
-  :host .seamless-filter-bar {
-    padding: var(--seamless-spacing-4) 0 !important;
+:host .seamless-filter-section-icon {
+  width: 0.95rem !important;
+  height: 0.95rem !important;
+  color: #6d7688 !important;
+}
+
+:host .seamless-filter-option,
+:host .seamless-filter-menu-item {
+  width: 100% !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--seamless-color-font) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  font-family: var(--seamless-font-family-montserrat) !important;
+  font-size: 0.9rem !important;
+}
+
+:host .seamless-filter-menu-item {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0.7rem 0.85rem !important;
+  border-radius: 12px !important;
+}
+
+:host .seamless-filter-menu-item:hover,
+:host .seamless-filter-menu-item.is-selected {
+  background: rgba(15, 23, 42, 0.06) !important;
+}
+
+:host .seamless-filter-option {
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0.3rem 1rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  background: #f9fafc !important;
+}
+
+:host .seamless-filter-option.is-selected {
+  background: var(--seamless-color-primary) !important;
+  border-color: var(--seamless-color-primary) !important;
+  color: #ffffff !important;
+}
+
+:host .seamless-filter-placeholder {
+  color: var(--seamless-color-gray-600) !important;
+  font-size: 0.875rem !important;
+}
+
+:host .seamless-filter-chips {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.6rem !important;
+}
+
+:host .seamless-filter-chip-close {
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+}
+
+@media (max-width: 767px) {
+  :host .seamless-filter-topbar {
+    align-items: stretch !important;
   }
 
-  :host .seamless-filter-bar-content {
-    padding-left: var(--seamless-spacing-3) !important;
-    padding-right: var(--seamless-spacing-3) !important;
+  :host .seamless-filter-search,
+  :host .seamless-filter-actions,
+  :host .seamless-filter-menu-wrap,
+  :host .seamless-filter-menu-button,
+  :host .seamless-filter-reset {
+    width: 100% !important;
+  }
+
+  :host .seamless-filter-menu,
+  :host .seamless-filter-panel {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+  }
+
+  :host .seamless-filter-panel-inline {
+    padding: 1rem !important;
   }
 }
-

@@ -54,9 +54,12 @@ export const useCalendarEvents = (
         const p: any = { per_page: 100 };
 
         // Apply category filters
-        const cats = [filters.audience, filters.focus, filters.localChapter]
-            .filter(Boolean).join(',');
+        const cats = filters.categories.filter(Boolean).join(',');
         if (cats) p.category_ids = cats;
+
+        // Apply tag filters
+        const tagsStr = filters.tags.filter(Boolean).join(',');
+        if (tagsStr) p.tag_ids = tagsStr;
 
         if (filters.search) p.search = filters.search;
 
@@ -70,7 +73,7 @@ export const useCalendarEvents = (
         p.end_date = end_date;
 
         return p;
-    }, [currentDate, filters.audience, filters.focus, filters.localChapter, filters.search]);
+    }, [currentDate, filters.categories, filters.tags, filters.search]);
 
     useEffect(() => {
         let cancelled = false;

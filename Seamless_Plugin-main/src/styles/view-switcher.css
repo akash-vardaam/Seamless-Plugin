@@ -4,54 +4,59 @@
 
 :host .seamless-view-switcher {
   display: flex !important;
-  gap: var(--seamless-spacing-3) !important;
-  flex-wrap: wrap !important;
+  gap: 0 !important;
   align-items: center !important;
+  border: 1px solid rgba(15, 23, 42, 0.14) !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04) !important;
 }
 
 :host .seamless-view-switcher-button {
-  min-height: 40px !important;
-  padding: 0.5rem 1.25rem !important;
-  border-radius: var(--seamless-radius-lg) !important;
+  min-width: 56px !important;
+  min-height: 50px !important;
+  padding: 0.3rem 0.75rem 0.75rem !important;
+  border-radius: 0 !important;
   font-size: var(--seamless-font-size-sm) !important;
-  font-weight: 600 !important;
   transition: all var(--seamless-transition-normal) !important;
   cursor: pointer !important;
-  border: 2px solid transparent !important;
-  text-transform: capitalize !important;
-  letter-spacing: 0.3px !important;
-  white-space: nowrap !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(15, 23, 42, 0.12) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  background: transparent !important;
 }
 
 :host .seamless-view-switcher-button-active {
-  background-color: var(--seamless-color-primary) !important;
-  color: var(--seamless-color-white) !important;
-  border-color: var(--seamless-color-primary) !important;
+  background-color: #f5f7fb !important;
+  color: var(--seamless-color-primary) !important;
 }
 
 :host .seamless-view-switcher-button-inactive {
-  background-color: var(--seamless-color-gray-100) !important;
-  color: var(--seamless-color-gray-700) !important;
-  border-color: var(--seamless-color-gray-300) !important;
+  color: #687387 !important;
 }
 
 :host .seamless-view-switcher-button-inactive:hover {
-  background-color: var(--seamless-color-gray-200) !important;
-  border-color: var(--seamless-color-gray-400) !important;
+  background-color: #fafbfc !important;
+}
+
+:host .seamless-view-switcher-button:last-child {
+  border-right: 0 !important;
 }
 
 :host .seamless-view-switcher-button:focus {
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(0, 178, 202, 0.1) !important;
 }
 
-/* Hide list view button on mobile */
-@media (max-width: 767px) {
-  :host .seamless-view-switcher-button-list {
-    display: none !important;
-  }
+:host .seamless-view-switcher-icon {
+  width: 1.05rem !important;
+  height: 1.05rem !important;
+}
+
+:host .seamless-view-switcher-icon svg {
+  width: 100% !important;
+  height: 100% !important;
 }
 

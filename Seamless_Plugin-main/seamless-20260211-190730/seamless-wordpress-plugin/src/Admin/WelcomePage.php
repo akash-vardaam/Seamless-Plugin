@@ -26,7 +26,7 @@ class WelcomePage
 		$active_view = $this->get_active_view();
 		$settings_page = $this->settings_page ?? new SettingsPage();
 ?>
-		<div class="seamless-admin-shell">
+		<div class="seamless-admin-shell seamless-shell-loading">
 			<?php $this->render_sidebar_navigation($active_view, $settings_page); ?>
 
 			<div class="seamless-admin-main">
@@ -74,8 +74,8 @@ class WelcomePage
 ?>
 		<aside class="seamless-admin-sidebar">
 			<div class="seamless-sidebar-brand">
-				<img src="<?php echo esc_url($logo_url); ?>" alt="Seamless" class="seamless-sidebar-logo" />
-				<img src="<?php echo esc_url($icon_logo_url); ?>" alt="Seamless" class="seamless-sidebar-icon-logo" />
+				<img src="<?php echo esc_url($logo_url); ?>" alt="Seamless" class="seamless-sidebar-logo" width="148" height="39" />
+				<img src="<?php echo esc_url($icon_logo_url); ?>" alt="Seamless" class="seamless-sidebar-icon-logo" width="27" height="40" />
 			</div>
 
 			<div class="seamless-sidebar-scroll">
@@ -102,8 +102,8 @@ class WelcomePage
 				</section>
 			</div>
 
-			<div class="seamless-sidebar-footer">
-				<a href="https://seamlessams.com/" target="_blank" rel="noopener noreferrer"><?php esc_html_e('API Documentation', 'seamless'); ?></a>
+			<div class="seamless-sidebar-footer"">
+				<a style="display: none;" href="https://seamlessams.com/" target="_blank" rel="noopener noreferrer"><?php esc_html_e('API Documentation', 'seamless'); ?></a>
 				<button type="button" class="seamless-sidebar-toggle" aria-expanded="true" aria-label="<?php esc_attr_e('Collapse sidebar', 'seamless'); ?>">
 					<span class="dashicons dashicons-arrow-left-alt2"></span>
 				</button>
@@ -118,12 +118,6 @@ class WelcomePage
 ?>
 		<div class="seamless-admin-topbar">
 			<div>
-				<div class="seamless-admin-breadcrumbs">
-					<span><?php esc_html_e('Seamless', 'seamless'); ?></span>
-					<span class="dashicons dashicons-arrow-right-alt2"></span>
-					<span><?php echo esc_html($active_view === 'settings' ? __('Settings', 'seamless') : __('Overview', 'seamless')); ?></span>
-				</div>
-				<h1 class="seamless-admin-page-title"><?php echo esc_html($title); ?></h1>
 				<?php if (!empty($description)) : ?>
 					<p class="seamless-admin-page-description"><?php echo esc_html($description); ?></p>
 				<?php endif; ?>
@@ -465,6 +459,30 @@ class WelcomePage
 				--seamless-grid-url: url('<?php echo esc_url(plugins_url('assets/white-grid-new.png', __FILE__)); ?>');
 			}
 
+			.seamless-admin-sidebar .seamless-sidebar-brand {
+				display: flex;
+				align-items: center;
+				gap: 14px;
+				padding: 20px 24px 13px;
+				min-height: 74px;
+				box-sizing: border-box;
+				border-bottom: 1px solid var(--seamless-border);
+			}
+
+			.seamless-admin-sidebar .seamless-sidebar-logo {
+				display: block;
+				width: 148px;
+				height: 39px;
+				max-width: 100%;
+				object-fit: contain;
+			}
+
+			.seamless-admin-sidebar .seamless-sidebar-icon-logo {
+				width: 27px;
+				height: 40px;
+				object-fit: contain;
+			}
+
 			.seamless-dashboard-wrapper .notice:not(.seamless-notice) {
 				display: none !important;
 			}
@@ -473,6 +491,17 @@ class WelcomePage
 				margin: 0;
 			}
 		</style>
+		<script>
+			(function() {
+				try {
+					if (window.localStorage && window.localStorage.getItem('seamless_sidebar_collapsed') === '1') {
+						document.documentElement.classList.add('seamless-sidebar-collapsed');
+					}
+				} catch (error) {
+					// Keep the default expanded layout when storage is unavailable.
+				}
+			})();
+		</script>
 <?php
 	}
 
@@ -484,6 +513,7 @@ class WelcomePage
 				const $overviewSurface = $('[data-seamless-page-loading="overview"]');
 
 				function finishOverviewLoading() {
+					$('.seamless-admin-shell').removeClass('seamless-shell-loading');
 					$overviewSurface.removeClass('is-page-loading');
 				}
 

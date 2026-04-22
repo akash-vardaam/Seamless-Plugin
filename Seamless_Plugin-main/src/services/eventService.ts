@@ -1,7 +1,11 @@
 import api, { requestWithCache } from './api';
 
 export const fetchCategories = async () => {
-    return await requestWithCache<any>({ method: 'GET', url: '/categories' });
+    return await requestWithCache<any>({ method: 'GET', url: '/categories' }, { preferCache: false });
+};
+
+export const fetchTags = async () => {
+    return await requestWithCache<any>({ method: 'GET', url: '/tags' }, { preferCache: false });
 };
 
 export const fetchEvents = async (params?: Record<string, any>) => {
