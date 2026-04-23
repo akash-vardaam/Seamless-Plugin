@@ -107,7 +107,7 @@
 
 :host .seamless-status-tag {
     display: flex !important;
-    gap: 20px !important;
+    gap: 12px !important;
 }
 
 :host .seamless-card-content .seamless-card-title {
@@ -115,6 +115,7 @@
     font-size: var(--seamless-font-size-20) !important;
     font-weight: 600 !important;
     text-align: start !important;
+    margin-bottom: 6px !important;
 }
 
 :host .seamless-dashboard-membership {

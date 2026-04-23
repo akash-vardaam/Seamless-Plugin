@@ -2963,7 +2963,7 @@
 :host .seamless-user-dashboard-btn-primary {
     background: var(--seamless-color-primary) !important;
     color: #ffffff !important;
-    padding: 10px 20px !important;
+    padding: 5px 18px !important;
     border: none !important;
     border-radius: 6px !important;
     cursor: pointer !important;
@@ -3003,7 +3003,7 @@
 :host .seamless-user-dashboard-btn-secondary {
     background: #f3f4f6 !important;
     color: #374151 !important;
-    padding: 10px 20px !important;
+    padding: 5px 18px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 6px !important;
     cursor: pointer !important;
@@ -3588,18 +3588,18 @@
 }
 
 :host .seamless-profile-content-card {
-    border-radius: 1px solid var(--seamless-color-gray-700) !important;
+    border-radius: 1px solid #e5e7eb !important;
     background: #fff !important;
     border-radius: 16px !important;
     padding: 32px !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-    border: 1px solid var(--seamless-color-gray-700) !important;
+    border: 1px solid #e5e7eb !important;
 }
 
 :host .seamless-profile-header {
-    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
-    padding-bottom: 24px !important;
-    margin-bottom: 24px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding-bottom: 20px !important;
+    margin-bottom: 20px !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
@@ -3613,7 +3613,7 @@
 }
 
 :host .seamless-edit-btn {
-    padding: 8px 16px !important;
+    padding: 5px 14px !important;
     border-radius: 6px !important;
     cursor: pointer !important;
     background: #f8fafc !important;
@@ -3625,7 +3625,7 @@
 :host .seamless-grid-3-col {
     display: grid !important;
     grid-template-columns: 1fr 1fr 1fr !important;
-    gap: 24px !important;
+    gap: 10px !important;
     margin-bottom: 32px !important;
 }
 
@@ -3633,11 +3633,11 @@
     color: #64748b !important;
     font-size: var(--seamless-font-size-13) !important;
     display: block !important;
-    margin-bottom: 4px !important;
+    font-weight: 500 !important;
 }
 
 :host .seamless-value-text {
-    font-weight: 500 !important;
+    font-weight: 400 !important;
 }
 
 :host .seamless-section-title {
@@ -3651,7 +3651,7 @@
     display: flex !important;
     gap: 16px !important;
     padding-top: 24px !important;
-    border-top: 1px solid var(--seamless-color-gray-700) !important;
+    border-top: 1px solid #e5e7eb !important;
 }
 
 :host .seamless-empty-card {
@@ -3812,7 +3812,7 @@
     background: #fff !important;
     border-radius: 16px !important;
     overflow: hidden !important;
-    border: 1px solid var(--seamless-color-gray-700) !important;
+    border: 1px solid #e5e7eb !important;
 }
 
 :host .seamless-styled-table {
@@ -3825,7 +3825,7 @@
 
 :host .seamless-styled-thead {
     background: #f8fafc !important;
-    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
+    border-bottom: 1px solid #e5e7eb !important;
 }
 
 :host .seamless-styled-th {
@@ -4043,6 +4043,65 @@
     align-items: center !important;
     justify-content: center !important;
     width: 100% !important;
+}
+
+:host .seamless-dashboard-skeleton {
+    min-height: 220px !important;
+    height: auto !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 16px !important;
+    background: #ffffff !important;
+    padding: 24px !important;
+}
+
+:host .seamless-dashboard-skeleton.is-compact {
+    min-height: 150px !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px !important;
+    background: transparent !important;
+}
+
+:host .seamless-dashboard-skeleton-stack {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+:host .seamless-dashboard-skeleton-line {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    background: #e2e8f0 !important;
+}
+
+:host .seamless-dashboard-skeleton-line::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    transform: translateX(-100%) !important;
+    background: linear-gradient(90deg, rgba(226, 232, 240, 0) 0%, rgba(248, 250, 252, 0.95) 50%, rgba(226, 232, 240, 0) 100%) !important;
+    animation: seamless-dashboard-skeleton-shimmer 1.3s ease-in-out infinite !important;
+}
+
+:host .seamless-dashboard-skeleton-line-title {
+    width: 38% !important;
+    min-width: 180px !important;
+    height: 18px !important;
+    margin-bottom: 8px !important;
+}
+
+:host .seamless-dashboard-skeleton-line-body {
+    height: 14px !important;
+}
+
+@keyframes seamless-dashboard-skeleton-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 :host .seamless-user-dashboard-view .seamless-blue-badge.seamless-capitalize {
@@ -4361,6 +4420,23 @@
 }
 
 /* --- New Orders View Styles --- */
+:host .seamless-orders-content-card {
+    border-radius: 16px !important;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    padding: 24px !important;
+}
+
+:host .seamless-orders-content-header {
+    border-bottom: 1px solid #e5e7eb !important;
+    padding-bottom: 16px !important;
+}
+
+:host .seamless-orders-content-header .seamless-user-dashboard-view-title {
+    margin: 0 !important;
+}
+
 :host .seamless-table-wrapper {
     background: #fff !important;
     border: 1px solid var(--seamless-color-gray-700) !important;
@@ -4438,7 +4514,7 @@
 :host .semaless-tag-container {
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 20px !important;
+    gap: 12px !important;
     justify-content: center !important;
 }
 
@@ -4471,7 +4547,7 @@
 
 :host .seamless-user-dashboard-org-empty {
     background: #fff !important;
-    border: 1px solid var(--seamless-color-gray-700) !important;
+    border: 1px solid #e5e7eb !important;
     border-radius: 16px !important;
     padding: 48px 24px !important;
     text-align: center !important;

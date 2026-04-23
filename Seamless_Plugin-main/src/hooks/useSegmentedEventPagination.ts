@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { fetchEvents, fetchGroupEvents } from '../services/eventService';
-import type { Event, FilterState } from '../types/event';
+import { VISIBLE_EVENT_STATUSES, type Event, type FilterState } from '../types/event';
 import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 
 // ─── Error formatter ────────────────────────────────────────────
@@ -18,6 +18,15 @@ function formatError(err: unknown): string {
 // ─── Constants ──────────────────────────────────────────────────
 const API_PAGE_SIZE = 24; // Fixed size per API call
 const UI_PAGE_SIZE = 8;   // Exact size for the UI grid
+const isVisibleEvent = (event: Event) =>
+    VISIBLE_EVENT_STATUSES.includes((event.status || '').toLowerCase() as any);
+const hasChanged = (previous: unknown, next: unknown): boolean => {
+    try {
+        return JSON.stringify(previous) !== JSON.stringify(next);
+    } catch {
+        return true;
+    }
+};
 
 // ─── Types ──────────────────────────────────────────────────────
 interface SegmentedReturn {
@@ -93,6 +102,12 @@ export const useSegmentedEventPagination = (
             setError(null);
             const params = buildParams();
             const cacheKey = buildBrowserCacheKey('events-ui-page', { params, uiPage });
+            let hasCachedPage = false;
+            let cachedPageData: {
+                events: Event[];
+                totalPages: number;
+                totalApiEvents: number;
+            } | null = null;
 
             if (rawEventsPool.current.length === 0) {
                 const cached = getBrowserCache<{
@@ -102,15 +117,18 @@ export const useSegmentedEventPagination = (
                 }>(cacheKey);
 
                 if (cached) {
+                    hasCachedPage = true;
+                    cachedPageData = cached;
                     setEvents(cached.events);
                     setTotalPages(cached.totalPages);
                     setTotalApiEvents(cached.totalApiEvents);
                     setLoading(false);
-                    return;
                 }
             }
 
-            setLoading(true);
+            if (!hasCachedPage) {
+                setLoading(true);
+            }
 
             try {
                 // Consolidation logic wrapper
@@ -149,7 +167,7 @@ export const useSegmentedEventPagination = (
                 // Fetch group events (needed for consolidation) - ONLY IF NOT ALREADY FETCHED
                 if (groupEventsPool.current.length === 0) {
                     const groupResponse = await fetchGroupEvents({ per_page: 100 }).catch(e => { console.error("Filter fetch group error:", e); return null; });
-                    groupEventsPool.current = groupResponse?.data?.data?.group_events || [];
+                    groupEventsPool.current = (groupResponse?.data?.data?.group_events || []).filter((event: Event) => isVisibleEvent(event));
                 }
                 const groupEventsRaw = groupEventsPool.current;
 
@@ -163,10 +181,11 @@ export const useSegmentedEventPagination = (
 
                 while (currentConsolidated.length < targetCount && !cancelled) {
                     const response = await fetchEvents({ ...params, page: apiPageRef.current });
-                    const newRaw = (response.data.data?.events || []) as Event[];
+                    const fetchedPageEvents = (response.data.data?.events || []) as Event[];
+                    const newRaw = fetchedPageEvents.filter(isVisibleEvent);
                     const meta = response.data.data?.pagination;
 
-                    if (newRaw.length === 0) break; // No more data available
+                    if (fetchedPageEvents.length === 0) break; // No more data available
 
                     rawEventsPool.current = [...rawEventsPool.current, ...newRaw];
                     apiPageRef.current += 1;
@@ -181,8 +200,14 @@ export const useSegmentedEventPagination = (
 
                     currentConsolidated = getConsolidated(rawEventsPool.current, groupEventsRaw);
 
-                    // If the API returned fewer than requested items, it's the end of the collection
-                    if (newRaw.length < API_PAGE_SIZE) break;
+                    // If the server returned fewer than requested items, we've reached the end.
+                    if (fetchedPageEvents.length < API_PAGE_SIZE) {
+                        nextTotalApiEvents = currentConsolidated.length;
+                        nextTotalPages = Math.max(1, Math.ceil(currentConsolidated.length / UI_PAGE_SIZE));
+                        setTotalApiEvents(nextTotalApiEvents);
+                        setTotalPages(nextTotalPages);
+                        break;
+                    }
                 }
 
                 if (cancelled) return;
@@ -191,7 +216,15 @@ export const useSegmentedEventPagination = (
                 const startIndex = (uiPage - 1) * UI_PAGE_SIZE;
                 const paginatedEvents = currentConsolidated.slice(startIndex, startIndex + UI_PAGE_SIZE);
 
-                setEvents(paginatedEvents);
+                if (!hasCachedPage || hasChanged(cachedPageData?.events, paginatedEvents)) {
+                    setEvents(paginatedEvents);
+                }
+                if (!hasCachedPage || cachedPageData?.totalPages !== nextTotalPages) {
+                    setTotalPages(nextTotalPages);
+                }
+                if (!hasCachedPage || cachedPageData?.totalApiEvents !== nextTotalApiEvents) {
+                    setTotalApiEvents(nextTotalApiEvents);
+                }
                 setLoading(false);
 
                 setBrowserCache(cacheKey, {
@@ -202,7 +235,9 @@ export const useSegmentedEventPagination = (
 
             } catch (err) {
                 if (!cancelled) {
-                    setError(formatError(err));
+                    if (!hasCachedPage) {
+                        setError(formatError(err));
+                    }
                     console.error("Fetch Data Error:", err);
                 }
             } finally {

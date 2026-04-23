@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { Category, Event, FilterState } from '../types/event';
+import type { Event, FilterState } from '../types/event';
 
 export const DEFAULT_FILTERS: FilterState = {
   search: '',
@@ -109,7 +109,6 @@ export const useFilterState = (): UseFilterStateReturn => {
 export const useClientFilters = (
   events: Event[],
   filters: FilterState,
-  categories: Category[] = [],
 ): Event[] => {
   return useMemo(() => {
     return events.filter((event) => {
@@ -154,6 +153,6 @@ export const useClientFilters = (
 // We will replace usage in ItemsPage
 export const useFilters = (events: Event[]) => {
   const { filters, updateFilter, resetFilters } = useFilterState();
-  const filteredItems = useClientFilters(events, filters, []);
+  const filteredItems = useClientFilters(events, filters);
   return { filters, updateFilter, resetFilters, filteredItems, setFilters: () => { } };
 };

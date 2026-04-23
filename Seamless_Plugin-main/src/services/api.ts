@@ -50,6 +50,94 @@ const buildApiCacheKey = (config: AxiosRequestConfig) => buildBrowserCacheKey('a
   data: config.data || null,
 });
 
+const CACHE_REVALIDATE_INTERVAL_MS = 30_000;
+const QUICK_REVALIDATE_BUDGET_MS = 120;
+const inFlightRevalidations = new Map<string, Promise<AxiosResponse<any> | null>>();
+const lastRevalidatedAt = new Map<string, number>();
+
+const isCacheableMethod = (config: AxiosRequestConfig): boolean =>
+  ((config.method || 'GET').toUpperCase() === 'GET');
+
+const delay = (ms: number) => new Promise<null>((resolve) => {
+  setTimeout(() => resolve(null), ms);
+});
+
+const normalizeForComparison = (value: any): any => {
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeForComparison);
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  return Object.keys(value)
+    .sort()
+    .reduce<Record<string, any>>((accumulator, key) => {
+      const nextValue = (value as Record<string, any>)[key];
+      if (nextValue !== undefined) {
+        accumulator[key] = normalizeForComparison(nextValue);
+      }
+      return accumulator;
+    }, {});
+};
+
+const hasDataChanged = (previous: unknown, next: unknown): boolean => {
+  try {
+    return JSON.stringify(normalizeForComparison(previous)) !== JSON.stringify(normalizeForComparison(next));
+  } catch {
+    // If serialization fails for any reason, prefer fresh data.
+    return true;
+  }
+};
+
+const notifyCacheUpdate = (cacheKey: string, data: unknown): void => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('seamless:cache-updated', {
+    detail: { key: cacheKey, data },
+  }));
+};
+
+const shouldRevalidate = (cacheKey: string): boolean => {
+  const lastCheckedAt = lastRevalidatedAt.get(cacheKey) || 0;
+  return Date.now() - lastCheckedAt >= CACHE_REVALIDATE_INTERVAL_MS;
+};
+
+const startRevalidation = <T>(
+  cacheKey: string,
+  config: AxiosRequestConfig,
+  cachedData: T
+): Promise<AxiosResponse<T> | null> => {
+  const existing = inFlightRevalidations.get(cacheKey) as Promise<AxiosResponse<T> | null> | undefined;
+  if (existing) return existing;
+
+  const promise = (async () => {
+    try {
+      const freshResponse = await api.request<T>(config);
+      lastRevalidatedAt.set(cacheKey, Date.now());
+
+      if (hasDataChanged(cachedData, freshResponse.data)) {
+        setBrowserCache(cacheKey, freshResponse.data);
+        notifyCacheUpdate(cacheKey, freshResponse.data);
+      }
+
+      return freshResponse;
+    } catch {
+      // Preserve cached data on revalidation failures.
+      return null;
+    } finally {
+      inFlightRevalidations.delete(cacheKey);
+    }
+  })();
+
+  inFlightRevalidations.set(cacheKey, promise as Promise<AxiosResponse<any> | null>);
+  return promise;
+};
+
 // ─── Request Interceptor ─────────────────────────────────────────────────────
 api.interceptors.request.use((config) => {
   const url = config.url || '';
@@ -129,11 +217,24 @@ export const requestWithCache = async <T>(
 ): Promise<AxiosResponse<T>> => {
   const preferCache = options?.preferCache !== false;
   const cacheKey = buildApiCacheKey(config);
+  const cacheable = isCacheableMethod(config);
 
-  if (preferCache) {
+  if (preferCache && cacheable) {
     const cachedData = getBrowserCache<T>(cacheKey);
 
     if (cachedData !== null) {
+      if (shouldRevalidate(cacheKey)) {
+        const revalidationPromise = startRevalidation(cacheKey, config, cachedData);
+        const quickRevalidatedResponse = await Promise.race([
+          revalidationPromise,
+          delay(QUICK_REVALIDATE_BUDGET_MS),
+        ]) as AxiosResponse<T> | null;
+
+        if (quickRevalidatedResponse) {
+          return quickRevalidatedResponse;
+        }
+      }
+
       return {
         data: cachedData,
         status: 200,
@@ -145,7 +246,10 @@ export const requestWithCache = async <T>(
   }
 
   const response = await api.request<T>(config);
-  setBrowserCache(cacheKey, response.data);
+  if (cacheable) {
+    setBrowserCache(cacheKey, response.data);
+    lastRevalidatedAt.set(cacheKey, Date.now());
+  }
   return response;
 };
 

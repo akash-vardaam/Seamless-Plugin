@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { LoadingSpinner } from './LoadingSpinner';
 import { useShadowRoot } from './ShadowRoot';
 import api, { requestWithCache } from '../services/api';
 import { COUNTRIES_STATES } from '../utils/countriesStates';
@@ -51,6 +50,17 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
         </div>
     );
 };
+
+const DashboardSkeletonLoader = ({ rows = 4, compact = false }: { rows?: number; compact?: boolean }) => (
+    <div className={`seamless-dashboard-loading-panel seamless-dashboard-skeleton ${compact ? 'is-compact' : ''}`} aria-live="polite" aria-busy="true">
+        <div className="seamless-dashboard-skeleton-stack">
+            <span className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-title" />
+            {Array.from({ length: rows }).map((_, index) => (
+                <span key={index} className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-body" />
+            ))}
+        </div>
+    </div>
+);
 
 // Reusable Modal Component
 const Modal = ({ isOpen, onClose, title, children, className }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode, className?: string }) => {
@@ -1143,7 +1153,13 @@ export const UserDashboardView: React.FC = () => {
     };
 
     if (isLoading && !profile) {
-        return <LoadingSpinner />;
+        return (
+            <div className="seamless-user-dashboard-section">
+                <div className="seamless-dashboard-content-container">
+                    <DashboardSkeletonLoader rows={6} />
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -1498,7 +1514,7 @@ export const UserDashboardView: React.FC = () => {
                                     <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
                                         {activeMembershipTab === 'active' ? (
                                             memberships === null ? (
-                                                <div className="seamless-dashboard-loading-panel"><LoadingSpinner /></div>
+                                                <DashboardSkeletonLoader rows={4} />
                                             ) : activeMemberships.length === 0 ? (
                                                 <div className="seamless-empty-card">
                                                     <p>You do not have any active memberships.</p>
@@ -1581,7 +1597,7 @@ export const UserDashboardView: React.FC = () => {
                                         ) : (
                                             /* HISTORY */
                                             expiredMemberships === null ? (
-                                                <div className="seamless-dashboard-loading-panel"><LoadingSpinner /></div>
+                                                <DashboardSkeletonLoader rows={4} />
                                             ) : historyMemberships.length === 0 ? (
                                                 <div className="seamless-empty-card">
                                                     <p>No past membership history available.</p>
@@ -1639,7 +1655,7 @@ export const UserDashboardView: React.FC = () => {
                         <div className="seamless-user-dashboard-view active">
                             <div className="seamless-dashboard-content-container">
                                 {groupMemberships === null ? (
-                                    <div className="seamless-dashboard-loading-panel"><LoadingSpinner /></div>
+                                    <DashboardSkeletonLoader rows={4} />
                                 ) : organizationSummary.plans.length === 0 ? (
                                     <div className="seamless-user-dashboard-org-empty">
                                         <div className="seamless-user-dashboard-org-empty-icon">
@@ -1863,7 +1879,7 @@ export const UserDashboardView: React.FC = () => {
                                     <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
                                         {activeCourseTab === 'enrolled' && (
                                             courses === null ? (
-                                                <div className="seamless-dashboard-loading-panel"><LoadingSpinner /></div>
+                                                <DashboardSkeletonLoader rows={5} />
                                             ) : courses.length === 0 ? (
                                                 <div className="seamless-empty-card"><p>You have not enrolled in any courses yet.</p></div>
                                             ) : (
@@ -1893,7 +1909,7 @@ export const UserDashboardView: React.FC = () => {
                                         )}
                                         {activeCourseTab === 'included' && (
                                             includedCourses === null ? (
-                                                <div className="seamless-dashboard-loading-panel"><LoadingSpinner /></div>
+                                                <DashboardSkeletonLoader rows={5} />
                                             ) : includedCourses.length === 0 ? (
                                                 <div className="seamless-empty-card"><p>You do not have any courses included in your membership.</p></div>
                                             ) : (
@@ -1931,8 +1947,11 @@ export const UserDashboardView: React.FC = () => {
                     {activeView === 'orders' && (
                         <div className="seamless-user-dashboard-view active">
                             <div className="seamless-dashboard-content-container">
-                                <h3 className="seamless-user-dashboard-view-title seamless-mt-0">Order History</h3>
-                                <div className="seamless-table-wrapper seamless-mt-24">
+                                <div className="seamless-orders-content-card">
+                                    <div className="seamless-orders-content-header">
+                                        <h3 className="seamless-user-dashboard-view-title seamless-mt-0">Order History</h3>
+                                    </div>
+                                    <div className="seamless-table-wrapper seamless-mt-24">
                                     <table className="seamless-styled-table">
                                         <thead className="seamless-styled-thead">
                                             <tr>
@@ -1947,7 +1966,7 @@ export const UserDashboardView: React.FC = () => {
                                         </thead>
                                         <tbody>
                                             {orders === null ? (
-                                                <tr><td colSpan={7} className="seamless-p-24-center-slate"><div className="seamless-dashboard-loading-panel"><LoadingSpinner /></div></td></tr>
+                                                <tr><td colSpan={7} className="seamless-p-24-center-slate"><DashboardSkeletonLoader rows={4} compact /></td></tr>
                                             ) : orders.length === 0 ? (
                                                 <tr><td colSpan={7} className="seamless-p-24-center-slate">No orders found.</td></tr>
                                             ) : (
@@ -1979,6 +1998,7 @@ export const UserDashboardView: React.FC = () => {
                                             )}
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>

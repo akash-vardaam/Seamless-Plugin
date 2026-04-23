@@ -38,6 +38,8 @@ class SeamlessSSO
         add_action('query_vars', [$this, 'add_login_query_vars']);
         add_action('template_redirect', [$this, 'handle_login_redirect']);
         add_action('rest_api_init', [$this, 'register_rest_routes']);
+        add_action('save_post_page', [$this, 'clear_default_return_to_cache']);
+        add_action('deleted_post', [$this, 'clear_default_return_to_cache']);
         add_shortcode('seamless_login_button', [$this, 'render_login_button']);
     }
 
@@ -106,12 +108,129 @@ class SeamlessSSO
     {
         $return_to = $_GET['return_to'] ?? null;
         if ($return_to) {
-            return esc_url_raw(wp_unslash($return_to));
+            return self::sanitize_return_to_url(wp_unslash($return_to));
         }
 
-        return isset($_SERVER['HTTP_REFERER'])
-            ? esc_url_raw($_SERVER['HTTP_REFERER'])
-            : home_url('/');
+        $current_url = self::get_current_url();
+        if (!empty($current_url) && !self::is_auth_transition_url($current_url)) {
+            return self::sanitize_return_to_url($current_url);
+        }
+
+        $referer = isset($_SERVER['HTTP_REFERER']) ? wp_unslash($_SERVER['HTTP_REFERER']) : '';
+        if (!empty($referer) && !self::is_auth_transition_url($referer)) {
+            return self::sanitize_return_to_url($referer);
+        }
+
+        return self::get_default_return_to_url();
+    }
+
+    public static function sanitize_return_to_url($return_to): string
+    {
+        $fallback = self::get_default_return_to_url();
+        $url = is_string($return_to) ? trim($return_to) : '';
+
+        if ($url === '') {
+            return $fallback;
+        }
+
+        if (strpos($url, '/') === 0 && strpos($url, '//') !== 0) {
+            $url = home_url($url);
+        }
+
+        $url = esc_url_raw($url);
+        if ($url === '' || self::is_auth_transition_url($url)) {
+            return $fallback;
+        }
+
+        $url_host = wp_parse_url($url, PHP_URL_HOST);
+        $home_host = wp_parse_url(home_url('/'), PHP_URL_HOST);
+        if (empty($url_host) || empty($home_host) || strcasecmp((string) $url_host, (string) $home_host) !== 0) {
+            return $fallback;
+        }
+
+        return $url;
+    }
+
+    public static function get_default_return_to_url(): string
+    {
+        $default = self::discover_default_shortcode_url();
+        return apply_filters('seamless_sso_default_return_to', $default);
+    }
+
+    private static function is_auth_transition_url(string $url): bool
+    {
+        if ($url === '') {
+            return false;
+        }
+
+        return (
+            strpos($url, 'sso_login_redirect=1') !== false ||
+            strpos($url, 'sso_logout_redirect=1') !== false ||
+            strpos($url, '/wp-json/' . self::REST_NAMESPACE . '/callback') !== false ||
+            preg_match('#/(?:' . preg_quote(self::LOGIN_ROUTE, '#') . '|' . preg_quote(self::LOGOUT_ROUTE, '#') . ')(?:/|$)#', (string) wp_parse_url($url, PHP_URL_PATH))
+        );
+    }
+
+    private static function get_current_url(): string
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
+        if ($request_uri === '') {
+            return '';
+        }
+
+        return home_url($request_uri);
+    }
+
+    private static function discover_default_shortcode_url(): string
+    {
+        $transient_key = 'seamless_sso_default_return_to';
+        $cached = get_transient($transient_key);
+        if (is_string($cached) && $cached !== '') {
+            return esc_url_raw($cached);
+        }
+
+        $shortcode_fallback = '';
+        global $wpdb;
+        if (isset($wpdb) && !empty($wpdb->posts)) {
+            $sql = "
+                SELECT ID
+                FROM {$wpdb->posts}
+                WHERE post_type = %s
+                  AND post_status = %s
+                  AND (
+                    post_content LIKE %s
+                    OR post_content LIKE %s
+                    OR post_content LIKE %s
+                  )
+                ORDER BY ID ASC
+                LIMIT 1
+            ";
+
+            $post_id = (int) $wpdb->get_var($wpdb->prepare(
+                $sql,
+                'page',
+                'publish',
+                '%[seamless_dashboard%',
+                '%[seamless_user_dashboard%',
+                '%[seamless_login_button%'
+            ));
+
+            if ($post_id > 0) {
+                $permalink = get_permalink($post_id);
+                if (!empty($permalink)) {
+                    $shortcode_fallback = esc_url_raw($permalink);
+                }
+            }
+        }
+
+        $fallback = $shortcode_fallback ?: home_url('/');
+        set_transient($transient_key, $fallback, HOUR_IN_SECONDS);
+        return $fallback;
+    }
+
+    public function clear_default_return_to_cache(): void
+    {
+        delete_transient('seamless_sso_default_return_to');
     }
 
     public function get_login_url(?string $return_to = null): string

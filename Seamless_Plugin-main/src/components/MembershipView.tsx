@@ -2,20 +2,7 @@
 import React, { useMemo } from 'react';
 import { useMembershipPlans } from '../hooks/useMembershipPlans';
 import { LoadingSpinner } from './LoadingSpinner';
-
-// Helper to get WordPress site URL for middleware routing
-const getMembershipBaseUrl = () => {
-    if (typeof window !== 'undefined') {
-        const cfg = (window as any).seamlessReactConfig;
-        if (cfg?.clientDomain) {
-            return String(cfg.clientDomain).trim();
-        }
-        if (cfg?.siteUrl) {
-            return String(cfg.siteUrl).trim();
-        }
-    }
-    return window.location.origin;
-};
+import { getWordPressSiteUrl } from '../utils/urlHelper';
 
 const getSafeDescriptionText = (description?: string) => {
     if (!description) return '';
@@ -55,7 +42,7 @@ export const MembershipListView: React.FC = () => {
         );
     }
 
-    const baseUrl = getMembershipBaseUrl();
+    const baseUrl = getWordPressSiteUrl();
 
     return (
         <div className="seamless-membership-container">

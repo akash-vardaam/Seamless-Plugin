@@ -123,6 +123,52 @@ if (! seamless_check_compatibility()) {
     return;
 }
 
+/**
+ * Hide all admin notices on the Seamless top-level admin page.
+ * This is intentionally strict and suppresses both third-party and Seamless notices.
+ */
+function seamless_hide_all_admin_notices($screen = null)
+{
+    if (!is_admin()) {
+        return;
+    }
+
+    $screen = $screen ?: get_current_screen();
+    if (!$screen || empty($screen->id) || $screen->id !== 'toplevel_page_seamless') {
+        return;
+    }
+
+    foreach (['admin_notices', 'all_admin_notices', 'network_admin_notices', 'user_admin_notices'] as $hook_name) {
+        remove_all_actions($hook_name);
+    }
+}
+add_action('current_screen', 'seamless_hide_all_admin_notices', 1);
+add_action('in_admin_header', 'seamless_hide_all_admin_notices', 1);
+
+/**
+ * CSS fallback for notices rendered outside notice hooks.
+ */
+function seamless_hide_all_admin_notices_css()
+{
+    if (!is_admin()) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if (!$screen || empty($screen->id) || $screen->id !== 'toplevel_page_seamless') {
+        return;
+    }
+
+    echo '<style id="seamless-hide-admin-notices">'
+        . '#wpbody-content > .notice,'
+        . '#wpbody-content > .update-nag,'
+        . '#wpbody-content > .error,'
+        . '#wpbody-content > .updated,'
+        . '#wpbody-content > .is-dismissible{display:none !important;}'
+        . '</style>';
+}
+add_action('admin_head', 'seamless_hide_all_admin_notices_css', 99);
+
 // Autoload classes via Composer.
 require_once SEAMLESS_PLUGIN_DIR . 'vendor/autoload.php';
 
@@ -300,7 +346,7 @@ add_action('rest_api_init', 'seamless_register_react_events_api_routes');
  */
 function seamless_api_get_events($request)
 {
-    $api_endpoint = 'https://mafp.seamlessams.com/api';
+    $api_endpoint = 'https://saoa.seamlessams.com/api';
     
     // Build query parameters from request
     $params = array(
@@ -359,7 +405,7 @@ function seamless_api_get_events($request)
  */
 function seamless_api_get_single_event($request)
 {
-    $api_endpoint = 'https://mafp.seamlessams.com/api';
+    $api_endpoint = 'https://saoa.seamlessams.com/api';
     $event_id = $request->get_param('id');
     
     if (empty($event_id)) {

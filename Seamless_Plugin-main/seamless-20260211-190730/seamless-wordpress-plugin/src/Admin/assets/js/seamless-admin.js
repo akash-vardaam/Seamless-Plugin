@@ -306,13 +306,22 @@ jQuery(document).ready(function ($) {
 
     pageItems.forEach((plan, index) => {
       const price = parseFloat(plan.price || 0).toFixed(2);
-      const status = plan.is_active
-        ? '<span style="color: #16a34a; background-color: #f0fdf4; padding: 5px; border-radius: 5px; font-weight: bold; font-size: 12px;">Active</span>'
-        : '<span style="color: #d63638; background-color: #fbeaea; padding: 5px; border-radius: 5px; font-weight: bold; font-size: 12px;">Inactive</span>';
-      const shortcode = `[seamless_memberships]`;
+      const isPlanActive = Boolean(plan.is_active);
+      const rowStatusClass = isPlanActive
+        ? "seamless-membership-row--active"
+        : "seamless-membership-row--inactive";
+      const statusBadgeClass = isPlanActive
+        ? "connected"
+        : "inactive";
+      const statusLabel = isPlanActive ? "Active" : "Inactive";
+      const status = `<span class="seamless-status-badge ${statusBadgeClass}">${statusLabel}</span>`;
+      const planId = (plan.id || "").toString().trim();
+      const shortcode = planId
+        ? `[seamless_single_membership id="${planId}"]`
+        : `[seamless_memberships]`;
 
       const row = `
-                <tr>
+                <tr class="seamless-membership-row ${rowStatusClass}">
                     <td>${start + index + 1}</td>
                     <td><strong>${plan.label || "Untitled"}</strong></td>
                     <td>${plan.sku || "-"}</td>

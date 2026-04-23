@@ -175,6 +175,13 @@ export const Card: React.FC<CardProps> = ({
   showTimelineDate = true,
 }) => {
   if (layout === 'grid') {
+    const description = stripHtmlTags(
+      (item as Event & { excerpt_description?: string })?.excerpt_description ||
+      item?.except_description ||
+      item?.description ||
+      ''
+    );
+
     return (
       <article className="seamless-card">
         {/* Image Container */}
@@ -203,18 +210,24 @@ export const Card: React.FC<CardProps> = ({
             {formatDateRange(item?.start_date, item?.end_date || item?.start_date)}
           </p>
 
+          {description ? (
+            <p className="seamless-card-description">
+              {description}
+            </p>
+          ) : null}
+
           {/* Time */}
           <p className="seamless-card-time">
             {formatTimeRange(item?.start_date, item?.end_date || item?.start_date)}
           </p>
-
+          
           {/* SEE DETAILS Button */}
-          <Link
-            to={getItemRoute(item)}
+          <button
+            onClick={() => window.location.href = getItemRoute(item)}
             className="seamless-card-see-details"
           >
             SEE DETAILS
-          </Link>
+          </button>
         </div>
       </article>
     );

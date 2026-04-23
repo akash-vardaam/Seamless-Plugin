@@ -26,6 +26,15 @@ class SeamlessDirectAPI {
     }
   }
 
+  filterEventStatuses(items) {
+    if (!Array.isArray(items)) return [];
+
+    return items.filter((event) => {
+      const status = String(event?.status || "").trim().toLowerCase();
+      return status === "published" || status === "completed";
+    });
+  }
+
   /**
    * Get cache key for a request
    */
@@ -90,6 +99,15 @@ class SeamlessDirectAPI {
       }
 
       const result = await response.json();
+
+      if (endpoint === "events" && result?.data?.events) {
+        result.data.events = this.filterEventStatuses(result.data.events);
+      }
+
+      if (endpoint === "group-events" && result?.data?.group_events) {
+        result.data.group_events = this.filterEventStatuses(result.data.group_events);
+      }
+
       if (useCache) {
         this.cache.set(cacheKey, {
           data: result,

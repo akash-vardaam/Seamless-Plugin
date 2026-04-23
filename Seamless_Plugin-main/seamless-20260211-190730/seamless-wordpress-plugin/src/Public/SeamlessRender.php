@@ -500,6 +500,96 @@ class SeamlessRender
 		wp_add_inline_script(
 			'seamless-react-js',
 			<<<'JS'
+(function () {
+	if (window.__seamlessEventStatusFetchPatched || typeof window.fetch !== 'function') {
+		return;
+	}
+	window.__seamlessEventStatusFetchPatched = true;
+
+	var allowedStatuses = { published: true, completed: true };
+
+	function isAllowedStatus(status) {
+		if (status === null || status === undefined) {
+			return false;
+		}
+		var normalized = String(status).trim().toLowerCase();
+		return !!allowedStatuses[normalized];
+	}
+
+	function filterPayload(payload) {
+		if (!payload || typeof payload !== 'object') {
+			return payload;
+		}
+
+		if (payload.data && Array.isArray(payload.data.events)) {
+			payload.data.events = payload.data.events.filter(function (event) {
+				return isAllowedStatus(event && event.status);
+			});
+		}
+
+		if (payload.data && Array.isArray(payload.data.group_events)) {
+			payload.data.group_events = payload.data.group_events.filter(function (event) {
+				return isAllowedStatus(event && event.status);
+			});
+		}
+
+		return payload;
+	}
+
+	function shouldFilterUrl(url) {
+		if (!url) {
+			return false;
+		}
+		return url.indexOf('/api/events') !== -1 || url.indexOf('/api/group-events') !== -1;
+	}
+
+	var originalFetch = window.fetch.bind(window);
+	window.fetch = function () {
+		var args = Array.prototype.slice.call(arguments);
+		return originalFetch.apply(window, args).then(function (response) {
+			try {
+				var requestInput = args[0];
+				var requestUrl = '';
+				if (typeof requestInput === 'string') {
+					requestUrl = requestInput;
+				} else if (requestInput && typeof requestInput.url === 'string') {
+					requestUrl = requestInput.url;
+				}
+
+				if (!shouldFilterUrl(requestUrl)) {
+					return response;
+				}
+
+				var contentType = response.headers && response.headers.get ? (response.headers.get('content-type') || '') : '';
+				if (contentType.indexOf('application/json') === -1) {
+					return response;
+				}
+
+				return response.clone().json().then(function (json) {
+					var filtered = filterPayload(json);
+					var headers = new Headers(response.headers || {});
+					headers.delete('content-length');
+					return new Response(JSON.stringify(filtered), {
+						status: response.status,
+						statusText: response.statusText,
+						headers: headers,
+					});
+				}).catch(function () {
+					return response;
+				});
+			} catch (error) {
+				return response;
+			}
+		});
+	};
+})();
+JS,
+			'before'
+		);
+
+		wp_add_inline_script(
+			'seamless-react-js',
+			<<<'JS'
 window.addEventListener('DOMContentLoaded', () => {
 	const calendarProto = window.SeamlessCalendar?.prototype;
 	if (!calendarProto || typeof calendarProto.loadEvents !== 'function' || calendarProto.__seamlessAllSortPatched) {
@@ -708,10 +798,10 @@ JS,
 	public function shortcode_react_dashboard($atts = []): string
 	{
 		if (!is_user_logged_in()) {
-			$login_button = do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn" style="display: flex; justify-content: center; background-color: #00b2ca; color: white; padding: 5px 30px; border-radius: 15px; font-weight: 500;"]');
+			$login_button = do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn" style="display: flex; justify-content: center; background-color: #0F172A; color: white; padding: 10px 50px; border-radius: 15px; font-weight: 500;"]');
 			return sprintf(
-				'<style> .seamless-login-btn {display: flex; justify-content: center; background-color: #00b2ca; color: white; padding: 5px 30px; border-radius: 15px; font-weight: 500;} .seamless-login-btn:hover {background-color: #009fb8; color:#fff;} </style>
-				<div class="seamless-dashboard-login-state" style="display:flex; justify-content: center;"><div class="seamless-dashboard-login-panel"><p class="seamless-dashboard-login-copy">%s</p>%s</div></div>',
+				'<style> .seamless-login-btn {display: flex; justify-content: center; background-color: #0F172A; color: white; padding: 8px 40px; border-radius: 15px; font-weight: 500; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;} .seamless-login-btn:hover {background-color: #009fb8; color:#fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);} </style>
+				<div class="seamless-dashboard-login-state" style="display: flex; justify-content: center; border: 1px solid #e5e7eb; background: #F9FAFB; padding: 40px 0px; text-align: center;"><div class="seamless-dashboard-login-panel"><p class="seamless-dashboard-login-copy">%s</p>%s</div></div>',
 				esc_html__('Please log in to view your dashboard.', 'seamless-addon'),
 				$login_button
 			);
@@ -726,7 +816,10 @@ JS,
 		$has_sso_token = !empty(get_user_meta($uid, 'seamless_access_token', true));
 
 		if (!$has_sso_token) {
-			$connect_url = add_query_arg('sso_login_redirect', '1', home_url('/'));
+			$connect_url = add_query_arg([
+				'sso_login_redirect' => '1',
+				'return_to' => SSO::get_return_to_url(),
+			], home_url('/'));
 			return sprintf(
 				'<div class="seamless-sso-connect-wrapper">
 					<div class="seamless-sso-connect-icon" style="display: inline;">

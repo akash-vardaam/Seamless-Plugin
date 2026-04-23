@@ -26,10 +26,7 @@ export const ShopCartView: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [removingKey, setRemovingKey] = useState<string | null>(null);
   const [draftQuantities, setDraftQuantities] = useState<DraftQuantities>({});
-  const [itemMessages, setItemMessages] = useState<Record<string, string>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [statusIsError, setStatusIsError] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     void loadCart();
@@ -40,24 +37,20 @@ export const ShopCartView: React.FC = () => {
       subscribeToShopCart((nextCart) => {
         setCart(nextCart);
         setDraftQuantities({});
-        setItemMessages({});
       }),
     [],
   );
 
   const loadCart = async () => {
     setLoading(true);
-    setError(null);
 
     try {
       const loadedCart = await fetchCurrentCart();
       setCart(loadedCart);
       setDraftQuantities({});
-      setItemMessages({});
-      setStatusMessage(null);
-      setStatusIsError(false);
     } catch (cartError: any) {
-      setError(cartError?.message || 'Unable to load cart right now.');
+      const message = cartError?.message || 'Unable to load cart right now.';
+      setToast({ type: 'error', message });
     } finally {
       setLoading(false);
     }
@@ -84,7 +77,7 @@ export const ShopCartView: React.FC = () => {
   const handleQuantityDraftChange = (item: ShopCartItem, desiredQuantity: number) => {
     const itemIdentifier = getItemIdentifier(item);
     if (!itemIdentifier) {
-      setError('Unable to update this cart item right now.');
+      setToast({ type: 'error', message: 'Unable to update this cart item right now.' });
       return;
     }
 
@@ -92,19 +85,9 @@ export const ShopCartView: React.FC = () => {
     const cappedQuantity =
       item.maxQuantity > 0 ? Math.min(nextQuantity, item.maxQuantity) : nextQuantity;
 
-    setError(null);
-    setStatusMessage(null);
-    setStatusIsError(false);
-    setItemMessages((current) => {
-      const next = { ...current };
-      delete next[itemIdentifier];
-
-      if (item.maxQuantity > 0 && nextQuantity > item.maxQuantity) {
-        next[itemIdentifier] = getAvailableQuantityMessage(item);
-      }
-
-      return next;
-    });
+    if (item.maxQuantity > 0 && nextQuantity > item.maxQuantity) {
+      setToast({ type: 'error', message: getAvailableQuantityMessage(item) });
+    }
 
     setDraftQuantities((current) => {
       if (cappedQuantity === item.quantity) {
@@ -124,12 +107,8 @@ export const ShopCartView: React.FC = () => {
     if (!hasPendingUpdates) return;
 
     setSaving(true);
-    setError(null);
-    setStatusMessage(null);
-    setStatusIsError(false);
 
     let hadFailures = false;
-    const nextMessages: Record<string, string> = {};
 
     for (const item of items) {
       const itemIdentifier = getItemIdentifier(item);
@@ -140,31 +119,27 @@ export const ShopCartView: React.FC = () => {
         await updateCartItemQuantity(item, desiredQuantity);
       } catch (updateError: any) {
         hadFailures = true;
-        nextMessages[itemIdentifier] = String(updateError?.message || getAvailableQuantityMessage(item));
+        setToast({ type: 'error', message: String(updateError?.message || getAvailableQuantityMessage(item)) });
       }
     }
 
     const nextCart = await fetchCurrentCart();
     setCart(nextCart);
     setDraftQuantities({});
-    setItemMessages(nextMessages);
-    setStatusMessage(hadFailures ? 'Some cart items could not be updated.' : 'Cart updated.');
-    setStatusIsError(hadFailures);
+    if (!hadFailures) {
+      setToast({ type: 'success', message: 'Cart updated.' });
+    }
     setSaving(false);
   };
 
   const handleRemove = async (item: ShopCartItem) => {
     const itemIdentifier = getItemIdentifier(item);
     if (!itemIdentifier) {
-      setError('Unable to remove this cart item right now.');
+      setToast({ type: 'error', message: 'Unable to remove this cart item right now.' });
       return;
     }
 
     setRemovingKey(itemIdentifier);
-    setError(null);
-    setStatusMessage(null);
-    setStatusIsError(false);
-
     try {
       const nextCart = await removeCartItem(item, getDisplayedQuantity(item));
       setCart(nextCart);
@@ -173,17 +148,20 @@ export const ShopCartView: React.FC = () => {
         delete next[itemIdentifier];
         return next;
       });
-      setItemMessages((current) => {
-        const next = { ...current };
-        delete next[itemIdentifier];
-        return next;
-      });
+      setToast({ type: 'success', message: 'Item removed from cart.' });
     } catch (removeError: any) {
-      setError(removeError?.message || 'Unable to remove this item right now.');
+      const message = removeError?.message || 'Unable to remove this item right now.';
+      setToast({ type: 'error', message });
     } finally {
       setRemovingKey(null);
     }
   };
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => setToast(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -191,14 +169,18 @@ export const ShopCartView: React.FC = () => {
 
   return (
     <div className="seamless-shop">
-      {error ? <div className="seamless-shop__alert">{error}</div> : null}
+      {toast ? (
+        <div className={`seamless-shop__toast-notification ${toast.type === 'success' ? 'seamless-shop__toast-success' : 'seamless-shop__toast-error'}`}>
+          {toast.message}
+        </div>
+      ) : null}
 
       {isEmpty ? (
         <div className="seamless-shop__empty">
           <h2 className="seamless-shop__title-lg">Your cart is currently empty.</h2>
-          <a href={buildShopUrl()} className="seamless-shop__button-link seamless-shop__mt-5">
+          <button onClick={() => window.location.href = buildShopUrl()} className="seamless-shop__button-link seamless-shop__mt-5 seamless_shop__primary-button">
             Return to Shop
-          </a>
+          </button> 
         </div>
       ) : (
         <>
@@ -227,12 +209,6 @@ export const ShopCartView: React.FC = () => {
                   (item.maxQuantity > 0 && displayedQuantity >= item.maxQuantity) ||
                   !item.canIncrement;
                 const decrementDisabled = saving || removingKey === itemIdentifier || displayedQuantity <= 1;
-                const itemMessage =
-                  itemMessages[itemIdentifier] ||
-                  ((item.maxQuantity > 0 && displayedQuantity >= item.maxQuantity)
-                    ? getAvailableQuantityMessage(item)
-                    : '');
-
                 return (
                   <article key={itemIdentifier || item.productId} className="seamless-shop__cart-item">
                     <div className="seamless-shop__cart-item-main">
@@ -281,8 +257,6 @@ export const ShopCartView: React.FC = () => {
                             <Plus className="seamless-shop__icon" />
                           </button>
                         </div>
-
-                        {itemMessage ? <p className="seamless-shop__stock-note">{itemMessage}</p> : null}
                       </div>
                     </div>
 
@@ -315,15 +289,6 @@ export const ShopCartView: React.FC = () => {
                 >
                   <span>{saving ? 'Updating...' : 'Update Cart'}</span>
                 </button>
-                {statusMessage ? (
-                  <p
-                    className={`seamless-shop__cart-status ${
-                      statusIsError ? 'seamless-shop__cart-status--error' : 'seamless-shop__cart-status--success'
-                    }`}
-                  >
-                    {statusMessage}
-                  </p>
-                ) : null}
               </div>
             </div>
 

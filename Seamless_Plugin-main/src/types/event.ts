@@ -106,6 +106,9 @@ export interface Event {
   sections?: Array<{ title: string, content: string }>;
 }
 
+export const VISIBLE_EVENT_STATUSES = ['published', 'completed'] as const;
+export type VisibleEventStatus = typeof VISIBLE_EVENT_STATUSES[number];
+
 export interface PaginationMeta {
   current_page: number;
   per_page: number;

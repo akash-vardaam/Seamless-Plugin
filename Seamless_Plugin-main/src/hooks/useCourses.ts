@@ -4,6 +4,14 @@ import { fetchCourses } from '../services/courseService';
 import type { Course, CoursePagination } from '../types/course';
 import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 
+const hasChanged = (previous: unknown, next: unknown): boolean => {
+    try {
+        return JSON.stringify(previous) !== JSON.stringify(next);
+    } catch {
+        return true;
+    }
+};
+
 export const useCourses = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -90,13 +98,13 @@ export const useCourses = () => {
                     pagination: CoursePagination | null;
                     availableYears: string[];
                 }>(cacheKey);
+                const hasCachedData = Boolean(cachedData?.courses);
 
-                if (cachedData?.courses) {
+                if (hasCachedData && cachedData) {
                     setCourses(cachedData.courses);
                     setPagination(cachedData.pagination);
                     setAvailableYears(cachedData.availableYears || []);
                     setLoading(false);
-                    return;
                 }
 
                 const data = await fetchCourses(pageParam, {
@@ -142,9 +150,15 @@ export const useCourses = () => {
                         break;
                 }
 
-                setCourses(sortedCourses);
-                setPagination(data.pagination);
-                setAvailableYears(newAvailableYears);
+                if (!hasCachedData || hasChanged(cachedData?.courses, sortedCourses)) {
+                    setCourses(sortedCourses);
+                }
+                if (!hasCachedData || hasChanged(cachedData?.pagination, data.pagination)) {
+                    setPagination(data.pagination);
+                }
+                if (!hasCachedData || hasChanged(cachedData?.availableYears, newAvailableYears)) {
+                    setAvailableYears(newAvailableYears);
+                }
                 setLoading(false);
 
                 setBrowserCache(cacheKey, {
@@ -155,7 +169,9 @@ export const useCourses = () => {
 
             } catch (err: any) {
                 console.error("Failed to fetch courses", err);
-                setError(err.message || 'Failed to load courses.');
+                if (!getBrowserCache(cacheKey)) {
+                    setError(err.message || 'Failed to load courses.');
+                }
             } finally {
                 setLoading(false);
             }

@@ -1127,7 +1127,7 @@ class SettingsPage
 				<div class="seamless-panel-header">
 					<div>
 						<h2 class="seamless-panel-title"><?php esc_html_e('Membership Shortcodes', 'seamless'); ?></h2>
-						<p class="seamless-panel-description"><?php esc_html_e('Use the synced membership listing shortcode in page builders, templates, or standard WordPress content.', 'seamless'); ?></p>
+						<p class="seamless-panel-description"><?php esc_html_e('Use the membership listing and single-membership shortcodes in page builders, templates, or standard WordPress content.', 'seamless'); ?></p>
 					</div>
 				</div>
 				<ul class="seamless-shortcodes-list">
@@ -1136,6 +1136,15 @@ class SettingsPage
 						<span class="shortcode-container">
 							<code class="seamless-code-block">[seamless_memberships]</code>
 							<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_memberships]">
+								<span class="dashicons dashicons-admin-page"></span>
+							</button>
+						</span>
+					</li>
+					<li>
+						<strong><?php esc_html_e('Single Membership', 'seamless'); ?></strong>
+						<span class="shortcode-container">
+							<code class="seamless-code-block">[seamless_single_membership id="membership-plan-id"]</code>
+							<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode='[seamless_single_membership id="membership-plan-id"]'>
 								<span class="dashicons dashicons-admin-page"></span>
 							</button>
 						</span>
@@ -1176,7 +1185,7 @@ class SettingsPage
 									<th><?php esc_html_e('Shortcode', 'seamless'); ?></th>
 								</tr>
 							</thead>
-							<tbody id="seamless-membership-table-body">
+							<tbody id="seamless-membership-table-body" class="seamless-membership-table-body">
 								<?php $this->render_table_skeleton_rows(8); ?>
 							</tbody>
 						</table>
@@ -1745,8 +1754,9 @@ class SettingsPage
 			return;
 		}
 
-		// Add inline styles in the head
-		wp_add_inline_style('wp-admin', $this->get_admin_css());
+		// Enqueue a custom handle for inline styles
+		wp_enqueue_style('seamless-admin-inline', false);
+		wp_add_inline_style('seamless-admin-inline', $this->get_admin_css());
 
 		$admin_css_path = plugin_dir_path(__FILE__) . 'assets/css/seamless-admin-ui.css';
 		if (file_exists($admin_css_path)) {
@@ -1843,7 +1853,11 @@ class SettingsPage
 	{
 		ob_start();
 		$this->admin_css();
-		return ob_get_clean();
+		$css = ob_get_clean();
+		// Strip <style> tags since wp_add_inline_style() doesn't expect them
+		$css = preg_replace('/<style[^>]*>/', '', $css);
+		$css = preg_replace('/<\/style>/', '', $css);
+		return $css;
 	}
 
 	public function admin_css()

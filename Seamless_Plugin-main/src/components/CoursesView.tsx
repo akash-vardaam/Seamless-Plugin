@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useCourses } from '../hooks/useCourses';
 import { SearchInput } from './SearchInput';
-import { CustomDropdown } from './CustomDropdown';
 import { Pagination } from './Pagination';
 import { LoadingSpinner } from './LoadingSpinner';
 

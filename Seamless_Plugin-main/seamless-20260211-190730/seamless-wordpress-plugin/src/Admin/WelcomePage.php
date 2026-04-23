@@ -14,6 +14,7 @@ class WelcomePage
 		$this->auth = new Auth();
 		$this->settings_page = $settings_page;
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_styles']);
+		add_action('current_screen', [$this, 'clean_admin_notices']);
 	}
 
 	/**
@@ -21,7 +22,7 @@ class WelcomePage
 	 */
 	public function render(): void
 	{
-		$this->remove_all_notices();
+		$this->clean_admin_notices();
 		$this->render_styles();
 		$active_view = $this->get_active_view();
 		$settings_page = $this->settings_page ?? new SettingsPage();
@@ -316,6 +317,7 @@ class WelcomePage
 		$icon_class = $card_data['icon_class'] ?? 'dashicons-admin-generic';
 		$accent_class = $card_data['accent_class'] ?? 'is-primary';
 		$link_url = $card_data['link_url'] ?? '#';
+		$link_text = $card_data['link_text'] ?? __('', 'seamless');
 		$is_available = $card_data['is_available'] ?? true;
 		$disabled_text = $card_data['disabled_text'] ?? 'Coming Soon';
 
@@ -429,10 +431,72 @@ class WelcomePage
 		return 'https://mafpnew.flywheelsites.com/wp-content/uploads/2025/09/seamless.png';
 	}
 
-	private function remove_all_notices(): void
+	public function clean_admin_notices($screen = null): void
 	{
-		remove_all_actions('admin_notices');
-		remove_all_actions('all_admin_notices');
+		$screen = $screen ?: get_current_screen();
+		if (!$screen || empty($screen->id) || $screen->id !== 'toplevel_page_seamless') {
+			return;
+		}
+
+		global $wp_filter;
+		if (!is_array($wp_filter)) {
+			return;
+		}
+
+		foreach (['admin_notices', 'all_admin_notices'] as $hook_name) {
+			if (empty($wp_filter[$hook_name]) || empty($wp_filter[$hook_name]->callbacks) || !is_array($wp_filter[$hook_name]->callbacks)) {
+				continue;
+			}
+
+			foreach ($wp_filter[$hook_name]->callbacks as $priority => $callbacks) {
+				if (!is_array($callbacks)) {
+					continue;
+				}
+
+				foreach ($callbacks as $callback_key => $callback_data) {
+					if ($this->is_seamless_notice_callback($callback_data, (string) $callback_key)) {
+						continue;
+					}
+
+					unset($wp_filter[$hook_name]->callbacks[$priority][$callback_key]);
+				}
+			}
+		}
+	}
+
+	private function is_seamless_notice_callback(array $callback_data, string $callback_key): bool
+	{
+		if (stripos($callback_key, 'seamless') !== false) {
+			return true;
+		}
+
+		$callback = $callback_data['function'] ?? null;
+		if (is_string($callback)) {
+			return stripos($callback, 'seamless') !== false;
+		}
+
+		if (is_array($callback)) {
+			$target = $callback[0] ?? null;
+			$method = isset($callback[1]) ? (string) $callback[1] : '';
+
+			if ($method !== '' && stripos($method, 'seamless') !== false) {
+				return true;
+			}
+
+			if (is_string($target)) {
+				return stripos($target, 'seamless') !== false;
+			}
+
+			if (is_object($target)) {
+				return stripos(get_class($target), 'seamless') !== false;
+			}
+		}
+
+		if (is_object($callback)) {
+			return stripos(get_class($callback), 'seamless') !== false;
+		}
+
+		return false;
 	}
 
 	public function enqueue_admin_styles($hook)

@@ -368,6 +368,11 @@ const normalizeVariantOptions = (
           option.stock ??
           0,
       );
+      const hasExplicitStockQuantity =
+        Object.prototype.hasOwnProperty.call(option, 'stock_quantity') ||
+        Object.prototype.hasOwnProperty.call(option, 'inventory_quantity') ||
+        Object.prototype.hasOwnProperty.call(option, 'quantity') ||
+        Object.prototype.hasOwnProperty.call(option, 'stock');
 
       const optionValue = String(
         option.value ??
@@ -390,7 +395,9 @@ const normalizeVariantOptions = (
         isAvailable:
           typeof option.is_available === 'boolean' || typeof option.available === 'boolean'
             ? Boolean(option.is_available ?? option.available)
-            : optionStockQuantity > 0 || !Number.isFinite(optionStockQuantity) || optionStockQuantity === 0,
+            : hasExplicitStockQuantity
+              ? optionStockQuantity > 0
+              : true,
       };
     })
     .filter(Boolean) as ShopProduct['variants'][number]['options'];

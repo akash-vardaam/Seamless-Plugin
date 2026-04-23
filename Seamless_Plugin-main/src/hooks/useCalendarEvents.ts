@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { fetchEvents, fetchGroupEvents } from '../services/eventService';
-import type { Event, FilterState } from '../types/event';
+import { VISIBLE_EVENT_STATUSES, type Event, type FilterState } from '../types/event';
 import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 
 function formatError(err: unknown): string {
@@ -16,6 +16,15 @@ function formatError(err: unknown): string {
 
 // In-memory cache to avoid repeated sessionStorage access or API calls
 const calendarCache = new Map<string, Event[]>();
+const isVisibleEvent = (event: Event) =>
+    VISIBLE_EVENT_STATUSES.includes((event.status || '').toLowerCase() as any);
+const hasChanged = (previous: unknown, next: unknown): boolean => {
+    try {
+        return JSON.stringify(previous) !== JSON.stringify(next);
+    } catch {
+        return true;
+    }
+};
 
 export const useCalendarEvents = (
     currentDate: Date,
@@ -102,17 +111,19 @@ export const useCalendarEvents = (
             const params = buildParams();
             const cacheKey = buildBrowserCacheKey('calendar-events', params);
             const cachedEvents = calendarCache.get(cacheKey) || getBrowserCache<Event[]>(cacheKey);
+            const hasCachedEvents = Boolean(cachedEvents);
 
-            if (cachedEvents) {
+            if (hasCachedEvents && cachedEvents) {
                 calendarCache.set(cacheKey, cachedEvents);
                 setEvents(cachedEvents);
                 setLoading(false);
                 setError(null);
-                return;
             }
 
-            setLoading(true);
-            setError(null);
+            if (!hasCachedEvents) {
+                setLoading(true);
+                setError(null);
+            }
 
             try {
                 const [response, groupResponse] = await Promise.all([
@@ -122,8 +133,8 @@ export const useCalendarEvents = (
 
                 if (cancelled) return;
 
-                const rawEvents = (response.data.data?.events || []) as Event[];
-                const groupEventsRaw = groupResponse?.data?.data?.group_events || [];
+                const rawEvents = ((response.data.data?.events || []) as Event[]).filter(isVisibleEvent);
+                const groupEventsRaw = (groupResponse?.data?.data?.group_events || []).filter((event: Event) => isVisibleEvent(event));
 
                 const hiddenSubEvents = new Set<string>();
                 const groupEventBySubId: Record<string, Event> = {};
@@ -153,14 +164,18 @@ export const useCalendarEvents = (
 
                 // Save to caches and update UI with fresh server data
                 calendarCache.set(cacheKey, finalEvents);
-                setEvents(finalEvents);
+                if (!hasCachedEvents || hasChanged(cachedEvents, finalEvents)) {
+                    setEvents(finalEvents);
+                }
                 setLoading(false);
 
                 setBrowserCache(cacheKey, finalEvents);
 
             } catch (err) {
                 if (!cancelled) {
-                    setError(formatError(err));
+                    if (!hasCachedEvents) {
+                        setError(formatError(err));
+                    }
                     console.error('Calendar fetch error:', err);
                 }
             } finally {

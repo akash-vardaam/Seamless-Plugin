@@ -76,10 +76,11 @@ export const ShopProductView: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [cartCount, setCartCount] = useState(0);
   const [notice, setNotice] = useState('');
-  const [stockWarning, setStockWarning] = useState('');
+  const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isVariantImageLoading, setIsVariantImageLoading] = useState(false);
   const [zoomState, setZoomState] = useState<ZoomState>({ open: false, scale: 1, x: 0, y: 0 });
   const galleryThumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const scrollLockRef = useRef<{
@@ -97,6 +98,7 @@ export const ShopProductView: React.FC = () => {
     baseX: 0,
     baseY: 0,
   });
+  const variantImageLoadingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -146,7 +148,6 @@ export const ShopProductView: React.FC = () => {
         setGalleryIndex(0);
         setQuantity(1);
         setCartCount(cart?.itemCount ?? 0);
-        setStockWarning('');
       } catch (productError: any) {
         if (!cancelled) {
           setError(productError?.message || 'Unable to load this product right now.');
@@ -164,6 +165,14 @@ export const ShopProductView: React.FC = () => {
       cancelled = true;
     };
   }, [slug]);
+
+  useEffect(() => {
+    return () => {
+      if (variantImageLoadingTimerRef.current) {
+        window.clearTimeout(variantImageLoadingTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!zoomState.open) return;
@@ -282,7 +291,6 @@ export const ShopProductView: React.FC = () => {
 
   const currentImage = galleryImages[galleryIndex] || product?.featuredImage || getPlaceholderImage(product?.title || 'Product');
   const productCategories = useMemo(() => (product ? resolveProductCategories(product, categoryMap) : []), [categoryMap, product]);
-  const categoryLabel = productCategories.map((category) => category.name).join(', ');
   const richDescriptionBlocks = useMemo(
     () => buildSafeRichTextBlocks(product?.descriptionHtml || product?.shortDescription || ''),
     [product?.descriptionHtml, product?.shortDescription],
@@ -370,11 +378,28 @@ export const ShopProductView: React.FC = () => {
       .slice(0, 4);
   }, [allProducts, categoryMap, product, productCategories]);
 
+  const triggerVariantImageLoading = () => {
+    setIsVariantImageLoading(true);
+    if (variantImageLoadingTimerRef.current) {
+      window.clearTimeout(variantImageLoadingTimerRef.current);
+    }
+    variantImageLoadingTimerRef.current = window.setTimeout(() => {
+      setIsVariantImageLoading(false);
+    }, 900);
+  };
+
+  const clearVariantImageLoading = () => {
+    if (variantImageLoadingTimerRef.current) {
+      window.clearTimeout(variantImageLoadingTimerRef.current);
+      variantImageLoadingTimerRef.current = null;
+    }
+    setIsVariantImageLoading(false);
+  };
+
   const handleAddToCart = async () => {
     if (!product || isOutOfStock || submitting) return;
 
     setSubmitting(true);
-    setStockWarning('');
 
     try {
       const variantSelections = product.variants.reduce<Record<string, string>>((accumulator, group, index) => {
@@ -390,13 +415,15 @@ export const ShopProductView: React.FC = () => {
       }, {});
 
       if (availableStock <= 0) {
-        setStockWarning('This selected variant is out of stock. Choose another available option.');
+        setNoticeType('error');
+        setNotice('This selected variant is out of stock. Choose another available option.');
         return;
       }
 
       if (quantity > availableStock) {
         setQuantity(availableStock);
-        setStockWarning(
+        setNoticeType('error');
+        setNotice(
           availableStock === 1
             ? 'Only 1 item is available for this selection.'
             : `Only ${availableStock} items are available for this selection.`,
@@ -407,9 +434,11 @@ export const ShopProductView: React.FC = () => {
       const nextCart = await addItemToCart(product, quantity, variantSelections);
       setCart(nextCart);
       setCartCount(nextCart.itemCount);
+      setNoticeType('success');
       setNotice(`${product.title} is added to cart.`);
     } catch (cartError: any) {
-      setStockWarning(
+      setNoticeType('error');
+      setNotice(
         cartError?.message || 'This selected variant is out of stock. Choose another available option.',
       );
     } finally {
@@ -499,14 +528,14 @@ export const ShopProductView: React.FC = () => {
         </div>
 
       {notice ? (
-        <div className={`seamless-shop__alert ${notice.includes('Unable') ? '' : 'seamless-shop__alert--success'}`}>
+        <div className={`seamless-shop__toast-notification ${noticeType === 'success' ? 'seamless-shop__toast-success' : 'seamless-shop__toast-error'}`}>
           {notice}
         </div>
       ) : null}
 
       <section className="seamless-shop__product-layout">
         <div className="seamless-shop__gallery">
-          <div className="seamless-shop__gallery-stage">
+          <div className={`seamless-shop__gallery-stage ${isVariantImageLoading ? 'is-variant-loading' : ''}`}>
             {galleryImages.length > 1 ? (
               <>
                 <button
@@ -547,7 +576,9 @@ export const ShopProductView: React.FC = () => {
               <img
                 src={currentImage}
                 alt={product.title}
-                className="seamless-shop__image-contain"
+                className={`seamless-shop__image-contain ${isVariantImageLoading ? 'is-loading' : ''}`}
+                onLoad={clearVariantImageLoading}
+                onError={clearVariantImageLoading}
               />
             </button>
           </div>
@@ -575,7 +606,6 @@ export const ShopProductView: React.FC = () => {
 
         <div className="seamless-shop__product-info">
           <div className="seamless-shop__product-meta seamless-shop__eyebrow">
-            <span>{categoryLabel || 'Shop Product'}</span>
             <span className="seamless-shop__pill">
               {getProductTypeLabel(product.productType)}
             </span>
@@ -627,6 +657,7 @@ export const ShopProductView: React.FC = () => {
                                 className={optionClassName}
                                 style={hasSwatch ? ({ '--swatch-color': option.swatch || '#ffffff' } as React.CSSProperties) : undefined}
                                 onClick={() => {
+                                  triggerVariantImageLoading();
                                   setSelectedVariantIds((current) => {
                                     const next = [...current];
                                     next[groupIndex] = option.id;
@@ -634,15 +665,17 @@ export const ShopProductView: React.FC = () => {
                                   });
                                   setGalleryIndex(0);
                                   setQuantity(1);
-                                  setStockWarning('');
                                 }}
                               >
                                 {hasSwatch ? (
                                   <span className="seamless-shop__variant-swatch-inner">
-                                    {isOptionDisabled ? <span className="seamless-shop__swatch-unavailable" /> : null}
+                                    {isOptionDisabled ? <span className="seamless-shop__variant-unavailable-slash" /> : null}
                                   </span>
                                 ) : (
-                                  <span>{formatAttributeLabel(option.value)}</span>
+                                  <>
+                                    <span>{formatAttributeLabel(option.value)}</span>
+                                    {isOptionDisabled ? <span className="seamless-shop__variant-unavailable-slash" /> : null}
+                                  </>
                                 )}
                               </button>
                               {isSelected ? (
@@ -667,7 +700,6 @@ export const ShopProductView: React.FC = () => {
                 disabled={isOutOfStock}
                 onClick={() => {
                   setQuantity((current) => Math.max(1, current - 1));
-                  setStockWarning('');
                 }}
               >
                 <Minus className="seamless-shop__icon" />
@@ -685,7 +717,6 @@ export const ShopProductView: React.FC = () => {
                       if (availableStock > 0) return Math.min(availableStock, current + 1);
                       return current + 1;
                     });
-                    setStockWarning('');
                   }
                 }
               >
@@ -704,24 +735,18 @@ export const ShopProductView: React.FC = () => {
             </button>
           </div>
 
-          {isOutOfStock || stockWarning ? (
-            <p className="seamless-shop__stock-note">
-              {stockWarning || 'This selected variant is out of stock. Choose another available option.'}
-            </p>
-          ) : (
-            <div className="seamless-shop__trust-note">
-              <svg
-                className="seamless-shop__icon seamless-shop-variant-helper-icon"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <circle cx="12" cy="12" r="12" />
-                <path d="M8 12.2L10.7 15L16.2 8.8" />
-              </svg>
-              <span>Fast, trackable worldwide shipping available</span>
-            </div>
-          )}
+          <div className="seamless-shop__trust-note">
+            <svg
+              className="seamless-shop__icon seamless-shop-variant-helper-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="12" cy="12" r="12" />
+              <path d="M8 12.2L10.7 15L16.2 8.8" />
+            </svg>
+            <span>Fast, trackable worldwide shipping available</span>
+          </div>
         </div>
       </section>
 

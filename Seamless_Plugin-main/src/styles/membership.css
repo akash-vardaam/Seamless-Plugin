@@ -50,6 +50,7 @@
     align-items: flex-start !important;
     margin-bottom: 24px !important;
     gap: 20px !important;
+    width: 100% !important;
 }
 
 :host .seamless-plan-header-left {

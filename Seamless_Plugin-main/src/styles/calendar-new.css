@@ -2,6 +2,78 @@
 
 /* ─── New Header Layout (matching shop plugin) ─── */
 
+@keyframes seamless-calendar-slide-up-fade {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+:host .seamless-calendar-container,
+:host .calendar-header,
+:host .seamless-calendar-body,
+:host .seamless-month-week-row,
+:host .seamless-list-view-item,
+:host .seamless-month-event-bar,
+:host .seamless-week-event-block,
+:host .seamless-week-allday-event,
+:host .seamless-year-month-card {
+    opacity: 0;
+    animation: seamless-calendar-slide-up-fade 0.4s ease-out forwards !important;
+}
+
+:host .seamless-calendar-container,
+:host .calendar-header,
+:host .seamless-calendar-body {
+    animation-delay: 0.03s !important;
+}
+
+:host .seamless-list-view-item:nth-child(1),
+:host .seamless-year-month-card:nth-child(1) { animation-delay: 0.04s !important; }
+:host .seamless-list-view-item:nth-child(2),
+:host .seamless-year-month-card:nth-child(2) { animation-delay: 0.08s !important; }
+:host .seamless-list-view-item:nth-child(3),
+:host .seamless-year-month-card:nth-child(3) { animation-delay: 0.12s !important; }
+:host .seamless-list-view-item:nth-child(4),
+:host .seamless-year-month-card:nth-child(4) { animation-delay: 0.16s !important; }
+:host .seamless-list-view-item:nth-child(5),
+:host .seamless-year-month-card:nth-child(5) { animation-delay: 0.2s !important; }
+:host .seamless-list-view-item:nth-child(6),
+:host .seamless-year-month-card:nth-child(6) { animation-delay: 0.24s !important; }
+:host .seamless-list-view-item:nth-child(7),
+:host .seamless-year-month-card:nth-child(7) { animation-delay: 0.28s !important; }
+:host .seamless-list-view-item:nth-child(8),
+:host .seamless-year-month-card:nth-child(8) { animation-delay: 0.32s !important; }
+
+:host .seamless-month-cell:nth-child(7n + 1) { animation-delay: 0.03s !important; }
+:host .seamless-month-cell:nth-child(7n + 2) { animation-delay: 0.05s !important; }
+:host .seamless-month-cell:nth-child(7n + 3) { animation-delay: 0.07s !important; }
+:host .seamless-month-cell:nth-child(7n + 4) { animation-delay: 0.09s !important; }
+:host .seamless-month-cell:nth-child(7n + 5) { animation-delay: 0.11s !important; }
+:host .seamless-month-cell:nth-child(7n + 6) { animation-delay: 0.13s !important; }
+:host .seamless-month-cell:nth-child(7n + 7) { animation-delay: 0.15s !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    :host .seamless-calendar-container,
+    :host .calendar-header,
+    :host .seamless-calendar-body,
+    :host .seamless-month-week-row,
+    :host .seamless-list-view-item,
+    :host .seamless-month-event-bar,
+    :host .seamless-week-event-block,
+    :host .seamless-week-allday-event,
+    :host .seamless-year-month-card {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+    }
+}
+
 :host .calendar-header {
     display: flex !important;
     justify-content: space-between !important;
@@ -253,6 +325,7 @@
     padding: 7px 14px !important;
     font-size: 12px !important;
     letter-spacing: 0.03em !important;
+    height: 43px !important;
 }
 
 /* View selector buttons */
@@ -298,8 +371,8 @@
 }
 
 :host .view-button.display-list-btn.active {
-    background: var(--seamless-color-primary, #26337a) !important;
-    color: #ffffff !important;
+    background: #F5F7FB !important;
+    color: var(--seamless-color-primary, #26337a) !important;
 }
 
 /* ─── List View ─── */

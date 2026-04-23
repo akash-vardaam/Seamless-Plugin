@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://mafp.seamlessams.com',
+        target: 'https://saoa.seamlessams.com',
         changeOrigin: true,
         secure: false,
         followRedirects: true,

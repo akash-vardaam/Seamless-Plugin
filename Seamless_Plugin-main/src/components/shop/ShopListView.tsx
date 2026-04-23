@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Check,
   ChevronDown,
@@ -83,6 +83,7 @@ export const ShopListView: React.FC = () => {
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [notice, setNotice] = useState('');
+  const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -92,6 +93,9 @@ export const ShopListView: React.FC = () => {
   const [selectedProductTypes, setSelectedProductTypes] = useState<string[]>([]);
   const [selectedAvailabilities, setSelectedAvailabilities] = useState<string[]>([]);
   const [sort, setSort] = useState<ShopSortKey>('featured');
+  const [addingProductId, setAddingProductId] = useState<string | null>(null);
+  const [addedProductId, setAddedProductId] = useState<string | null>(null);
+  const addedResetTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +144,14 @@ export const ShopListView: React.FC = () => {
 
     return () => window.clearTimeout(timer);
   }, [notice]);
+
+  useEffect(() => {
+    return () => {
+      if (addedResetTimerRef.current) {
+        window.clearTimeout(addedResetTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const refreshCartCount = () => {
@@ -298,14 +310,30 @@ export const ShopListView: React.FC = () => {
   };
 
   const handleSimpleAddToCart = async (product: ShopProduct) => {
-    if (!product.isAvailable) return;
+    if (!product.isAvailable || addingProductId === product.id) return;
+
+    setAddingProductId(product.id);
+    setAddedProductId(null);
 
     try {
       const nextCart = await addItemToCart(product, 1, {});
       setCartCount(nextCart.itemCount);
+      setNoticeType('success');
       setNotice(`${product.title} is added to cart.`);
+      setAddedProductId(product.id);
+
+      if (addedResetTimerRef.current) {
+        window.clearTimeout(addedResetTimerRef.current);
+      }
+      addedResetTimerRef.current = window.setTimeout(() => {
+        setAddedProductId((current) => (current === product.id ? null : current));
+      }, 1000);
     } catch (cartError: any) {
+      setNoticeType('error');
       setNotice(cartError?.message || 'Unable to add this product right now.');
+      setAddedProductId(null);
+    } finally {
+      setAddingProductId((current) => (current === product.id ? null : current));
     }
   };
 
@@ -501,7 +529,7 @@ export const ShopListView: React.FC = () => {
       </section>
 
       {notice ? (
-        <div className={`seamless-shop__alert ${notice.includes('Unable') ? '' : 'seamless-shop__alert--success'}`}>
+        <div className={`seamless-shop__toast-notification ${noticeType === 'success' ? 'seamless-shop__toast-success' : 'seamless-shop__toast-error'}`}>
           {notice}
         </div>
       ) : null}
@@ -513,6 +541,15 @@ export const ShopListView: React.FC = () => {
             const categoryLabel = productCategories[0]?.name || 'Uncategorized';
             const hasVariants = Boolean(product.hasVariants || product.variants?.length);
             const isSimpleOutOfStock = !hasVariants && product.isAvailable === false;
+            const isAddingToCart = addingProductId === product.id;
+            const isAddedToCart = addedProductId === product.id;
+            const addToCartLabel = isSimpleOutOfStock
+              ? 'Out of Stock'
+              : isAddingToCart
+                ? 'Adding to cart...'
+                : isAddedToCart
+                  ? 'Added to cart'
+                  : 'Add to Cart';
 
             return (
               <article key={product.id} className="seamless-shop__product-card">
@@ -537,12 +574,12 @@ export const ShopListView: React.FC = () => {
                     ) : (
                       <button
                         type="button"
-                        disabled={isSimpleOutOfStock}
+                        disabled={isSimpleOutOfStock || isAddingToCart || isAddedToCart}
                         className="seamless-shop__primary-button seamless-shop__card-action"
                         onClick={() => void handleSimpleAddToCart(product)}
                       >
                         <span className="seamless-shop-card-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-shopping-bag-icon lucide-shopping-bag"><path d="M16 10a4 4 0 0 1-8 0"></path><path d="M3.103 6.034h17.794"></path><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"></path></svg></span>
-                        {isSimpleOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                        {addToCartLabel}
                       </button>
                     )}
                   </div>
