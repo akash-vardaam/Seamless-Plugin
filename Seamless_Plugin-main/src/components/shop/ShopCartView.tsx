@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Minus, Plus, ShoppingCart } from 'lucide-react';
-import { LoadingSpinner } from '../LoadingSpinner';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import {
   fetchCurrentCart,
   removeCartItem,
@@ -164,7 +164,34 @@ export const ShopCartView: React.FC = () => {
   }, [toast]);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-shop seamless-shop--skeleton">
+          <div className="seamless-shop__cart-header">
+            <nav className="seamless-shop__breadcrumb"><span><Skeleton width={200} containerClassName="seamless-skeleton-container" /></span></nav>
+          </div>
+          <div className="seamless-shop__cart-layout">
+            <div className="seamless-shop__cart-items">
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <article key={idx} className="seamless-shop__cart-item">
+                  <div className="seamless-shop__cart-item-main">
+                    <div className="seamless-shop__cart-image"><Skeleton height={96} width={96} borderRadius={12} /></div>
+                    <div className="seamless-shop__cart-details">
+                      <h3 className="seamless-shop__title-lg"><Skeleton width={220} containerClassName="seamless-skeleton-container" /></h3>
+                      <p className="seamless-shop__muted"><Skeleton width={160} containerClassName="seamless-skeleton-container" /></p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <aside className="seamless-shop__summary">
+              <h3 className="seamless-shop__title-lg"><Skeleton width={140} containerClassName="seamless-skeleton-container" /></h3>
+              <p><Skeleton count={3} containerClassName="seamless-skeleton-container" /></p>
+            </aside>
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
   }
 
   return (
@@ -192,7 +219,7 @@ export const ShopCartView: React.FC = () => {
               <span>/</span>
               <span>Cart</span>
             </nav>
-            <a href={buildShopUrl()} className="seamless-shop__cart-backlink shopping-cart__button-link">
+            <a href={buildShopUrl()} className="seamless-shop__cart-backlink shopping-cart__button-link continue-shopping seamless_shop__primary-button">
               <ArrowLeft className="seamless-shop__icon" />
               <span>Continue Shopping</span>
             </a>

@@ -12,6 +12,9 @@ const hasChanged = (previous: unknown, next: unknown): boolean => {
     }
 };
 
+const stripHtml = (value: string = ''): string =>
+    value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
 export const useCourses = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -150,8 +153,17 @@ export const useCourses = () => {
                         break;
                 }
 
-                if (!hasCachedData || hasChanged(cachedData?.courses, sortedCourses)) {
-                    setCourses(sortedCourses);
+                const normalizedSearch = searchParam.trim().toLowerCase();
+                const visibleCourses = normalizedSearch
+                    ? sortedCourses.filter((course) => {
+                        const title = (course?.title || '').toLowerCase();
+                        const description = stripHtml(course?.description || '').toLowerCase();
+                        return title.includes(normalizedSearch) || description.includes(normalizedSearch);
+                    })
+                    : sortedCourses;
+
+                if (!hasCachedData || hasChanged(cachedData?.courses, visibleCourses)) {
+                    setCourses(visibleCourses);
                 }
                 if (!hasCachedData || hasChanged(cachedData?.pagination, data.pagination)) {
                     setPagination(data.pagination);
@@ -162,7 +174,7 @@ export const useCourses = () => {
                 setLoading(false);
 
                 setBrowserCache(cacheKey, {
-                    courses: sortedCourses,
+                    courses: visibleCourses,
                     pagination: data.pagination,
                     availableYears: newAvailableYears
                 });

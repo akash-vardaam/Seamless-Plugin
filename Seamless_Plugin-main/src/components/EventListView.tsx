@@ -1,6 +1,7 @@
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useSegmentedEventPagination } from '../hooks/useSegmentedEventPagination';
 import { useCategories } from '../hooks/useCategories';
 import { useTags } from '../hooks/useTags';
@@ -12,14 +13,11 @@ import { CalendarView } from './CalendarView';
 import { Pagination } from './Pagination';
 import type { ViewType, Event } from '../types/event';
 import { useCalendarEvents } from '../hooks/useCalendarEvents';
-import { LoadingSpinner } from './LoadingSpinner';
 import { useShadowRoot } from './ShadowRoot';
-import { getRuntimeThemeSettings } from '../theme';
 // ... defaults
 
 export const EventListView: React.FC = () => {
     const shadowRoot = useShadowRoot();
-    const runtimeThemeSettings = useMemo(() => getRuntimeThemeSettings(), []);
     // 1. Categories
     const {
         categories,
@@ -85,8 +83,7 @@ export const EventListView: React.FC = () => {
     } = useSegmentedEventPagination(filters, currentPage);
 
     // 5. View state
-    const getDefaultView = (): ViewType =>
-        typeof window !== 'undefined' && window.innerWidth < 768 ? 'grid' : 'list';
+    const getDefaultView = (): ViewType => 'list';
 
     const currentView = (searchParams.get('view') as ViewType) || getDefaultView();
     const currentSubView = (searchParams.get('cal_view') as any) || 'MONTH';
@@ -107,17 +104,6 @@ export const EventListView: React.FC = () => {
 
     // Note: useClientFilters handles "Year" filtering which API cannot do.
     const filteredItems = useClientFilters(eventsData, filters);
-
-    // ... Responsive view switch ...
-    useEffect(() => {
-        const onResize = () => {
-            if (window.innerWidth < 768 && currentView === 'list') {
-                updateUrlParams({ view: 'grid' });
-            }
-        };
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, [currentView]);
 
     const handleViewChange = (view: ViewType) => {
         // Reset page to 1 on view change
@@ -159,7 +145,7 @@ export const EventListView: React.FC = () => {
     }, [items]);
 
     const loading = itemsLoading || categoriesLoading || tagsLoading;
-    const isModernListLayout = runtimeThemeSettings.cardVariant === 'modern';
+    const weekDayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
     const listItems = useMemo(() => {
         let previousDateKey = '';
@@ -176,6 +162,177 @@ export const EventListView: React.FC = () => {
             return { item, showTimelineDate };
         });
     }, [filteredItems]);
+
+    const renderCalendarLoadingSkeleton = () => {
+        const headerSkeleton = (
+            <div className="calendar-header seamless-calendar-header--skeleton">
+                <div className="calendar-title seamless-calendar-title--skeleton">
+                    <div className="date-info">
+                        <div className="month-abbr">
+                            <Skeleton width={34} containerClassName="seamless-skeleton-container" />
+                        </div>
+                        <div className="day-number">
+                            <Skeleton width={26} containerClassName="seamless-skeleton-container" />
+                        </div>
+                    </div>
+                    <div className="cal-selectors-wrap">
+                        <div className="cal-selectors-row">
+                            <div className="seamless-calendar-skeleton-pill">
+                                <Skeleton width={110} containerClassName="seamless-skeleton-container" />
+                            </div>
+                            <div className="seamless-calendar-skeleton-pill">
+                                <Skeleton width={80} containerClassName="seamless-skeleton-container" />
+                            </div>
+                        </div>
+                        <div className="date-range">
+                            <Skeleton width={230} containerClassName="seamless-skeleton-container" />
+                        </div>
+                    </div>
+                </div>
+                <div className="calendar-controls seamless-calendar-controls--skeleton">
+                    <div className="seamless-calendar-skeleton-nav">
+                        <Skeleton height={42} containerClassName="seamless-skeleton-container" />
+                    </div>
+                    <div className="seamless-calendar-skeleton-view-switch">
+                        <Skeleton height={42} containerClassName="seamless-skeleton-container" />
+                    </div>
+                </div>
+            </div>
+        );
+
+        if (currentIsListView) {
+            return (
+                <div className="seamless-calendar-container seamless-calendar-container--skeleton">
+                    {headerSkeleton}
+                    <div className="seamless-list-view seamless-calendar-list--skeleton">
+                        {Array.from({ length: 8 }).map((_, idx) => (
+                            <div key={idx} className="seamless-list-view-item">
+                                <div className="seamless-list-view-date">
+                                    <Skeleton width={128} containerClassName="seamless-skeleton-container" />
+                                </div>
+                                <div className="seamless-list-view-info">
+                                    <span className="seamless-list-view-title">
+                                        <Skeleton width={`${78 - idx * 4}%`} containerClassName="seamless-skeleton-container" />
+                                    </span>
+                                    <span className="seamless-list-view-time">
+                                        <Skeleton width={92} containerClassName="seamless-skeleton-container" />
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (currentSubView === 'WEEK') {
+            return (
+                <div className="seamless-calendar-container seamless-calendar-container--skeleton">
+                    {headerSkeleton}
+                    <div className="seamless-calendar-skeleton-week">
+                        <div className="seamless-calendar-skeleton-week-days">
+                            <div className="seamless-calendar-skeleton-week-day">
+                                <span><Skeleton width={32} containerClassName="seamless-skeleton-container" /></span>
+                            </div>
+                            {weekDayLabels.map((day, idx) => (
+                                <div key={day + idx} className="seamless-calendar-skeleton-week-day">
+                                    <span><Skeleton width={22} containerClassName="seamless-skeleton-container" /></span>
+                                    <p><Skeleton width={34} containerClassName="seamless-skeleton-container" /></p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="seamless-calendar-skeleton-week-body">
+                            <div className="seamless-calendar-skeleton-time-col">
+                                {Array.from({ length: 8 }).map((_, idx) => (
+                                    <p key={idx}><Skeleton width={34} containerClassName="seamless-skeleton-container" /></p>
+                                ))}
+                            </div>
+                            <div className="seamless-calendar-skeleton-week-cols">
+                                {Array.from({ length: 7 }).map((_, colIdx) => (
+                                    <div key={colIdx} className="seamless-calendar-skeleton-week-col">
+                                        <span><Skeleton height={18} width="88%" containerClassName="seamless-skeleton-container" /></span>
+                                        <span><Skeleton height={22} width="72%" containerClassName="seamless-skeleton-container" /></span>
+                                        <span><Skeleton height={18} width="64%" containerClassName="seamless-skeleton-container" /></span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        if (currentSubView === 'DAY') {
+            return (
+                <div className="seamless-calendar-container seamless-calendar-container--skeleton">
+                    {headerSkeleton}
+                    <div className="seamless-calendar-skeleton-day">
+                        <div className="seamless-calendar-skeleton-day-head">
+                            <span><Skeleton width={34} containerClassName="seamless-skeleton-container" /></span>
+                            <p><Skeleton width={130} containerClassName="seamless-skeleton-container" /></p>
+                        </div>
+                        <div className="seamless-calendar-skeleton-day-body">
+                            <div className="seamless-calendar-skeleton-time-col">
+                                {Array.from({ length: 8 }).map((_, idx) => (
+                                    <p key={idx}><Skeleton width={34} containerClassName="seamless-skeleton-container" /></p>
+                                ))}
+                            </div>
+                            <div className="seamless-calendar-skeleton-day-col">
+                                <span><Skeleton height={20} width="94%" containerClassName="seamless-skeleton-container" /></span>
+                                <span><Skeleton height={24} width="82%" containerClassName="seamless-skeleton-container" /></span>
+                                <span><Skeleton height={20} width="68%" containerClassName="seamless-skeleton-container" /></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        if (currentSubView === 'YEAR') {
+            return (
+                <div className="seamless-calendar-container seamless-calendar-container--skeleton">
+                    {headerSkeleton}
+                    <div className="seamless-year-view seamless-year-view--skeleton">
+                        {Array.from({ length: 12 }).map((_, idx) => (
+                            <div key={idx} className="seamless-year-month-card seamless-year-month-card--skeleton">
+                                <div className="seamless-year-month-title">
+                                    <Skeleton width={56} containerClassName="seamless-skeleton-container" />
+                                </div>
+                                <div className="seamless-calendar-skeleton-year-days">
+                                    {Array.from({ length: 35 }).map((__, dayIdx) => (
+                                        <span key={dayIdx}><Skeleton width={12} height={12} containerClassName="seamless-skeleton-container" /></span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="seamless-calendar-container seamless-calendar-container--skeleton">
+                {headerSkeleton}
+                <div className="seamless-calendar-skeleton-month">
+                    <div className="seamless-month-header-row">
+                        {weekDayLabels.map((day) => (
+                            <div key={day} className="seamless-month-header-cell">
+                                <span><Skeleton width={36} containerClassName="seamless-skeleton-container" /></span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="seamless-calendar-skeleton-month-grid">
+                        {Array.from({ length: 42 }).map((_, idx) => (
+                            <div key={idx} className="seamless-month-cell seamless-calendar-skeleton-month-cell">
+                                <span><Skeleton width={24} containerClassName="seamless-skeleton-container" /></span>
+                                <p><Skeleton count={1.2} containerClassName="seamless-skeleton-container" /></p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     // ── Render ─────────────────────────────────────────────────────
     if (error) {
@@ -223,7 +380,7 @@ export const EventListView: React.FC = () => {
             <section className="seamless-results-info">
                 <span className="seamless-results-text">
                     {loading ? (
-                        <span>Loading Page count</span>
+                        <span><Skeleton width={180} containerClassName="seamless-skeleton-container" /></span>
                     ) : (
                         <>
                             Showing{' '}
@@ -240,17 +397,94 @@ export const EventListView: React.FC = () => {
                 <ViewSwitcher currentView={currentView} onViewChange={handleViewChange} />
             </section>
 
-            <main className="seamless-items-display" style={{ minHeight: '300px', position: 'relative' }}>
-                {loading && (
-                    <div className="seamless-loading-overlay" style={{
-                        position: 'absolute', inset: 0,
-                        backgroundColor: 'rgba(255,255,255,0.7)', zIndex: 10
-                    }}>
-                        <LoadingSpinner />
-                    </div>
-                )}
+            <main className="seamless-items-display seamless-items-display--skeleton-frame">
+                {loading ? (
+                    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+                        {currentView === 'calendar' ? (
+                            renderCalendarLoadingSkeleton()
+                        ) : currentView === 'list' ? (
+                            <div className="seamless-items-list seamless-items-list--skeleton">
+                                {Array.from({ length: 6 }).map((_, idx) => (
+                                    <article
+                                        key={idx}
+                                        className="seamless-card-modern seamless-card-modern--skeleton"
+                                    >
+                                        <div className="seamless-card-modern-timeline">
+                                            <div className="seamless-card-modern-date-group">
+                                                <span className="seamless-card-modern-date">
+                                                    <Skeleton width={92} containerClassName="seamless-skeleton-container" />
+                                                </span>
+                                                <span className="seamless-card-modern-weekday">
+                                                    <Skeleton width={74} containerClassName="seamless-skeleton-container" />
+                                                </span>
+                                            </div>
+                                            <span className="seamless-card-modern-dot" />
+                                        </div>
 
-                {!loading && filteredItems.length === 0 ? (
+                                        <div className="seamless-card-modern-shell">
+                                            <div className="seamless-card-modern-content">
+                                                <div className="seamless-card-modern-body">
+                                                    <div className="seamless-card-modern-title">
+                                                        <Skeleton height={26} width={`${78 - (idx % 3) * 8}%`} containerClassName="seamless-skeleton-container" />
+                                                    </div>
+
+                                                    <div className="seamless-card-modern-meta">
+                                                        <div className="seamless-card-modern-meta-row seamless-card-modern-meta-row--skeleton">
+                                                            <Skeleton circle width={14} height={14} containerClassName="seamless-skeleton-icon" />
+                                                            <Skeleton width={130} containerClassName="seamless-skeleton-container" />
+                                                        </div>
+                                                        <div className="seamless-card-modern-meta-row seamless-card-modern-meta-row--skeleton">
+                                                            <Skeleton circle width={14} height={14} containerClassName="seamless-skeleton-icon" />
+                                                            <Skeleton width={190} containerClassName="seamless-skeleton-container" />
+                                                        </div>
+                                                        <div className="seamless-card-modern-meta-row seamless-card-modern-meta-row--skeleton">
+                                                            <Skeleton circle width={14} height={14} containerClassName="seamless-skeleton-icon" />
+                                                            <Skeleton width={220} containerClassName="seamless-skeleton-container" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="seamless-card-modern-description">
+                                                        <Skeleton count={2} containerClassName="seamless-skeleton-container" />
+                                                    </div>
+
+                                                    <div className="seamless-card-modern-link seamless-card-modern-link--skeleton">
+                                                        <Skeleton width={86} containerClassName="seamless-skeleton-container" />
+                                                        <Skeleton circle width={14} height={14} containerClassName="seamless-skeleton-icon" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="seamless-card-modern-image-wrap">
+                                                    <div className="seamless-card-modern-image seamless-card-modern-image--skeleton">
+                                                        <Skeleton height="100%" borderRadius={12} containerClassName="seamless-skeleton-container" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="seamless-items-grid seamless-items-grid--skeleton">
+                                {Array.from({ length: 6 }).map((_, idx) => (
+                                    <article key={idx} className="seamless-card seamless-card--skeleton">
+                                        <div className="seamless-card-image-container">
+                                            <Skeleton height={200} borderRadius={0} />
+                                        </div>
+                                        <div className="seamless-card-content">
+                                            <div className="seamless-card-title"><Skeleton height={26} width="76%" containerClassName="seamless-skeleton-container" /></div>
+                                            <div className="seamless-card-date"><Skeleton width={210} containerClassName="seamless-skeleton-container" /></div>
+                                            <div className="seamless-card-description"><Skeleton count={2.4} containerClassName="seamless-skeleton-container" /></div>
+                                            <div className="seamless-card-time"><Skeleton width={165} containerClassName="seamless-skeleton-container" /></div>
+                                            <div className="seamless-card-see-details seamless-card-see-details--skeleton">
+                                                <Skeleton height={18} containerClassName="seamless-skeleton-container" />
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
+                    </SkeletonTheme>
+                ) : filteredItems.length === 0 ? (
                     <div className="seamless-empty-state">
                         <p className="seamless-empty-state-text">No items found matching your filters.</p>
                     </div>
@@ -286,7 +520,7 @@ export const EventListView: React.FC = () => {
                                     key={item?.id}
                                     item={item}
                                     layout="list"
-                                    listVariant={isModernListLayout ? 'modern' : 'classic'}
+                                    listVariant="modern"
                                     showTimelineDate={showTimelineDate}
                                 />
                             ))}

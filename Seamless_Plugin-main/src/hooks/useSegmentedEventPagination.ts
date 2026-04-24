@@ -20,6 +20,13 @@ const API_PAGE_SIZE = 24; // Fixed size per API call
 const UI_PAGE_SIZE = 8;   // Exact size for the UI grid
 const isVisibleEvent = (event: Event) =>
     VISIBLE_EVENT_STATUSES.includes((event.status || '').toLowerCase() as any);
+const getEventStartTime = (event: Event): number => {
+    const rawDate = event.start_date || event.event_date_range?.start || event.formatted_start_date || '';
+    const timestamp = rawDate ? new Date(rawDate).getTime() : 0;
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+const sortEventsByStartDateDesc = (events: Event[]): Event[] =>
+    [...events].sort((a, b) => getEventStartTime(b) - getEventStartTime(a));
 const hasChanged = (previous: unknown, next: unknown): boolean => {
     try {
         return JSON.stringify(previous) !== JSON.stringify(next);
@@ -101,7 +108,7 @@ export const useSegmentedEventPagination = (
         const fetchData = async () => {
             setError(null);
             const params = buildParams();
-            const cacheKey = buildBrowserCacheKey('events-ui-page', { params, uiPage });
+            const cacheKey = buildBrowserCacheKey('events-ui-page-date-desc', { params, uiPage });
             let hasCachedPage = false;
             let cachedPageData: {
                 events: Event[];
@@ -158,10 +165,7 @@ export const useSegmentedEventPagination = (
                             consolidated.push(e);
                         }
                     }
-                    if (mode === 'upcoming') {
-                        consolidated.sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
-                    }
-                    return consolidated;
+                    return sortEventsByStartDateDesc(consolidated);
                 };
 
                 // Fetch group events (needed for consolidation) - ONLY IF NOT ALREADY FETCHED

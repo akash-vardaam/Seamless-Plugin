@@ -116,7 +116,7 @@
   padding: 0 24px !important;
   color: #ffffff !important;
   font-size: 14px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   letter-spacing: 0 !important;
   text-transform: uppercase !important;
   transition: opacity 160ms ease, background-color 160ms ease !important;
@@ -150,7 +150,7 @@
   padding: 2px 6px !important;
   color: #ffffff !important;
   font-size: 11px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   line-height: 1 !important;
 }
 
@@ -195,7 +195,7 @@
 }
 
 :host .seamless-shop__sort-option--active {
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 :host .seamless-shop__filters {
@@ -216,7 +216,7 @@
 :host .seamless-shop__heading-small {
   color: #0f172a !important;
   font-size: 13px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   letter-spacing: 0 !important;
   text-transform: uppercase !important;
 }
@@ -360,7 +360,7 @@
   padding: 0 18px !important;
   color: #17324d !important;
   font-size: 14px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   line-height: 1 !important;
   text-transform: uppercase !important;
   text-decoration: none !important;
@@ -387,7 +387,7 @@
   margin: 0 !important;
   color: var(--seamless-color-primary) !important;
   font-size: 18px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   line-height: 1.35 !important;
 }
 
@@ -430,8 +430,8 @@
 
 :host .seamless-shop__price {
   color: #0f172a !important;
-  font-size: 14px !important;
-  font-weight: 800 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
 }
 
 :host .seamless-shop__empty,
@@ -498,15 +498,9 @@
 }
 
 :host .seamless-shop--list .seamless-shop__button-link--cart {
-  min-height: 40px !important;
-  border-color: transparent !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  padding: 0 !important;
   color: #081f38 !important;
   font-size: 16px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
+  font-weight: 600 !important;
 }
 
 :host .seamless-shop--list .seamless-shop__button-link--cart:hover {
@@ -548,7 +542,7 @@
 }
 
 :host .seamless-shop--list .seamless-shop__sort-option--active {
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 :host .seamless-shop--list .seamless-shop__grid {
@@ -588,10 +582,6 @@
 :host .seamless-shop--list .seamless-shop__text {
   font-size: 16px !important;
   line-height: 1.55 !important;
-}
-
-:host .seamless-shop--list .seamless-shop__price {
-  font-size: 17px !important;
 }
 
 :host .seamless-shop--list .seamless-shop__empty {
@@ -662,7 +652,7 @@
   padding-bottom: 20px !important;
   color: #475569 !important;
   font-size: 13px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   letter-spacing: 0 !important;
   text-transform: uppercase !important;
 }
@@ -736,15 +726,27 @@
 }
 
 :host .seamless-shop__image-contain {
-  width: 100% !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
   max-height: 560px !important;
   display: block !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
   transition: transform 300ms ease !important;
 }
 
 :host .seamless-shop__image-contain.is-loading {
   opacity: 0.15 !important;
+}
+
+:host .seamless-shop--product.is-variant-loading .seamless-shop__product-info > :is(span, p, h1, h2, h3, h4, h5, h6),
+:host .seamless-shop--product.is-variant-loading .seamless-shop__details-section > :is(span, p, h1, h2, h3, h4, h5, h6),
+:host .seamless-shop--product.is-variant-loading .seamless-shop__similar-section > :is(span, p, h1, h2, h3, h4, h5, h6) {
+  color: transparent !important;
+  border-radius: 6px !important;
+  background: linear-gradient(90deg, #e8edf3 25%, #f8fbff 37%, #e8edf3 63%) !important;
+  background-size: 400% 100% !important;
+  animation: seamlessShopVariantImageShimmer 1.25s ease-in-out infinite !important;
 }
 
 :host .seamless-shop__gallery-nav,
@@ -812,7 +814,7 @@
 :host .seamless-shop__price-large {
   color: #0f172a !important;
   font-size: 26px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 :host .seamless-shop__variant-list {
@@ -982,7 +984,7 @@
   border-left: 1px solid rgba(15, 47, 77, 0.16) !important;
   color: var(--seamless-color-primary) !important;
   font-size: 17px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   line-height: 1 !important;
 }
 
@@ -1223,7 +1225,7 @@
 :host .seamless-shop--product .seamless-shop__stock-note {
   color: #ef4444 !important;
   font-size: 13px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.02em !important;
 }
 
@@ -1332,7 +1334,7 @@
   background: linear-gradient(180deg, rgba(10, 27, 47, 0) 0%, rgba(112, 132, 156, 0.92) 100%) !important;
   color: #ffffff !important;
   font-size: 14px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   pointer-events: none !important;
@@ -1416,6 +1418,14 @@
   box-shadow: 0 26px 80px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.74) !important;
 }
 
+:host .seamless-shop--skeleton {
+  line-height: 1 !important;
+}
+
+:host .seamless-shop__product-card--skeleton {
+  min-height: 360px !important;
+}
+
 :host .seamless-shop__zoom-close {
   top: 12px !important;
   right: 12px !important;
@@ -1476,7 +1486,7 @@
 :host .seamless-shop__cart-footer {
   display: flex !important;
   flex-direction: column !important;
-  align-items: flex-start !important;
+  align-items: flex-end !important;
   gap: 12px !important;
 }
 
@@ -1517,18 +1527,18 @@
   margin-bottom: 20px !important;
 }
 
-:host .seamless-shop__cart-backlink {
+:host .seamless-shop__cart-backlink,
+:host a.seamless-shop__cart-backlink:link,
+:host a.seamless-shop__cart-backlink:visited,
+:host a.seamless-shop__cart-backlink:hover,
+:host a.seamless-shop__cart-backlink:active {
   display: inline-flex !important;
   align-items: center !important;
   gap: 10px !important;
   min-height: 40px !important;
   border-radius: 8px !important;
-  background: var(--seamless-color-primary) !important;
-  padding: 0 22px !important;
-  color: #ffffff !important;
   font-size: 14px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.14em !important;
+  font-weight: 600 !important;
   text-decoration: none !important;
   text-transform: uppercase !important;
   transition: opacity 160ms ease, background-color 160ms ease !important;
@@ -1600,7 +1610,7 @@
   background: var(--seamless-color-primary) !important;
   color: #ffffff !important;
   font-size: 13px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.14em !important;
   opacity: 0.85 !important;
 }
@@ -1621,7 +1631,7 @@
   justify-content: center !important;
   border-radius: 8px !important;
   font-size: 13px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   transition: opacity 160ms ease, background-color 160ms ease !important;
@@ -1678,13 +1688,14 @@
   border-top: 1px solid #d6e1ee !important;
   padding-top: 18px !important;
   color: #0f172a !important;
-  font-size: 18px !important;
-  font-weight: 900 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
 }
 
 :host .seamless-shop__mt-4 {
   margin-top: 16px !important;
+  text-align: center !important;
 }
 
 :host .seamless-shop__mt-5 {
@@ -1820,6 +1831,10 @@
     margin-left: 0 !important;
   }
 
+  :host .continue-shopping.seamless_shop__primary-button {
+    font-size: 18px !important;
+    font-weight: 500 !important;
+  }
   :host .seamless-shop--product .seamless-shop__image-button {
     min-height: 360px !important;
     padding: 28px 16px !important;

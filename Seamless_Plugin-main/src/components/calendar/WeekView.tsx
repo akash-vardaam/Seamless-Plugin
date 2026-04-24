@@ -11,29 +11,30 @@ interface WeekViewProps {
 const HOUR_HEIGHT = 60;
 
 export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
-  // Derive the 7 days of the week — use a pure computation (no mutation)
   const weekDates = useMemo(() => {
     const base = new Date(currentDate);
     base.setHours(0, 0, 0, 0);
-    const day = base.getDay(); // 0 = Sunday
-    const sunday = new Date(base);
-    sunday.setDate(base.getDate() - day);
+    const mondayOffset = (base.getDay() + 6) % 7;
+    const monday = new Date(base);
+    monday.setDate(base.getDate() - mondayOffset);
 
     return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(sunday);
-      d.setDate(sunday.getDate() + i);
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
       return d;
     });
   }, [currentDate]);
 
   const todayStr = new Date().toDateString();
-  const isCurrentWeek = weekDates.some(d => d.toDateString() === todayStr);
-
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
-  // Build per-column event blocks with overlap layout
-  const dayColumns = useMemo(() => {
+  const { dayColumns, allDayLayouts } = useMemo(() => {
     const cols: any[][] = weekDates.map(() => []);
+    const allDayCandidates: any[] = [];
+    const weekStart = new Date(weekDates[0]);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(weekDates[6]);
+    weekEnd.setHours(23, 59, 59, 999);
 
     events.forEach(e => {
       try {
@@ -42,23 +43,32 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
           ? new Date(e.end_date)
           : new Date(startRaw.getTime() + 60 * 60 * 1000);
 
+        const startDay = new Date(startRaw);
+        startDay.setHours(0, 0, 0, 0);
+        const endDay = new Date(endRaw);
+        endDay.setHours(23, 59, 59, 999);
+        const isMultiDay = startDay.toDateString() !== endDay.toDateString();
+
+        if ((e?.all_day || isMultiDay) && startDay <= weekEnd && endDay >= weekStart) {
+          allDayCandidates.push({ event: e, rawStart: startDay, rawEnd: endDay });
+          return;
+        }
+
         weekDates.forEach((d, colIndex) => {
           const dayStart = new Date(d);
           dayStart.setHours(0, 0, 0, 0);
           const dayEnd = new Date(d);
           dayEnd.setHours(23, 59, 59, 999);
 
-          // Skip if no overlap or zero-duration
           if (startRaw > dayEnd || endRaw < dayStart) return;
           if (startRaw.getTime() === endRaw.getTime()) return;
 
           const blockStart = new Date(Math.max(startRaw.getTime(), dayStart.getTime()));
-          const blockEnd   = new Date(Math.min(endRaw.getTime(),   dayEnd.getTime() + 1));
+          const blockEnd = new Date(Math.min(endRaw.getTime(), dayEnd.getTime() + 1));
 
           let startHour = blockStart.getHours() + blockStart.getMinutes() / 60;
-          let endHour   = blockEnd.getHours()   + blockEnd.getMinutes()   / 60;
+          let endHour = blockEnd.getHours() + blockEnd.getMinutes() / 60;
 
-          // Midnight-crossing
           if (blockEnd.getHours() === 0 && blockEnd.getMinutes() === 0 && blockEnd > blockStart) {
             endHour = 24;
           }
@@ -66,10 +76,10 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
 
           cols[colIndex].push({
             event: e,
-            top:    startHour * HOUR_HEIGHT,
+            top: startHour * HOUR_HEIGHT,
             height: (endHour - startHour) * HOUR_HEIGHT,
-            left:   0,
-            width:  100,
+            left: 0,
+            width: 100,
           });
         });
       } catch (err) {
@@ -77,7 +87,44 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
       }
     });
 
-    // Compute horizontal overlap layout per column
+    allDayCandidates.sort((a, b) => {
+      const lenA = a.rawEnd.getTime() - a.rawStart.getTime();
+      const lenB = b.rawEnd.getTime() - b.rawStart.getTime();
+      if (lenA !== lenB) return lenB - lenA;
+      return a.rawStart.getTime() - b.rawStart.getTime();
+    });
+
+    const rowOccupancy: boolean[][] = [];
+    const allDayItems: any[] = [];
+    allDayCandidates.forEach(e => {
+      let startCol = weekDates.findIndex(wd => wd.toDateString() === e.rawStart.toDateString());
+      let endCol = weekDates.findIndex(wd => wd.toDateString() === e.rawEnd.toDateString());
+
+      if (e.rawStart.getTime() < weekStart.getTime()) startCol = 0;
+      if (e.rawEnd.getTime() > weekEnd.getTime()) endCol = 6;
+      if (startCol === -1) startCol = 0;
+      if (endCol === -1) endCol = 6;
+
+      let level = 0;
+      while (true) {
+        if (!rowOccupancy[level]) rowOccupancy[level] = new Array(7).fill(false);
+        let conflict = false;
+        for (let i = startCol; i <= endCol; i++) {
+          if (rowOccupancy[level][i]) {
+            conflict = true;
+            break;
+          }
+        }
+        if (!conflict) {
+          for (let i = startCol; i <= endCol; i++) rowOccupancy[level][i] = true;
+          break;
+        }
+        level++;
+      }
+
+      allDayItems.push({ event: e.event, startCol, endCol, level });
+    });
+
     cols.forEach(col => {
       col.sort((a: any, b: any) => a.top - b.top || b.height - a.height);
 
@@ -111,22 +158,21 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
 
         subCols.forEach((sc, i) => {
           sc.forEach((block: any) => {
-            block.left  = (i / subCols.length) * 100;
+            block.left = (i / subCols.length) * 100;
             block.width = 100 / subCols.length;
           });
         });
       });
     });
 
-    return cols;
+    return { dayColumns: cols, allDayLayouts: allDayItems };
   }, [events, weekDates]);
 
   return (
-    <div className="seamless-week-view">
-      {/* ── Day header row ── */}
+    <div className="seamless-week-view seamless-week-view--legacy">
       <div className="seamless-week-header-row">
         <div className="seamless-week-time-gutter">
-          <div className="seamless-week-allday-label">Time</div>
+          <div className="seamless-week-allday-label">All Day</div>
         </div>
         <div className="seamless-week-days">
           {weekDates.map((d, i) => (
@@ -135,7 +181,7 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
               className={[
                 'seamless-week-day-header',
                 d.toDateString() === todayStr ? 'today' : '',
-                i === 0 && !isCurrentWeek ? 'sunday' : '',
+                i === 6 ? 'sunday' : '',
               ].filter(Boolean).join(' ')}
             >
               <span className="seamless-week-date-num">{d.getDate()}</span>
@@ -147,9 +193,38 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
         </div>
       </div>
 
-      {/* ── Grid body ── */}
+      <div className="seamless-week-allday-row">
+        <div className="seamless-week-time-gutter" />
+        <div className="seamless-week-allday-week-content">
+          {allDayLayouts.length === 0 ? (
+            <div className="seamless-week-allday-empty" aria-hidden="true" />
+          ) : (
+            allDayLayouts.map((item, idx) => {
+              const color = getCategoryColor(item.event);
+              return (
+                <div
+                  key={idx}
+                  className={`seamless-week-allday-event seamless-color-${color}-bg`}
+                  style={{
+                    gridColumn: `${item.startCol + 1} / span ${item.endCol - item.startCol + 1}`,
+                    gridRow: `${item.level + 1}`,
+                  }}
+                  onClick={() =>
+                    navigateToEvent(
+                      item.event?.slug || createEventSlug(item.event?.title, item.event?.id),
+                      item.event?.is_group_event,
+                    )
+                  }
+                >
+                  {item.event?.title}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
       <div className="seamless-week-grid-body">
-        {/* Time gutter */}
         <div className="seamless-week-time-gutter">
           {hours.map(hour => {
             if (hour === 0) return <div key={hour} className="seamless-week-hour-label empty" />;
@@ -159,14 +234,11 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
           })}
         </div>
 
-        {/* Columns area */}
         <div className="seamless-week-columns-container">
-          {/* Background horizontal lines */}
           <div className="seamless-week-bg-lines">
             {hours.map(hour => <div key={hour} className="seamless-week-bg-line" />)}
           </div>
 
-          {/* 7 day columns with absolute-positioned events */}
           <div className="seamless-week-columns">
             {dayColumns.map((colEvents, colIdx) => (
               <div key={colIdx} className="seamless-week-day-col">
@@ -177,10 +249,10 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
                       key={eIdx}
                       className={`seamless-week-event-block seamless-color-${color}-bg`}
                       style={{
-                        top:    `${block.top}px`,
-                        height: `${Math.max(block.height, 22)}px`,
-                        left:   `calc(${block.left}% + 2px)`,
-                        width:  `calc(${block.width}% - 4px)`,
+                        top: `${block.top}px`,
+                        height: `${Math.max(block.height, 28)}px`,
+                        left: `calc(${block.left}% + 4px)`,
+                        width: `calc(${block.width}% - 8px)`,
                       }}
                       onClick={() =>
                         navigateToEvent(
@@ -189,8 +261,14 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate, events }) => {
                         )
                       }
                     >
-                      <span className={`seamless-week-event-dot seamless-color-${color}-border`} />
                       <span className="seamless-week-event-title-span">{block.event?.title}</span>
+                      <span className="seamless-week-event-time-span">
+                        {new Date(block.event?.start_date).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
+                      </span>
                     </div>
                   );
                 })}

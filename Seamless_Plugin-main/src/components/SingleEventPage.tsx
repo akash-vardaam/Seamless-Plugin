@@ -6,7 +6,7 @@ import { SeamlessAccordion } from './SeamlessAccordion';
 import { getEventsListURL } from '../utils/urlHelper';
 
 import type { Event } from '../types/event';
-import { LoadingSpinner } from './LoadingSpinner';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useShadowRoot } from './ShadowRoot';
 
 export const SingleEventPage: React.FC = () => {
@@ -329,9 +329,33 @@ export const SingleEventPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="seamless-single-event-container" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <LoadingSpinner fullHeight={false} />
-            </div>
+            <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+                <article className="seamless-single-event-container seamless-single-event-container--skeleton">
+                    <div className="seamless-single-event-grid">
+                        <div className="seamless-event-header-wrapper">
+                            <header className="seamless-event-header-group">
+                                <div className="seamless-event-icon-circle"><Skeleton circle width={56} height={56} /></div>
+                                <h1 className="seamless-event-title"><Skeleton width={380} containerClassName="seamless-skeleton-container" /></h1>
+                            </header>
+                            <section className="seamless-single-event-content">
+                                <p className="seamless-event-description"><Skeleton count={8} containerClassName="seamless-skeleton-container" /></p>
+                            </section>
+                        </div>
+                        <aside className="seamless-single-event-sidebar">
+                            <section className="seamless-sidebar-box seamless-details-box">
+                                <ul className="seamless-single-evt-details-list">
+                                    {Array.from({ length: 4 }).map((_, idx) => (
+                                        <li key={idx} className="seamless-detail-row">
+                                            <span className="seamless-detail-label"><Skeleton width={90} containerClassName="seamless-skeleton-container" /></span>
+                                            <p className="seamless-detail-value"><Skeleton width={180} containerClassName="seamless-skeleton-container" /></p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        </aside>
+                    </div>
+                </article>
+            </SkeletonTheme>
         );
     }
 

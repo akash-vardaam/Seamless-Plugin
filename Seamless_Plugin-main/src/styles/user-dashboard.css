@@ -227,7 +227,7 @@
     color: #1a1a1a !important;
     font-size: var(--seamless-font-size-24) !important;
     line-height: var(--seamless-line-height-36) !important;
-    font-weight: 800 !important;
+    font-weight: 600 !important;
     letter-spacing: 0.5px !important;
 }
 
@@ -4052,6 +4052,7 @@
     border-radius: 16px !important;
     background: #ffffff !important;
     padding: 24px !important;
+    line-height: 1 !important;
 }
 
 :host .seamless-dashboard-skeleton.is-compact {
@@ -4088,8 +4089,9 @@
 }
 
 :host .seamless-dashboard-skeleton-line-title {
-    width: 38% !important;
-    min-width: 180px !important;
+    width: min(38%, 320px) !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     height: 18px !important;
     margin-bottom: 8px !important;
 }
@@ -4966,7 +4968,7 @@
 
 :host .seamless-org-pricing-amount {
     font-size: var(--seamless-font-size-28) !important;
-    font-weight: 800 !important;
+    font-weight: 600 !important;
     color: #059669 !important;
 }
 

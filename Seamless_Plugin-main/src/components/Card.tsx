@@ -115,6 +115,27 @@ const stripHtmlTags = (html: string): string => {
   return html.replace(/<[^>]*>/g, '').trim();
 };
 
+const getFallbackImageUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    return (window as any).seamlessReactConfig?.fallbackEventImageUrl || '/seamless-logo.png';
+  }
+
+  return '/seamless-logo.png';
+};
+
+const getEventImageUrl = (item: Event): string => {
+  return item?.featured_image || getFallbackImageUrl();
+};
+
+const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+  if (event.currentTarget.dataset.fallbackApplied === 'true') return;
+
+  const fallbackUrl = getFallbackImageUrl();
+  event.currentTarget.dataset.fallbackApplied = 'true';
+  event.currentTarget.classList.add('seamless-card-image-fallback');
+  event.currentTarget.src = fallbackUrl;
+};
+
 const getLocationText = (item: Event): string => {
   const venue = item?.venue || {};
   const parts: string[] = [];
@@ -174,6 +195,9 @@ export const Card: React.FC<CardProps> = ({
   listVariant = 'classic',
   showTimelineDate = true,
 }) => {
+  const hasFeaturedImage = Boolean(item?.featured_image);
+  const imageUrl = getEventImageUrl(item);
+
   if (layout === 'grid') {
     const description = stripHtmlTags(
       (item as Event & { excerpt_description?: string })?.excerpt_description ||
@@ -186,13 +210,12 @@ export const Card: React.FC<CardProps> = ({
       <article className="seamless-card">
         {/* Image Container */}
         <div className="seamless-card-image-container">
-          {item?.featured_image && (
-            <img
-              src={item?.featured_image}
-              alt={item?.title}
-              className="seamless-card-image"
-            />
-          )}
+          <img
+            src={imageUrl}
+            alt={item?.title || 'Seamless'}
+            className={`seamless-card-image${hasFeaturedImage ? '' : ' seamless-card-image-fallback'}`}
+            onError={handleImageError}
+          />
         </div>
 
         {/* Item Details */}
@@ -299,17 +322,12 @@ export const Card: React.FC<CardProps> = ({
             </div>
 
             <div className="seamless-card-modern-image-wrap">
-              {item?.featured_image ? (
-                <img
-                  src={item?.featured_image}
-                  alt={item?.title}
-                  className="seamless-card-modern-image"
-                />
-              ) : (
-                <div className="seamless-card-modern-image seamless-card-modern-image-placeholder">
-                  <span>No image</span>
-                </div>
-              )}
+              <img
+                src={imageUrl}
+                alt={item?.title || 'Seamless'}
+                className={`seamless-card-modern-image${hasFeaturedImage ? '' : ' seamless-card-image-fallback'}`}
+                onError={handleImageError}
+              />
             </div>
           </div>
         </div>
@@ -323,19 +341,14 @@ export const Card: React.FC<CardProps> = ({
       <div className="seamless-card-list-content">
         {/* Image Container */}
         <div className="seamless-card-list-image">
-          {item?.featured_image ? (
-            <div className="seamless-card-list-image-wrapper">
-              <img
-                src={item?.featured_image}
-                alt={item?.title}
-                className="seamless-card-list-image-img"
-              />
-            </div>
-          ) : (
-            <div className="seamless-card-list-image-wrapper">
-              <span className="seamless-card-list-no-image">No image</span>
-            </div>
-          )}
+          <div className="seamless-card-list-image-wrapper">
+            <img
+              src={imageUrl}
+              alt={item?.title || 'Seamless'}
+              className={`seamless-card-list-image-img${hasFeaturedImage ? '' : ' seamless-card-image-fallback'}`}
+              onError={handleImageError}
+            />
+          </div>
         </div>
 
         {/* Item Details */}

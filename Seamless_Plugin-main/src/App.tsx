@@ -20,6 +20,7 @@ import {
 
 import variablesStyles from './styles/variables.css?inline';
 import resetStyles from './styles/reset.css?inline';
+import reactLoadingSkeletonStyles from 'react-loading-skeleton/dist/skeleton.css?inline';
 import layoutStyles from './styles/layout.css?inline';
 import formsStyles from './styles/forms.css?inline';
 import filterBarStyles from './styles/filter-bar.css?inline';
@@ -59,6 +60,7 @@ const App: React.FC<AppProps> = ({ initialView, initialSlug, initialType, contai
     [
       variablesStyles,
       resetStyles,
+      reactLoadingSkeletonStyles,
       layoutStyles,
       formsStyles,
       filterBarStyles,

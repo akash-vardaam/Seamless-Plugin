@@ -338,6 +338,7 @@ class SeamlessRender
 	{
 		$container_max_width = $this->get_react_container_max_width();
 		$list_view_layout = get_option('seamless_list_view_layout', 'option_1');
+		$react_dist_url = plugin_dir_url(dirname(__DIR__)) . 'src/Public/assets/react-build/dist/';
 		$ams_user_id = is_user_logged_in()
 			? (string) get_user_meta(get_current_user_id(), 'seamless_ams_user_id', true)
 			: '';
@@ -354,6 +355,7 @@ class SeamlessRender
 				clientDomain: '<?php echo esc_js(rtrim(get_option('seamless_client_domain', ''), '/')); ?>',
 				listViewLayout: '<?php echo esc_js($list_view_layout); ?>',
 				containerMaxWidth: '<?php echo esc_js($container_max_width); ?>',
+				fallbackEventImageUrl: '<?php echo esc_url($react_dist_url . 'seamless-logo.png'); ?>',
 				isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
 				amsUserId: '<?php echo esc_js($ams_user_id); ?>',
 				userEmail: '<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->user_email) : ''; ?>',
@@ -475,6 +477,7 @@ class SeamlessRender
 			'clientDomain' => $client_domain,
 			'listViewLayout' => $list_view_layout,
 			'containerMaxWidth' => $container_max_width,
+			'fallbackEventImageUrl' => $dist_url . 'seamless-logo.png',
 			'isLoggedIn' => is_user_logged_in(),
 			'amsUserId' => $ams_user_id,
 			'userEmail' => is_user_logged_in() ? wp_get_current_user()->user_email : '',

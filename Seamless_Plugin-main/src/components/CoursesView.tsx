@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useCourses } from '../hooks/useCourses';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { SearchInput } from './SearchInput';
 import { Pagination } from './Pagination';
-import { LoadingSpinner } from './LoadingSpinner';
 
 const accessOptions = [
     { value: '', label: 'All Courses' },
@@ -28,12 +28,16 @@ export const CoursesView: React.FC = () => {
         resetFilters
     } = useCourses();
 
-    const handleCourseClick = (slug: string) => {
+    const getCourseUrl = (slug: string) => {
         // Course detail pages should open on Seamless client domain from settings.
         const cfg = (window as any).seamlessReactConfig;
         const clientDomain = (cfg?.clientDomain || '').toString().trim();
         const baseUrl = (clientDomain || cfg?.siteUrl || window.location.origin).replace(/\/$/, '');
-        window.location.href = `${baseUrl}/courses/${slug}`;
+        return `${baseUrl}/courses/${slug}`;
+    };
+
+    const handleCourseClick = (slug: string) => {
+        window.location.href = getCourseUrl(slug);
     };
 
     // Sort options updated: removed "All Years" from label concept, now just "Sort By" or specific
@@ -250,29 +254,76 @@ export const CoursesView: React.FC = () => {
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div style={{ position: 'relative', minHeight: '300px' }}>
-                {loading && (
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
-                        backgroundColor: 'rgba(255,255,255,0.8)',
-                        zIndex: 10
-                    }}>
-                        <LoadingSpinner />
-                    </div>
-                )}
+            <section className="seamless-results-info">
+                <span className="seamless-results-text">
+                    {loading ? (
+                        <span><Skeleton width={180} containerClassName="seamless-skeleton-container" /></span>
+                    ) : (
+                        <>
+                            Showing{' '}
+                            <span className="seamless-results-count">{courses.length}</span>{' '}
+                            item(s)
+                            {pagination && (
+                                <>
+                                    {' · '}Page {pagination.current_page} of {pagination.last_page}
+                                </>
+                            )}
+                        </>
+                    )}
+                </span>
+            </section>
 
+            {/* Content Area */}
+            <div className="seamless-courses-content-frame">
                 {/* Grid */}
-                {!loading && courses.length === 0 ? (
+                {loading ? (
+                    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+                        <div className="seamless-courses-grid seamless-courses-grid--skeleton">
+                            {Array.from({ length: 6 }).map((_, idx) => (
+                                <div key={idx} className="seamless-course-card seamless-course-card--skeleton">
+                                    <div className="seamless-course-image-container">
+                                        <Skeleton height={200} borderRadius={0} />
+                                    </div>
+                                    <div className="seamless-course-content">
+                                        <h3 className="seamless-course-title">
+                                            <Skeleton height={28} width="82%" />
+                                        </h3>
+                                        <div className="seamless-course-description">
+                                            <Skeleton count={3} />
+                                        </div>
+                                        <div className="seamless-course-meta">
+                                            <div className="seamless-course-meta-item"><Skeleton width={118} /></div>
+                                            <div className="seamless-course-meta-item"><Skeleton width={88} /></div>
+                                            <div className="seamless-course-meta-item"><Skeleton width={104} /></div>
+                                        </div>
+                                        <div className="seamless-course-footer">
+                                            <div className="seamless-course-price"><Skeleton width={70} /></div>
+                                            <Skeleton width={120} height={36} borderRadius={8} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </SkeletonTheme>
+                ) : courses.length === 0 ? (
                     <div className="seamless-empty-state" style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
                         <p style={{ fontSize: 'var(--seamless-font-size-lg)' }}>No courses found matching your criteria.</p>
                     </div>
                 ) : (
                     <div className="seamless-courses-grid">
-                        {courses.map(course => (
+                        {courses.map(course => {
+                            const courseUrl = getCourseUrl(course?.slug);
+
+                            return (
                             <div key={course?.id} className="seamless-course-card">
                                 {/* Image */}
+                                <a
+                                    className="seamless-course-image-link"
+                                    href={courseUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={`Open ${course?.title} course details`}
+                                >
                                 <div className="seamless-course-image-container">
                                     {course?.image ? (
                                         <img src={course?.image} alt={course?.title} className="seamless-course-image" />
@@ -287,10 +338,15 @@ export const CoursesView: React.FC = () => {
                                         </span>
                                     </div>
                                 </div>
+                                </a>
 
                                 {/* Content */}
                                 <div className="seamless-course-content">
-                                    <h3 className="seamless-course-title">{course?.title}</h3>
+                                    <h3 className="seamless-course-title">
+                                        <a href={courseUrl} target="_blank" rel="noopener noreferrer">
+                                            {course?.title}
+                                        </a>
+                                    </h3>
 
                                     <div className="seamless-course-description">
                                         {getShortDescription(course?.description)}
@@ -330,12 +386,12 @@ export const CoursesView: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        )})}
                     </div>
                 )}
 
                 {/* Pagination */}
-                {pagination && pagination.total > 0 && (
+                {!loading && pagination && pagination.total > 0 && (
                     <Pagination
                         currentPage={pagination.current_page}
                         totalPages={pagination.last_page}

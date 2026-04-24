@@ -272,7 +272,6 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate, events }) => 
                         overflow: 'hidden',
                         whiteSpace: 'nowrap',
                         textOverflow: 'ellipsis',
-                        boxSizing: 'border-box'
                       }}
                       onClick={(evt) => {
                         evt.stopPropagation();

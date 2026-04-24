@@ -3,6 +3,7 @@ import { useShadowRoot } from './ShadowRoot';
 import api, { requestWithCache } from '../services/api';
 import { COUNTRIES_STATES } from '../utils/countriesStates';
 import { ArrowDownRight, ArrowUpRight, Check, ChevronDown, CircleCheckBig, CircleX, Clock3, Download, Plus, Send, Trash2, User, UserPlus, Users, X } from 'lucide-react';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 // Type definitions for our dashboard data
 interface UserProfile {
     first_name: string;
@@ -52,14 +53,16 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
 };
 
 const DashboardSkeletonLoader = ({ rows = 4, compact = false }: { rows?: number; compact?: boolean }) => (
-    <div className={`seamless-dashboard-loading-panel seamless-dashboard-skeleton ${compact ? 'is-compact' : ''}`} aria-live="polite" aria-busy="true">
-        <div className="seamless-dashboard-skeleton-stack">
-            <span className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-title" />
-            {Array.from({ length: rows }).map((_, index) => (
-                <span key={index} className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-body" />
-            ))}
+    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className={`seamless-dashboard-loading-panel seamless-dashboard-skeleton ${compact ? 'is-compact' : ''}`} aria-live="polite" aria-busy="true">
+            <div className="seamless-dashboard-skeleton-stack">
+                <span className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-title"><Skeleton width="55%" containerClassName="seamless-skeleton-container" /></span>
+                {Array.from({ length: rows }).map((_, index) => (
+                    <span key={index} className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-body"><Skeleton width={`${92 - index * 7}%`} containerClassName="seamless-skeleton-container" /></span>
+                ))}
+            </div>
         </div>
-    </div>
+    </SkeletonTheme>
 );
 
 // Reusable Modal Component

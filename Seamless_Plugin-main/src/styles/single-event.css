@@ -1,9 +1,15 @@
 /* Single Event Page Container */
 :host .seamless-single-event-container {
+    display: block !important;
+    width: 100% !important;
+    max-width: var(--seamless-layout-container-max-width, 80rem) !important;
+    min-height: calc(100vh - 40px) !important;
     margin: 0 auto !important;
     padding: 20px !important;
     font-family: var(--seamless-font-family-default) !important;
     color: var(--seamless-color-font) !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
 }
 
 /* Breadcrumbs */
@@ -21,14 +27,20 @@
 /* Grid Layout */
 :host .seamless-single-event-grid {
     display: grid !important;
-    grid-template-columns: 1fr 390px !important;
-    gap: 40px !important;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 390px) !important;
+    gap: clamp(24px, 4vw, 40px) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    align-items: start !important;
+    box-sizing: border-box !important;
 }
 
 :host .seamless-event-header-wrapper {
     display: flex !important;
     flex-direction: column !important;
     gap: 20px !important;
+    width: 100% !important;
+    min-width: 0 !important;
 }
 
 @media (max-width: 900px) {
@@ -43,6 +55,8 @@
 :host .seamless-single-event-content {
     grid-column: 1 !important;
     grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
 }
 
 /* Header Group */
@@ -55,6 +69,9 @@
     border-bottom: 1px solid var(--seamless-color-secondary) !important;
     grid-column: 1 !important;
     grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
 }
 
 @media (max-width: 900px) {
@@ -80,11 +97,30 @@
     font-weight: 600 !important;
     color: var(--seamless-color-primary) !important;
     margin: 0 0 10px 0 !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
 }
 
 :host .seamless-event-description {
     line-height: var(--seamless-line-height-1-6) !important;
     margin-bottom: 30px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+}
+
+:host .seamless-event-description img,
+:host .seamless-event-description iframe,
+:host .seamless-event-description table,
+:host .seamless-single-event-content img,
+:host .seamless-single-event-content iframe,
+:host .seamless-single-event-content table {
+    max-width: 100% !important;
+}
+
+:host .seamless-event-description iframe,
+:host .seamless-single-event-content iframe {
+    width: 100% !important;
 }
 
 :host .seamless-sponsors-section {
@@ -248,6 +284,9 @@
     gap: 40px !important;
     grid-column: 2 !important;
     grid-row: 1 / span 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
 }
 
 :host .seamless-sidebar-box {
@@ -256,6 +295,9 @@
     border-radius: 16px !important;
     padding: 30px !important;
     box-shadow: var(--seamless-shadow-md) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
 }
 
 :host .seamless_single_page_calendar_button {
@@ -424,6 +466,10 @@
 :host .seamless-detials-container {
     display: inline-grid !important;
     padding-left: 10px !important;
+}
+
+:host .seamless-single-event-container--skeleton {
+    line-height: 1 !important;
 }
 
 @media (max-width: 900px) {

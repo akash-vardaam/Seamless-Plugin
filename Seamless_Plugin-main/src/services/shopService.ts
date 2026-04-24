@@ -251,7 +251,37 @@ export const subscribeToShopCart = (listener: (cart: ShopCart) => void): (() => 
 const getRawCartItems = (source: Record<string, unknown>): unknown[] =>
   toArray<unknown>(source.items ?? source.line_items ?? source.cart_items);
 
-const getRawCartItemCount = (_source: Record<string, unknown>, items: ShopCartItem[]): number => items.length;
+const getCartItemUniqueKey = (item: ShopCartItem): string => {
+  const variantSignature = (item.variantSelections || [])
+    .map((selection) => `${selection.attributeType}:${selection.value}`)
+    .sort()
+    .join('|');
+
+  const normalizedProductId = String(item.productId || '').trim();
+  if (normalizedProductId) {
+    return `${normalizedProductId}::${variantSignature}`;
+  }
+
+  const fallbackIdentifier = String(getCartItemIdentifier(item) || '').trim();
+  if (fallbackIdentifier) {
+    return fallbackIdentifier;
+  }
+
+  return [
+    String(item.productName || ''),
+    String(item.unitPrice || ''),
+    variantSignature,
+  ].join('::');
+};
+
+const getRawCartItemCount = (source: Record<string, unknown>, items: ShopCartItem[]): number => {
+  if (items.length) {
+    return new Set(items.map(getCartItemUniqueKey)).size;
+  }
+
+  // Fallback when API responds without item lines.
+  return Math.max(0, getNumericValue(source.item_count, source.itemCount, 0));
+};
 
 const getRawCartTotal = (source: Record<string, unknown>, fallbackSubtotal: number): number =>
   getNumericValue(source.total, source.grand_total, source.cart_total, fallbackSubtotal);
@@ -273,7 +303,7 @@ const extractCart = (value: unknown): ShopCart => {
   const total = getRawCartTotal(source, subtotal);
   const cart: ShopCart = {
     items,
-    itemCount: getNumericValue(source.item_count, source.itemCount, getRawCartItemCount(source, items)),
+    itemCount: getRawCartItemCount(source, items),
     subtotal,
     total,
     guestToken: getRawCartGuestToken(source),
@@ -998,7 +1028,7 @@ export const ensureGuestCartToken = async (): Promise<string> => {
   const guestToken = getGuestToken();
   const config = getShopRuntimeConfig();
   if (guestToken) return guestToken;
-  if (config.isLoggedIn && config.amsUserId) return '';
+  if (config.isLoggedIn) return '';
 
   const response = await api.post('/shop/cart/session');
   const token = getStringValue(response.data?.data?.guest_token, response.data?.guest_token, response.data?.token);
@@ -1014,20 +1044,43 @@ export const fetchCurrentCart = async (): Promise<ShopCart> => {
     return getEmptyCart();
   }
 
-  if (config.isLoggedIn && !config.amsUserId && !guestToken) {
-    return getEmptyCart();
-  }
-
   try {
-    const response = await api.get('/shop/cart', {
+    let response = await api.get('/shop/cart', {
       params: getCartRequestParams(config, guestToken),
     });
 
-    const cart = normalizeCart(response.data?.data ?? response.data);
+    let cart = normalizeCart(response.data?.data ?? response.data);
+
+    if (config.isLoggedIn && config.amsUserId && guestToken && cart.itemCount <= 0 && cart.items.length === 0) {
+      response = await api.get('/shop/cart', {
+        params: { user_id: config.amsUserId },
+      });
+
+      const userScopedCart = normalizeCart(response.data?.data ?? response.data);
+      if (userScopedCart.itemCount > 0 || userScopedCart.items.length > 0) {
+        cart = userScopedCart;
+      }
+    }
+
     if (cart.guestToken) setGuestToken(cart.guestToken);
     emitCartUpdated(cart);
     return cart;
   } catch (error) {
+    if (config.isLoggedIn && config.amsUserId && guestToken) {
+      try {
+        const response = await api.get('/shop/cart', {
+          params: { user_id: config.amsUserId },
+        });
+
+        const userScopedCart = normalizeCart(response.data?.data ?? response.data);
+        if (userScopedCart.guestToken) setGuestToken(userScopedCart.guestToken);
+        emitCartUpdated(userScopedCart);
+        return userScopedCart;
+      } catch {
+        // Fall through to default handling below.
+      }
+    }
+
     if (!config.isLoggedIn && guestToken && isInvalidGuestCartError(error)) {
       clearGuestToken();
     }
@@ -1083,10 +1136,11 @@ export const updateCartItemQuantity = async (item: ShopCartItem, desiredQuantity
 
     const payload: Record<string, unknown> = { quantity: Math.abs(delta) };
 
-    if (guestToken) {
+    if (config.isLoggedIn) {
+      if (config.amsUserId) payload.user_id = config.amsUserId;
+      if (guestToken) payload.guest_token = guestToken;
+    } else if (guestToken) {
       payload.guest_token = guestToken;
-    } else if (config.isLoggedIn && config.amsUserId) {
-      payload.user_id = config.amsUserId;
     }
 
     return delta > 0

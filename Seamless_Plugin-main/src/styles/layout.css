@@ -143,8 +143,7 @@
   }
 }
 
-:host .seamless-items-grid > *,
-:host .seamless-items-list > * {
+:host .seamless-items-grid > * {
   opacity: 0;
   animation: seamless-slide-up-fade 0.42s ease-out forwards !important;
 }
@@ -158,26 +157,16 @@
   animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
 }
 
-:host .seamless-items-grid > *:nth-child(1),
-:host .seamless-items-list > *:nth-child(1) { animation-delay: 0.02s !important; }
-:host .seamless-items-grid > *:nth-child(2),
-:host .seamless-items-list > *:nth-child(2) { animation-delay: 0.05s !important; }
-:host .seamless-items-grid > *:nth-child(3),
-:host .seamless-items-list > *:nth-child(3) { animation-delay: 0.08s !important; }
-:host .seamless-items-grid > *:nth-child(4),
-:host .seamless-items-list > *:nth-child(4) { animation-delay: 0.11s !important; }
-:host .seamless-items-grid > *:nth-child(5),
-:host .seamless-items-list > *:nth-child(5) { animation-delay: 0.14s !important; }
-:host .seamless-items-grid > *:nth-child(6),
-:host .seamless-items-list > *:nth-child(6) { animation-delay: 0.17s !important; }
-:host .seamless-items-grid > *:nth-child(7),
-:host .seamless-items-list > *:nth-child(7) { animation-delay: 0.2s !important; }
-:host .seamless-items-grid > *:nth-child(8),
-:host .seamless-items-list > *:nth-child(8) { animation-delay: 0.23s !important; }
-:host .seamless-items-grid > *:nth-child(9),
-:host .seamless-items-list > *:nth-child(9) { animation-delay: 0.26s !important; }
-:host .seamless-items-grid > *:nth-child(10),
-:host .seamless-items-list > *:nth-child(10) { animation-delay: 0.29s !important; }
+:host .seamless-items-grid > *:nth-child(1) { animation-delay: 0.02s !important; }
+:host .seamless-items-grid > *:nth-child(2) { animation-delay: 0.05s !important; }
+:host .seamless-items-grid > *:nth-child(3) { animation-delay: 0.08s !important; }
+:host .seamless-items-grid > *:nth-child(4) { animation-delay: 0.11s !important; }
+:host .seamless-items-grid > *:nth-child(5) { animation-delay: 0.14s !important; }
+:host .seamless-items-grid > *:nth-child(6) { animation-delay: 0.17s !important; }
+:host .seamless-items-grid > *:nth-child(7) { animation-delay: 0.2s !important; }
+:host .seamless-items-grid > *:nth-child(8) { animation-delay: 0.23s !important; }
+:host .seamless-items-grid > *:nth-child(9) { animation-delay: 0.26s !important; }
+:host .seamless-items-grid > *:nth-child(10) { animation-delay: 0.29s !important; }
 
 :host .seamless-courses-grid > *:nth-child(1),
 :host .seamless-plans-grid > *:nth-child(1),
@@ -283,4 +272,63 @@
 
 :host .seamless-results-count {
   font-weight: 600 !important;
+}
+
+/* React loading skeleton utilities */
+:host .seamless-skeleton-container {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  line-height: 1 !important;
+}
+
+:host :is(span, p, h1, h2, h3, h4, h5, h6) > .seamless-skeleton-container {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Never render skeleton shimmer inside interactive controls */
+:host :is(a, button) .seamless-skeleton-container,
+:host :is(a, button) .react-loading-skeleton {
+  display: none !important;
+  animation: none !important;
+  background: transparent !important;
+  color: inherit !important;
+}
+
+:host .seamless-items-display--skeleton-frame {
+  min-height: 300px !important;
+  position: relative !important;
+}
+
+:host .seamless-items-list--skeleton,
+:host .seamless-items-grid--skeleton {
+  line-height: 1 !important;
+}
+
+:host .seamless-card--skeleton {
+  min-height: 420px !important;
+}
+
+:host .seamless-card-see-details--skeleton {
+  width: 132px !important;
+}
+
+:host .seamless-calendar-toolbar--skeleton {
+  margin-bottom: 16px !important;
+}
+
+:host .seamless-calendar-grid--skeleton {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+:host .seamless-calendar-cell--skeleton {
+  min-height: 92px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 8px !important;
 }

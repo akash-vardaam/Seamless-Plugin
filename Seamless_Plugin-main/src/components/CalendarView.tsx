@@ -5,6 +5,7 @@ import { MonthView } from './calendar/MonthView';
 import { WeekView } from './calendar/WeekView';
 import { DayView } from './calendar/DayView';
 import { YearView } from './calendar/YearView';
+import { navigateToEvent, createEventSlug } from '../utils/urlHelper';
 
 type ViewMode = 'MONTH' | 'WEEK' | 'DAY' | 'YEAR';
 
@@ -124,7 +125,19 @@ const SeamlessListView: React.FC<{ events: Event[] }> = ({ events }) => {
         const dateLabel = start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
         const timeLabel = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         return (
-          <div key={e.id ?? idx} className="seamless-list-view-item">
+          <div
+            key={e.id ?? idx}
+            className="seamless-list-view-item"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigateToEvent(e.slug || createEventSlug(e.title, e.id), e.is_group_event)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                navigateToEvent(e.slug || createEventSlug(e.title, e.id), e.is_group_event);
+              }
+            }}
+          >
             <div className="seamless-list-view-date">{dateLabel}</div>
             <div className="seamless-list-view-info">
               <span className="seamless-list-view-title">{e.title}</span>

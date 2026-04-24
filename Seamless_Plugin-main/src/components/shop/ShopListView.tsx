@@ -6,7 +6,7 @@ import {
   Search,
   ShoppingCart,
 } from 'lucide-react';
-import { LoadingSpinner } from '../LoadingSpinner';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useShadowRoot } from '../ShadowRoot';
 import {
   addItemToCart,
@@ -338,7 +338,35 @@ export const ShopListView: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-shop seamless-shop--list seamless-shop--skeleton">
+          <section className="seamless-shop__section">
+            <div className="seamless-shop__topbar">
+              <div className="seamless-shop__count"><Skeleton width={180} containerClassName="seamless-skeleton-container" /></div>
+              <div className="seamless-shop__actions">
+                <div className="seamless-shop__button"><span><Skeleton width={80} containerClassName="seamless-skeleton-container" /></span></div>
+                <div className="seamless-shop__button"><span><Skeleton width={130} containerClassName="seamless-skeleton-container" /></span></div>
+                <div className="seamless-shop__button-link"><span><Skeleton width={100} containerClassName="seamless-skeleton-container" /></span></div>
+              </div>
+            </div>
+          </section>
+          <div className="seamless-shop__grid">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <article key={idx} className="seamless-shop__product-card seamless-shop__product-card--skeleton">
+                <div className="seamless-shop__image-square"><Skeleton height={220} borderRadius={12} /></div>
+                <div className="seamless-shop__card-body">
+                  <div className="seamless-shop__eyebrow"><Skeleton width={90} containerClassName="seamless-skeleton-container" /></div>
+                  <h3 className="seamless-shop__title"><Skeleton width="75%" containerClassName="seamless-skeleton-container" /></h3>
+                  <p className="seamless-shop__text"><Skeleton count={2} containerClassName="seamless-skeleton-container" /></p>
+                  <div className="seamless-shop__inline"><strong className="seamless-shop__price"><Skeleton width={70} containerClassName="seamless-skeleton-container" /></strong></div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
   }
 
   if (error) {

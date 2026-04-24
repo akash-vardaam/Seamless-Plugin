@@ -111,7 +111,7 @@ html.seamless-sidebar-collapsed body.toplevel_page_seamless .seamless-sidebar-to
 .seamless-info-label{font-size:12px;font-weight:700;color:var(--seamless-text-muted);text-transform:uppercase;letter-spacing:.05em}
 .seamless-inline-code,.seamless-code-block{display:inline-flex;align-items:center;max-width:100%;padding:4px 10px;border-radius:8px;background:#f4f6fb;border:1px solid rgba(101,88,245,.22);color:#6c5ce7!important;font-size:12px;line-height:1.5;word-break:break-word}
 .shortcode-container{display:inline-flex;align-items:center;gap:8px;max-width:100%;vertical-align:middle}
-.copy-shortcode-btn{display:inline-flex!important;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;padding:0!important;border-radius:8px!important;border:1px solid var(--seamless-border)!important;background:#fff!important;color:var(--seamless-accent)!important;transition:background-color .18s ease,border-color .18s ease,color .18s ease}
+.copy-shortcode-btn{display:inline-flex!important;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;padding:0!important;border-radius:8px!important;border:1px solid var(--seamless-border)!important;background:#fff!important;color:var(--seamless-accent)!important;transition:background-color .18s ease,border-color .18s ease,color .18s ease;cursor: pointer;}
 .copy-shortcode-btn:hover{color:var(--seamless-accent)!important;border-color:rgba(101,88,245,.22)!important;background:rgba(101,88,245,.05)!important}
 .copy-shortcode-btn.copied{color:#11845b!important;border-color:rgba(17,132,91,.28)!important;background:rgba(17,132,91,.08)!important}
 .copy-shortcode-btn.copied .dashicons{color:#11845b!important}

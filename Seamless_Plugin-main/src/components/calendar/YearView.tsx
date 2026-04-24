@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import type { Event } from '../../types/event';
-import { extractDateOnly } from './utils';
 import { navigateToEvent, createEventSlug } from '../../utils/urlHelper';
 
 interface YearViewProps {
@@ -9,21 +8,37 @@ interface YearViewProps {
   onMonthClick: (date: Date) => void;
 }
 
-const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const toDateKey = (date: Date): string => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
+const dateOnly = (value: string): Date => {
+  const parsed = new Date(value);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+};
 
 export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonthClick }) => {
   const year = currentDate.getFullYear();
   const today = new Date();
 
-  // Map dateKey -> array of events on that day
   const eventsByDate = useMemo(() => {
     const map: Record<string, Event[]> = {};
     events.forEach(e => {
       try {
-        const dateKey = extractDateOnly(e.start_date);
-        if (!map[dateKey]) map[dateKey] = [];
-        map[dateKey].push(e);
+        const start = dateOnly(e.start_date);
+        const end = e.end_date ? dateOnly(e.end_date) : new Date(start);
+        const cursor = new Date(start);
+
+        while (cursor <= end) {
+          const dateKey = toDateKey(cursor);
+          if (!map[dateKey]) map[dateKey] = [];
+          map[dateKey].push(e);
+          cursor.setDate(cursor.getDate() + 1);
+        }
       } catch {}
     });
     return map;
@@ -31,7 +46,7 @@ export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonth
 
   const months = useMemo(() =>
     Array.from({ length: 12 }, (_, monthIndex) => {
-      const firstDay = new Date(year, monthIndex, 1).getDay();
+      const firstDay = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
       const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
       const daysInPrevMonth = new Date(year, monthIndex, 0).getDate();
 
@@ -81,7 +96,7 @@ export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonth
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && onMonthClick(new Date(year, monthIndex, 1))}
           >
-            {MONTH_NAMES_SHORT[monthIndex]}
+            {MONTH_NAMES[monthIndex]}
           </div>
 
           {/* Day-of-week headers */}
@@ -95,7 +110,7 @@ export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonth
           <div className="seamless-year-days-grid">
             {days.map((dayObj, dIdx) => {
               const isToday = dayObj.date.toDateString() === today.toDateString();
-              const dateKey = `${dayObj.date.getFullYear()}-${String(dayObj.date.getMonth() + 1).padStart(2, '0')}-${String(dayObj.date.getDate()).padStart(2, '0')}`;
+              const dateKey = toDateKey(dayObj.date);
               const dayEvents = dayObj.inMonth ? (eventsByDate[dateKey] || []) : [];
               const hasEvents = dayEvents.length > 0;
 
@@ -111,7 +126,7 @@ export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonth
                 >
                   <span className="seamless-year-day-num">{dayObj.date.getDate()}</span>
                   {hasEvents && (
-                    <span className="seamless-year-event-dot" aria-hidden="true" />
+                      <span className="seamless-year-event-dot" aria-hidden="true" />
                   )}
                 </div>
               );

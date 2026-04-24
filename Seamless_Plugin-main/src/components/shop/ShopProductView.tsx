@@ -9,7 +9,7 @@ import {
   ShoppingCart,
   X,
 } from 'lucide-react';
-import { LoadingSpinner } from '../LoadingSpinner';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import {
   addItemToCart,
   fetchAllShopProducts,
@@ -482,7 +482,27 @@ export const ShopProductView: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-shop seamless-shop--product seamless-shop--skeleton">
+          <div className="seamless_breadcrum_container">
+            <nav className="seamless-shop__breadcrumb"><span><Skeleton width={220} containerClassName="seamless-skeleton-container" /></span></nav>
+          </div>
+          <section className="seamless-shop__product-layout">
+            <div className="seamless-shop__gallery">
+              <div className="seamless-shop__gallery-stage"><Skeleton height={430} borderRadius={12} /></div>
+            </div>
+            <div className="seamless-shop__product-info">
+              <div className="seamless-shop__product-meta"><span className="seamless-shop__pill"><Skeleton width={90} containerClassName="seamless-skeleton-container" /></span></div>
+              <h1 className="seamless-shop__title-xl"><Skeleton width="70%" containerClassName="seamless-skeleton-container" /></h1>
+              <p className="seamless-shop__price-large"><Skeleton width={120} containerClassName="seamless-skeleton-container" /></p>
+              <p className="seamless-shop__text"><Skeleton count={3} containerClassName="seamless-skeleton-container" /></p>
+              <div className="seamless-shop__purchase-row"><span><Skeleton width={260} height={44} containerClassName="seamless-skeleton-container" /></span></div>
+            </div>
+          </section>
+        </div>
+      </SkeletonTheme>
+    );
   }
 
   if (error || !product) {
@@ -502,7 +522,7 @@ export const ShopProductView: React.FC = () => {
   }
 
   return (
-    <div className="seamless-shop seamless-shop--product">
+    <div className={`seamless-shop seamless-shop--product ${isVariantImageLoading ? 'is-variant-loading' : ''}`}>
       <div className="seamless_breadcrum_container">
         <nav className="seamless-shop__breadcrumb">
           <a href={buildSiteUrl()} >

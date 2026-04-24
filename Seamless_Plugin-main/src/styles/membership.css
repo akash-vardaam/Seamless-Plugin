@@ -11,7 +11,7 @@
 
 :host .seamless-membership-title {
     font-size: var(--seamless-font-size-2-5) !important;
-    font-weight: 800 !important;
+    font-weight: 600 !important;
     color: var(--seamless-color-heading) !important;
     margin-bottom: 16px !important;
 }
@@ -25,31 +25,29 @@
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
     gap: 40px !important;
-    margin-bottom: 100px !important;
 }
 
 :host .seamless-plan-card {
     background: #ffffff !important;
-    border-radius: 24px !important;
-    padding: 25px !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
-    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    border-radius: 20px !important;
+    padding: 15px 15px 17px !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease !important;
     display: flex !important;
     flex-direction: column !important;
-    border: 1px solid #f1f5f9 !important;
+    border: 1px solid #dde2e7 !important;
 }
 
 :host .seamless-plan-card:hover {
-    transform: translateY(-8px) !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01) !important;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12) !important;
 }
 
 :host .seamless-plan-header-row {
     display: flex !important;
     justify-content: space-between !important;
-    align-items: flex-start !important;
-    margin-bottom: 24px !important;
-    gap: 20px !important;
+    align-items: center !important;
+    gap: 16px !important;
     width: 100% !important;
 }
 
@@ -66,64 +64,90 @@
 }
 
 :host .seamless-plan-label {
-    font-size: var(--seamless-font-size-18) !important;
-    font-weight: 700 !important;
-    color: var(--seamless-color-primary) !important;
-    margin: 0 0 12px 0 !important;
-    line-height: var(--seamless-line-height-28) !important;
+    font-size: 18px !important;
+    font-weight: 400 !important;
+    font-family: var(--seamless-font-family-merriweather, 'Merriweather', serif) !important;
+    color: #0e2f4f !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
 }
 
 :host .seamless-plan-label h3 {
     line-height: var(--seamless-line-height-0) !important;
 }
 
+:host .seamless-plan-meta-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+    width: 100% !important;
+}
+
+:host .seamless-plan-meta-badges {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
 :host .seamless-plan-badge {
     display: inline-flex !important;
     align-items: center !important;
-    background-color: #f1f5f9 !important;
-    color: var(--seamless-color-font) !important;
-    font-size: var(--seamless-font-size-12) !important;
-    line-height: var(--seamless-line-height-16) !important;
-    font-weight: 500 !important;
-    padding: 4px 8px !important;
+    background-color: #eef2f6 !important;
+    color: #0f172a !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
     border-radius: 20px !important;
-    margin-top: 5px !important;
-    gap: 5px !important;
+    gap: 6px !important;
+    margin-top: 0 !important;
+}
+
+:host .seamless-plan-badge svg {
+    flex-shrink: 0 !important;
+}
+
+:host .seamless-plan-badge-seats {
+    background-color: #eef2f6 !important;
 }
 
 :host .seamless-plan-price-badge {
-    background-color: var(--seamless-color-primary, #0c2e4e) !important;
+    background-color: #0b2f51 !important;
     color: #ffffff !important;
-    padding: 8px 16px !important;
-    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    border-radius: 20px !important;
     display: flex !important;
-    align-items: flex-start !important;
-    margin-bottom: 8px !important;
+    align-items: center !important;
+    margin-bottom: 0 !important;
+    gap: 4px !important;
 }
 
 :host .seamless-currency {
-    font-size: var(--seamless-font-size-sm) !important;
-    margin-top: 4px !important;
-    margin-right: 2px !important;
-    font-weight: 600 !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
 }
 
 :host .seamless-amount {
-    font-size: var(--seamless-font-size-2xl) !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
-    line-height: var(--seamless-line-height-1) !important;
+    line-height: 1 !important;
 }
 
 :host .seamless-plan-renewal {
-    font-size: var(--seamless-font-size-sm) !important;
+    font-size: 14px !important;
     color: #64748b !important;
+    font-weight: 500 !important;
     text-align: right !important;
+    line-height: 1.2 !important;
 }
 
 :host .seamless-plan-divider {
     height: 1px !important;
-    background-color: #e2e8f0 !important;
-    margin-bottom: 32px !important;
+    background-color: #e3e7ec !important;
     width: 100% !important;
 }
 
@@ -131,24 +155,18 @@
     width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 16px !important;
-    margin-bottom: 25px !important;
+    gap: 0 !important;
     flex-grow: 1 !important;
 }
 
-:host .seamless-feature-item {
-    display: flex !important;
-    align-items: flex-start !important;
-    font-size: var(--seamless-font-size-base) !important;
-    color: #334155 !important;
-    line-height: var(--seamless-line-height-1-5) !important;
-}
-
-:host .seamless-check {
-    color: var(--seamless-color-primary) !important;
-    margin-right: 12px !important;
-    font-weight: bold !important;
-    flex-shrink: 0 !important;
+:host .seamless-plan-description-text {
+    margin: 0 !important;
+    color: #64748b !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    min-height: 160px !important;
 }
 
 :host .seamless-plan-footer {
@@ -159,21 +177,21 @@
 :host .seamless-plan-footer .seamless-plan-cta {
     display: block !important;
     width: 100% !important;
-    padding: 12px 16px !important;
-    background-color: var(--seamless-color-primary, #0c2e4e) !important;
+    padding: 10px 16px !important;
+    background-color: #0b2f51 !important;
     color: #ffffff !important;
     text-align: center !important;
     text-decoration: none !important;
-    font-weight: 700 !important;
-    font-size: var(--seamless-font-size-sm) !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
     border-radius: 12px !important;
-    letter-spacing: 0.05em !important;
+    letter-spacing: 0.03em !important;
     text-transform: uppercase !important;
     transition: background-color 0.2s !important;
 }
 
 :host .seamless-plan-footer .seamless-plan-cta:hover {
-    background-color: var(--seamless-color-secondary, #0c2e4e) !important;
+    background-color: #0a2741 !important;
     color: #ffffff !important;
     text-decoration: none !important;
 }
@@ -182,7 +200,23 @@
     background: #ffffff !important;
     border-radius: 16px !important;
     padding: 0 !important;
-    margin-top: 80px !important;
+    margin-top: 50px !important;
+}
+
+:host .seamless-compare-container {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+}
+
+:host .seamless-comparison-description {
+    font-size: var(--seamless-font-size-sm) !important;
+    margin-top: 4px !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 3px 16px !important;
+    height: fit-content !important;
+    border-radius: 12px !important;
 }
 
 :host .seamless-comparison-title {
@@ -203,10 +237,11 @@
     border-spacing: 0 !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
+    font-size: 14px !important;
 }
 
 :host .seamless-comparison-table th {
-    background-color: var(--seamless-color-primary, #0c2e4e) !important;
+    background-color: #0b2f51 !important;
     color: #ffffff !important;
     padding: 20px !important;
     text-align: left !important;
@@ -226,9 +261,20 @@
 }
 
 :host .seamless-comparison-table td {
-    padding: 20px !important;
+    padding: 12px 20px !important;
     border-bottom: 1px solid #e2e8f0 !important;
+    border-right: 1px solid #e2e8f0 !important;
     color: #334155 !important;
+}
+
+:host .seamless-comparison-table td:last-child {
+    border-right: none !important;
+}
+
+:host .seamless-comparison-table td:first-child {
+    background-color: #eef2f6 !important;
+    color: var(--seamless-color-primary) !important;
+    font-weight: 500 !important;
 }
 
 :host .seamless-comparison-table tr:last-child td {
@@ -247,8 +293,71 @@
     font-weight: 400 !important;
 }
 
+:host .seamless-membership-container--skeleton {
+    line-height: 1 !important;
+}
+
+:host .seamless-plan-card--skeleton {
+    min-height: 420px !important;
+}
+
 @media screen and (min-width: 450px) and (max-width: 768px) {
     :host .seamless-plans-grid {
         grid-template-columns: 1fr 1fr !important;
+    }
+    :host .seamless-plans-grid {
+        margin-bottom: 0px !important;
+    }
+    :host .seamless-comparison-section {
+        margin-top: 30px !important;
+    }
+    :host .seamless-plans-grid {
+        gap: 25px !important;
+    }
+}
+
+@media screen and (max-width: 540px) {
+    :host .seamless-plan-header-row {
+        align-items: flex-start !important;
+    }
+
+    :host .seamless-plan-meta-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+
+    :host .seamless-plan-renewal {
+        text-align: left !important;
+    }
+
+    :host .seamless-compare-container {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        margin-bottom: 20px !important;
+    }
+    :host .seamless-comparison-title {
+        margin-bottom: 0 !important;
+    }
+    :host .seamless-plans-grid {
+        margin-bottom: 0px !important;
+    }
+    :host .seamless-comparison-section {
+        margin-top: 20px !important;
+    }
+    :host .seamless-plan-card {
+        padding: 16px !important;
+    }
+    :host .seamless-plan-meta-row {
+        margin: 0px !important;
+    }
+    :host .seamless-plan-divider {
+        margin: 0px !important;
+    }
+    :host .seamless-plan-header-row {
+        margin: 0px !important;
+    }
+    :host .seamless-plans-grid {
+        gap: 25px !important;
     }
 }

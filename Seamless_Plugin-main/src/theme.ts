@@ -56,7 +56,7 @@ export const SPACING = {
 
 // ── Typography ────────────────────────────────────────────────────────────────
 export const FONTS = {
-    default: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+    default: "-apple-system, 'Inter', sans-serif",
     serif: "'Merriweather', serif",
     montserrat: "'Montserrat', sans-serif",
 } as const;
