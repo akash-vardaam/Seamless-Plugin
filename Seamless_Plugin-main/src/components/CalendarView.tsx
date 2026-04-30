@@ -54,7 +54,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handlePrev = () => {
     const d = new Date(activeDate);
-    if (viewMode === 'MONTH') d.setMonth(d.getMonth() - 1);
+    if (viewMode === 'MONTH') {
+      d.setDate(1);
+      d.setMonth(d.getMonth() - 1);
+    }
     else if (viewMode === 'YEAR') d.setFullYear(d.getFullYear() - 1);
     else if (viewMode === 'WEEK') d.setDate(d.getDate() - 7);
     else if (viewMode === 'DAY') d.setDate(d.getDate() - 1);
@@ -63,7 +66,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleNext = () => {
     const d = new Date(activeDate);
-    if (viewMode === 'MONTH') d.setMonth(d.getMonth() + 1);
+    if (viewMode === 'MONTH') {
+      d.setDate(1);
+      d.setMonth(d.getMonth() + 1);
+    }
     else if (viewMode === 'YEAR') d.setFullYear(d.getFullYear() + 1);
     else if (viewMode === 'WEEK') d.setDate(d.getDate() + 7);
     else if (viewMode === 'DAY') d.setDate(d.getDate() + 1);
@@ -110,42 +116,71 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
 /** Simple event list for the "List" toggle view */
 const SeamlessListView: React.FC<{ events: Event[] }> = ({ events }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const sorted = [...events].sort((a, b) => {
     return new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
   });
 
-  if (!sorted.length) {
-    return <div className="seamless-list-view-empty">No events to display.</div>;
-  }
+  const filtered = sorted.filter(e =>
+    e.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="seamless-list-view">
-      {sorted.map((e, idx) => {
-        const start = new Date(e.start_date);
-        const dateLabel = start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-        const timeLabel = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-        return (
-          <div
-            key={e.id ?? idx}
-            className="seamless-list-view-item"
-            role="button"
-            tabIndex={0}
-            onClick={() => navigateToEvent(e.slug || createEventSlug(e.title, e.id), e.is_group_event)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                navigateToEvent(e.slug || createEventSlug(e.title, e.id), e.is_group_event);
-              }
-            }}
-          >
-            <div className="seamless-list-view-date">{dateLabel}</div>
-            <div className="seamless-list-view-info">
-              <span className="seamless-list-view-title">{e.title}</span>
-              <span className="seamless-list-view-time">{timeLabel}</span>
-            </div>
-          </div>
-        );
-      })}
+    <div className="seamless-list-view-container">
+      <div className="seamless-list-view-search" style={{ padding: '16px' }}>
+        <input
+          type="text"
+          className="seamless-search-input"
+          placeholder="Search events..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: '6px',
+            border: '1px solid var#d1d5db',
+            fontSize: '14px',
+            outline: 'none',
+            background: '#f8fafc',
+          }}
+        />
+      </div>
+
+      {!filtered.length ? (
+        <div className="seamless-list-view-empty" style={{ padding: '24px', textAlign: 'center', color: 'var(--sl-text-muted, #6b7280)' }}>
+          {events.length === 0 ? 'No events to display.' : 'No events match your search.'}
+        </div>
+      ) : (
+        <div className="seamless-list-view">
+          {filtered.map((e, idx) => {
+            const start = new Date(e.start_date);
+            const dateLabel = start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            const timeLabel = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            return (
+              <div
+                key={e.id ?? idx}
+                className="seamless-list-view-item"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigateToEvent(e.slug || createEventSlug(e.title, e.id), e.is_group_event)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    navigateToEvent(e.slug || createEventSlug(e.title, e.id), e.is_group_event);
+                  }
+                }}
+              >
+                <div className="seamless-list-view-date">{dateLabel}</div>
+                <div className="seamless-list-view-info">
+                  <span className="seamless-list-view-title">{e.title}</span>
+                  <span className="seamless-list-view-time">{timeLabel}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

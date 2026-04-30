@@ -10,14 +10,44 @@ class SeamlessAuth
 
     public function __construct()
     {
-        $domain = get_option('seamless_client_domain', '');
-        if ($domain && strpos($domain, 'http') !== 0) {
-            $domain = 'https://' . $domain;
-        }
-        $this->domain = rtrim($domain, '/');
+        $this->domain = $this->normalize_client_domain(get_option('seamless_client_domain', ''));
 
         add_action('wp_ajax_seamless_disconnect', [$this, 'handle_disconnect']);
         add_action('wp_ajax_seamless_test_connection', [$this, 'handle_test_connection']);
+    }
+
+    private function normalize_client_domain($value): string
+    {
+        $domain = is_string($value) ? trim($value) : '';
+        if ($domain === '') {
+            return '';
+        }
+
+        if (strpos($domain, '//') === 0) {
+            $domain = 'https:' . $domain;
+        } elseif (strpos($domain, 'http') !== 0) {
+            $domain = 'https://' . $domain;
+        } elseif (stripos($domain, 'http://') === 0) {
+            $domain = 'https://' . substr($domain, 7);
+        }
+
+        $second_http = stripos($domain, 'http://', 8);
+        $second_https = stripos($domain, 'https://', 8);
+        $cuts = array_filter([$second_http, $second_https], static function ($position) {
+            return $position !== false;
+        });
+        if (!empty($cuts)) {
+            $domain = substr($domain, 0, min($cuts));
+        }
+
+        $parts = wp_parse_url($domain);
+        $host = $parts['host'] ?? '';
+        if ($host === '') {
+            return '';
+        }
+
+        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        return 'https://' . $host . $port;
     }
 
     public static function get_token()

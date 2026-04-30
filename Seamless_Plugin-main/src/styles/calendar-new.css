@@ -73,6 +73,8 @@
     margin-bottom: 20px !important;
     padding-bottom: 16px !important;
     border-bottom: 1px solid #e2e8f0 !important;
+    position: relative !important;
+    z-index: 999 !important;
 }
 
 :host .calendar-title {

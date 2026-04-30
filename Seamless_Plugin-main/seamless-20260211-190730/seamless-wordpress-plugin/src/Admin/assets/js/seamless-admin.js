@@ -315,7 +315,7 @@ jQuery(document).ready(function ($) {
       const planId = (plan.id || "").toString().trim();
       const shortcode = planId
         ? `[seamless_single_membership id="${planId}"]`
-        : `[seamless_memberships]`;
+        : `[seamless_membership_list]`;
 
       const row = `
                 <tr class="seamless-membership-row ${rowStatusClass}">

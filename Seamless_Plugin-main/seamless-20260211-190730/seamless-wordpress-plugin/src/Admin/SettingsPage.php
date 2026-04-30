@@ -23,6 +23,7 @@ class SettingsPage
 		add_action('admin_init', [$this, 'register_settings']);
 		add_action('admin_head', [$this, 'output_menu_icon_css']);
 		add_action('admin_head', [$this, 'output_sidebar_state_bootstrap'], 1);
+		add_action('admin_footer', [$this, 'output_advanced_color_picker_bootstrap'], 50);
 		add_action('wp_ajax_seamless_save_and_connect', [$this, 'handle_save_and_connect']);
 		add_action('updated_option', [$this, 'maybe_flush_permalinks'], 10, 3);
 		add_action('update_option_seamless_event_list_endpoint', [$this, 'schedule_rewrite_flush']);
@@ -109,6 +110,47 @@ class SettingsPage
 <?php
 	}
 
+	public function output_advanced_color_picker_bootstrap(): void
+	{
+		$screen = function_exists('get_current_screen') ? get_current_screen() : null;
+		$screen_id = $screen ? (string) $screen->id : '';
+		$page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+
+		if (strpos($screen_id, 'seamless') === false && $page !== 'seamless') {
+			return;
+		}
+?>
+		<script>
+			jQuery(function($) {
+				function seamlessInitAdvancedColorPickers() {
+					var $pickers = $('.seamless-tab-panel[data-tab="advanced"] .seamless-color-picker, .seamless-page-stack .seamless-color-picker');
+					if (!$pickers.length) {
+						return;
+					}
+
+					if (typeof $.fn.wpColorPicker !== 'function') {
+						window.setTimeout(seamlessInitAdvancedColorPickers, 120);
+						return;
+					}
+
+					$pickers.each(function() {
+						var $picker = $(this);
+						if ($picker.closest('.wp-picker-container').length || $picker.data('seamlessColorPickerReady')) {
+							return;
+						}
+
+						$picker.wpColorPicker();
+						$picker.data('seamlessColorPickerReady', true);
+					});
+				}
+
+				seamlessInitAdvancedColorPickers();
+				$(window).on('load', seamlessInitAdvancedColorPickers);
+			});
+		</script>
+<?php
+	}
+
 	public function add_submenu_pages(): void
 	{
 		add_submenu_page(
@@ -124,7 +166,7 @@ class SettingsPage
 	public function register_settings(): void
 	{
 		register_setting('seamless_auth_group', 'seamless_client_domain', [
-			'sanitize_callback' => 'sanitize_text_field'
+			'sanitize_callback' => [$this, 'sanitize_client_domain_option']
 		]);
 		register_setting('seamless_auth_group', 'seamless_redirect_url', [
 			'sanitize_callback' => 'sanitize_text_field'
@@ -160,7 +202,7 @@ class SettingsPage
 			'type' => 'string'
 		]);
 		register_setting('seamless_content_restriction_group', 'seamless_sso_endpoint', [
-			'sanitize_callback' => 'sanitize_text_field'
+			'sanitize_callback' => [$this, 'sanitize_secure_url_option']
 		]);
 
 		// --- New Content Restriction Section ---
@@ -187,7 +229,7 @@ class SettingsPage
 
 		register_setting('seamless_content_restriction_group', 'seamless_membership_purchase_url', [
 			'type' => 'string',
-			'sanitize_callback' => 'esc_url_raw',
+			'sanitize_callback' => [$this, 'sanitize_secure_url_option'],
 			'default' => home_url('/memberships'),
 		]);
 
@@ -312,17 +354,17 @@ class SettingsPage
 				'icon' => 'dashicons-calendar-alt',
 				'url' => $this->get_settings_tab_url('events'),
 			],
-			'shop' => [
-				'label' => __('Shop', 'seamless'),
-				'description' => __('Manage shop-related shortcodes and storefront route configuration.', 'seamless'),
-				'icon' => 'dashicons-cart',
-				'url' => $this->get_settings_tab_url('shop'),
-			],
 			'membership' => [
 				'label' => __('Membership', 'seamless'),
 				'description' => __('Browse synced membership plans and membership shortcode output.', 'seamless'),
 				'icon' => 'dashicons-groups',
 				'url' => $this->get_settings_tab_url('membership'),
+			],
+			'shop' => [
+				'label' => __('Shop', 'seamless'),
+				'description' => __('Manage shop-related shortcodes and storefront route configuration.', 'seamless'),
+				'icon' => 'dashicons-cart',
+				'url' => $this->get_settings_tab_url('shop'),
 			],
 		];
 
@@ -453,6 +495,73 @@ class SettingsPage
 		}
 
 		return $sanitized;
+	}
+
+	public function sanitize_client_domain_option($value): string
+	{
+		return $this->normalize_secure_origin($value);
+	}
+
+	public function sanitize_secure_url_option($value): string
+	{
+		$url = is_string($value) ? trim($value) : '';
+		if ($url === '') {
+			return '';
+		}
+
+		if (strpos($url, '//') === 0) {
+			$url = 'https:' . $url;
+		} elseif (strpos($url, 'http') !== 0) {
+			$url = 'https://' . $url;
+		} elseif (stripos($url, 'http://') === 0) {
+			$url = 'https://' . substr($url, 7);
+		}
+
+		$second_http = stripos($url, 'http://', 8);
+		$second_https = stripos($url, 'https://', 8);
+		$cuts = array_filter([$second_http, $second_https], static function ($position) {
+			return $position !== false;
+		});
+		if (!empty($cuts)) {
+			$url = substr($url, 0, min($cuts));
+		}
+
+		$normalized = esc_url_raw($url, ['https']);
+		return is_string($normalized) ? trim($normalized) : '';
+	}
+
+	private function normalize_secure_origin($value): string
+	{
+		$domain = is_string($value) ? trim($value) : '';
+		if ($domain === '') {
+			return '';
+		}
+
+		if (strpos($domain, '//') === 0) {
+			$domain = 'https:' . $domain;
+		} elseif (strpos($domain, 'http') !== 0) {
+			$domain = 'https://' . $domain;
+		} elseif (stripos($domain, 'http://') === 0) {
+			$domain = 'https://' . substr($domain, 7);
+		}
+
+		$second_http = stripos($domain, 'http://', 8);
+		$second_https = stripos($domain, 'https://', 8);
+		$cuts = array_filter([$second_http, $second_https], static function ($position) {
+			return $position !== false;
+		});
+		if (!empty($cuts)) {
+			$domain = substr($domain, 0, min($cuts));
+		}
+
+		$parts = wp_parse_url($domain);
+		$host = $parts['host'] ?? '';
+		if ($host === '') {
+			return '';
+		}
+
+		$port = isset($parts['port']) ? ':' . $parts['port'] : '';
+		return 'https://' . $host . $port;
 	}
 
 	public function render_auth_tab(): void
@@ -840,7 +949,6 @@ class SettingsPage
 								<input type="text" name="seamless_secondary_color" value="<?php echo esc_attr(get_option('seamless_secondary_color', '#06b6d4')); ?>" class="seamless-color-picker" />
 								<p class="description">Color for links, buttons, and accents.</p>
 							</td>
-						</tr>
 						</tr>
 						<tr valign="top">
 							<th scope="row">List View Layout</th>
@@ -1347,8 +1455,8 @@ class SettingsPage
 					<li>
 						<strong><?php esc_html_e('Membership List', 'seamless'); ?></strong>
 						<span class="shortcode-container">
-							<code class="seamless-code-block">[seamless_memberships]</code>
-							<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_memberships]">
+							<code class="seamless-code-block">[seamless_membership_list]</code>
+							<button type="button" class="copy-shortcode-btn" title="Copy shortcode" data-shortcode="[seamless_membership_list]">
 								<span class="dashicons dashicons-admin-page"></span>
 							</button>
 						</span>
@@ -2077,7 +2185,7 @@ class SettingsPage
 					'ajax_url' => admin_url('admin-ajax.php'),
 					'nonce'    => wp_create_nonce('seamless_nonce'),
 					'list_view_layout' => get_option('seamless_list_view_layout', 'option_1'),
-					'api_domain' => rtrim(get_option('seamless_client_domain', ''), '/'),
+					'api_domain' => $this->normalize_secure_origin(get_option('seamless_client_domain', '')),
 				]);
 			}
 		}
@@ -2104,7 +2212,7 @@ class SettingsPage
 			wp_send_json_error('Insufficient permissions');
 		}
 
-		$domain = isset($_POST['domain']) ? sanitize_text_field($_POST['domain']) : '';
+		$domain = isset($_POST['domain']) ? $this->sanitize_client_domain_option($_POST['domain']) : '';
 		if (empty($domain)) {
 			wp_send_json_error('Domain is required');
 		}

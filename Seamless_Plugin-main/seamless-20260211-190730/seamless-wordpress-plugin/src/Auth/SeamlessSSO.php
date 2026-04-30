@@ -28,10 +28,7 @@ class SeamlessSSO
     public function __construct()
     {
         $domain = get_option('seamless_client_domain', '');
-        if ($domain && strpos($domain, 'http') !== 0) {
-            $domain = 'https://' . $domain;
-        }
-        $this->client_domain = rtrim($domain, '/');
+        $this->client_domain = $this->normalize_client_domain((string) $domain);
         $this->sso_client_id = get_option('seamless_sso_client_id', '');
 
         add_action('init', [$this, 'register_login_rewrite_rule']);
@@ -41,6 +38,51 @@ class SeamlessSSO
         add_action('save_post_page', [$this, 'clear_default_return_to_cache']);
         add_action('deleted_post', [$this, 'clear_default_return_to_cache']);
         add_shortcode('seamless_login_button', [$this, 'render_login_button']);
+    }
+
+    private function normalize_client_domain(string $domain): string
+    {
+        $domain = trim($domain);
+        if ($domain === '') {
+            return '';
+        }
+
+        if (strpos($domain, '//') === 0) {
+            $domain = 'https:' . $domain;
+        } elseif (strpos($domain, 'http') !== 0) {
+            $domain = 'https://' . $domain;
+        } elseif (stripos($domain, 'http://') === 0) {
+            $domain = 'https://' . substr($domain, 7);
+        }
+
+        $second_http = stripos($domain, 'http://', 8);
+        $second_https = stripos($domain, 'https://', 8);
+        $cuts = array_filter([$second_http, $second_https], static function ($value) {
+            return $value !== false;
+        });
+        if (!empty($cuts)) {
+            $domain = substr($domain, 0, min($cuts));
+        }
+
+        $parts = wp_parse_url($domain);
+        $host = $parts['host'] ?? '';
+        if ($host === '') {
+            return rtrim($domain, '/');
+        }
+
+        $scheme = 'https';
+        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+
+        return $scheme . '://' . $host . $port;
+    }
+
+    public function get_public_login_url(): string
+    {
+        if ($this->client_domain === '') {
+            return set_url_scheme(add_query_arg('sso_login_redirect', '1', home_url('/')), 'https');
+        }
+
+        return $this->client_domain . '/' . self::LOGIN_ROUTE;
     }
 
     public function register_login_rewrite_rule(): void
@@ -432,8 +474,7 @@ class SeamlessSSO
             // they never completed the OAuth flow (typical for WP admins).
             // Show a "Login via SSO" button so they can connect their account.
             if (!$has_sso_token) {
-                $return_to = self::get_return_to_url();
-                $url = $this->get_login_url($return_to);
+                $url = $this->get_public_login_url();
                 return sprintf(
                     '<a class="%s" href="%s"%s>%s</a>',
                     esc_attr($atts['class']),
@@ -454,12 +495,7 @@ class SeamlessSSO
             );
         }
 
-        // Use a query-param based URL as a robust fallback to prevent 404 if rewrite rules are not flushed.
-        // Always preserve the originating page so the user returns there after OAuth completes.
-        $url = add_query_arg([
-            'sso_login_redirect' => '1',
-            'return_to' => self::get_return_to_url(),
-        ], home_url('/'));
+        $url = $this->get_public_login_url();
 
         return sprintf(
             '<a class="%s" href="%s"%s>%s</a>',

@@ -54,6 +54,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   const handleMonthSelect = (monthIndex: number) => {
     const newDate = new Date(activeDate);
+    newDate.setDate(1); // Set to 1st to prevent overflow when month changes
     newDate.setMonth(monthIndex);
     onDateChange(newDate);
     setMonthMenuOpen(false);
@@ -93,53 +94,58 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           <div className="cal-selectors-row">
 
             {/* Month — pill with stacked ↑↓ arrows */}
-            <div className="cal-month-drop-wrap" ref={monthMenuRef}>
-              <button
-                className="cal-month-trigger"
-                type="button"
-                aria-haspopup="listbox"
-                aria-expanded={monthMenuOpen}
-                aria-controls="calMonthMenu"
-                onClick={() => setMonthMenuOpen(open => !open)}
-              >
-                <span className="cal-month-label">{MONTH_NAMES[currentMonth]}</span>
-                {/* Stacked ↑ ↓ chevrons */}
-                <span className="cal-month-spinners" aria-hidden="true">
-                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="1 5 5 1 9 5" />
-                  </svg>
-                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="1 1 5 5 9 1" />
-                  </svg>
-                </span>
-              </button>
-
-              {monthMenuOpen && (
-                <ul
-                  className="cal-month-menu"
-                  id="calMonthMenu"
-                  role="listbox"
-                  aria-label="Select month"
+            {viewMode !== 'YEAR' && (
+              <div className="cal-month-drop-wrap" ref={monthMenuRef}>
+                <button
+                  className="cal-month-trigger"
+                  type="button"
+                  aria-haspopup="listbox"
+                  aria-expanded={monthMenuOpen}
+                  aria-controls="calMonthMenu"
+                  onClick={() => setMonthMenuOpen(open => !open)}
                 >
-                  {MONTH_NAMES.map((name, i) => (
-                    <li
-                      key={i}
-                      className={`cal-month-item${i === currentMonth ? ' active' : ''}`}
-                      role="option"
-                      aria-selected={i === currentMonth}
-                      onClick={() => handleMonthSelect(i)}
-                    >
-                      <span>{name}</span>
-                      {i === currentMonth && (
-                        <svg className="cal-month-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                  <span className="cal-month-label">{MONTH_NAMES[currentMonth]}</span>
+                  {/* Stacked ↑ ↓ chevrons */}
+                  <span className="cal-month-spinners" aria-hidden="true">
+                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="1 5 5 1 9 5" />
+                    </svg>
+                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="1 1 5 5 9 1" />
+                    </svg>
+                  </span>
+                </button>
+
+                {monthMenuOpen && (
+                  <ul
+                    className="cal-month-menu"
+                    id="calMonthMenu"
+                    role="listbox"
+                    aria-label="Select month"
+                  >
+                    {MONTH_NAMES.map((name, i) => (
+                      <li
+                        key={i}
+                        className={`cal-month-item${i === currentMonth ? ' active' : ''}`}
+                        role="option"
+                        aria-selected={i === currentMonth}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleMonthSelect(i);
+                        }}
+                      >
+                        <span>{name}</span>
+                        {i === currentMonth && (
+                          <svg className="cal-month-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             {/* Year — ‹ 2026 › */}
             <div className="cal-year-nav" aria-label="Year">

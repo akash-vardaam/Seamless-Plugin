@@ -171,6 +171,42 @@ class SeamlessRender
 		return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT) . str_pad(dechex($g), 2, '0', STR_PAD_LEFT) . str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
 	}
 
+	private function normalize_client_domain($domain): string
+	{
+		$domain = is_string($domain) ? trim($domain) : '';
+		if ($domain === '') {
+			return '';
+		}
+
+		if (strpos($domain, '//') === 0) {
+			$domain = 'https:' . $domain;
+		} elseif (strpos($domain, 'http') !== 0) {
+			$domain = 'https://' . $domain;
+		} elseif (stripos($domain, 'http://') === 0) {
+			$domain = 'https://' . substr($domain, 7);
+		}
+
+		$second_http = stripos($domain, 'http://', 8);
+		$second_https = stripos($domain, 'https://', 8);
+		$cuts = array_filter([$second_http, $second_https], static function ($value) {
+			return $value !== false;
+		});
+		if (!empty($cuts)) {
+			$domain = substr($domain, 0, min($cuts));
+		}
+
+		$parts = wp_parse_url($domain);
+		$host = $parts['host'] ?? '';
+		if ($host === '') {
+			return rtrim($domain, '/');
+		}
+
+		$scheme = 'https';
+		$port = isset($parts['port']) ? ':' . $parts['port'] : '';
+
+		return $scheme . '://' . $host . $port;
+	}
+
 	private function normalize_css_dimension($value): ?string
 	{
 		if (is_array($value)) {
@@ -352,7 +388,7 @@ class SeamlessRender
 				nonce: '<?php echo wp_create_nonce('seamless'); ?>',
 				ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
 				ajaxNonce: '<?php echo wp_create_nonce('seamless_nonce'); ?>',
-				clientDomain: '<?php echo esc_js(rtrim(get_option('seamless_client_domain', ''), '/')); ?>',
+				clientDomain: '<?php echo esc_js($this->normalize_client_domain(get_option('seamless_client_domain', ''))); ?>',
 				listViewLayout: '<?php echo esc_js($list_view_layout); ?>',
 				containerMaxWidth: '<?php echo esc_js($container_max_width); ?>',
 				fallbackEventImageUrl: '<?php echo esc_url($react_dist_url . 'seamless-logo.png'); ?>',
@@ -380,6 +416,7 @@ class SeamlessRender
 		add_shortcode('seamless_single_product', [$this, 'shortcode_react_single_product']);
 		add_shortcode('seamless_cart', [$this, 'shortcode_react_cart']);
 		add_shortcode('seamless_memberships', [$this, 'shortcode_react_memberships']);
+		add_shortcode('seamless_membership_list', [$this, 'shortcode_react_memberships']);
 		add_shortcode('seamless_courses', [$this, 'shortcode_react_courses']);
 		add_shortcode('seamless_dashboard', [$this, 'shortcode_react_dashboard']);
 		add_shortcode('seamless_react_single_event', [$this, 'shortcode_react_single_event']);
@@ -457,10 +494,7 @@ class SeamlessRender
 			}
 		}
 
-		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
-		if ($client_domain && strpos($client_domain, 'http') !== 0) {
-			$client_domain = 'https://' . $client_domain;
-		}
+		$client_domain = $this->normalize_client_domain(get_option('seamless_client_domain', ''));
 		$container_max_width = $this->get_react_container_max_width();
 		$list_view_layout = get_option('seamless_list_view_layout', 'option_1');
 		$ams_user_id = is_user_logged_in()
@@ -1115,10 +1149,7 @@ JS,
 		$has_sso_token = !empty(get_user_meta($uid, 'seamless_access_token', true));
 
 		if (!$has_sso_token) {
-			$connect_url = add_query_arg([
-				'sso_login_redirect' => '1',
-				'return_to' => SSO::get_return_to_url(),
-			], home_url('/'));
+			$connect_url = $this->sso->get_public_login_url();
 			return sprintf(
 				'<div class="seamless-sso-connect-wrapper">
 					<div class="seamless-sso-connect-icon" style="display: inline;">
@@ -1508,7 +1539,7 @@ JS,
 		$uid = get_current_user_id();
 		$sso = new \Seamless\Auth\SeamlessSSO();
 		$token = $sso->seamless_refresh_token_if_needed($uid);
-		$client_domain = rtrim(get_option('seamless_client_domain', ''), '/');
+		$client_domain = $this->normalize_client_domain(get_option('seamless_client_domain', ''));
 
 		// AMS /api/dashboard/* endpoints require a valid OAuth Bearer token.
 		// The shortcode intercepts users without a token, but guard here too.
