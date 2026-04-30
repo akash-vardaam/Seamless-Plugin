@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { useMembershipPlans } from '../hooks/useMembershipPlans';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { getWordPressSiteUrl } from '../utils/urlHelper';
+import { SeamlessInitialLoader } from './ui/SeamlessInitialLoader';
+import { useInitialLoading } from '../hooks/useInitialLoading';
 
 const getSafeDescriptionText = (description?: string) => {
     if (!description) return '';
@@ -16,6 +17,7 @@ const getSafeDescriptionText = (description?: string) => {
 
 export const MembershipListView: React.FC = () => {
     const { plans, loading, error } = useMembershipPlans();
+    const showInitialLoader = useInitialLoading(loading);
 
     const comparisonKeys = useMemo(() => {
         const keys = new Set<string>();
@@ -38,50 +40,7 @@ export const MembershipListView: React.FC = () => {
 
     const baseUrl = getWordPressSiteUrl();
 
-    if (loading) {
-        return (
-            <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
-                <div className="seamless-membership-container seamless-membership-container--skeleton">
-                    <div className="seamless-plans-grid">
-                        {Array.from({ length: 3 }).map((_, idx) => (
-                            <div key={idx} className="seamless-plan-card seamless-plan-card--skeleton">
-                                <div className="seamless-plan-header-row">
-                                    <div className="seamless-plan-header-left">
-                                        <h3 className="seamless-plan-label"><Skeleton width={180} containerClassName="seamless-skeleton-container" /></h3>
-                                    </div>
-                                    <div className="seamless-plan-header-right">
-                                        <div className="seamless-plan-price-badge">
-                                            <Skeleton width={92} height={30} containerClassName="seamless-skeleton-container" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="seamless-plan-meta-row">
-                                    <div className="seamless-plan-meta-badges">
-                                        <div className="seamless-plan-badge"><Skeleton width={116} containerClassName="seamless-skeleton-container" /></div>
-                                        <div className="seamless-plan-badge"><Skeleton width={74} containerClassName="seamless-skeleton-container" /></div>
-                                    </div>
-                                    <div className="seamless-plan-renewal"><Skeleton width={110} containerClassName="seamless-skeleton-container" /></div>
-                                </div>
-
-                                <div className="seamless-plan-divider" />
-
-                                <div className="seamless-plan-features-list">
-                                    <p className="seamless-plan-description-text">
-                                        <Skeleton count={4.5} containerClassName="seamless-skeleton-container" />
-                                    </p>
-                                </div>
-
-                                <div className="seamless-plan-footer">
-                                    <span className="seamless-plan-cta"><Skeleton width={150} height={42} containerClassName="seamless-skeleton-container" /></span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </SkeletonTheme>
-        );
-    }
+    if (showInitialLoader) return <SeamlessInitialLoader message="Loading membership plans..." />;
 
     return (
         <div className="seamless-membership-container">
@@ -182,4 +141,3 @@ export const MembershipListView: React.FC = () => {
         </div>
     );
 };
-

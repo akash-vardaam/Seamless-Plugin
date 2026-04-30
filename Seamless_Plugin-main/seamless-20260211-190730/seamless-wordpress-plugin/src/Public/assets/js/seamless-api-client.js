@@ -584,6 +584,102 @@ class SeamlessDirectAPI {
     }
   }
 
+  // ============ Shop API Methods ============
+
+  extractShopProducts(payload) {
+    if (!payload || typeof payload !== "object") {
+      return [];
+    }
+
+    const candidates = [
+      payload?.data?.products,
+      payload?.data?.items,
+      payload?.data?.shop,
+      payload?.data,
+      payload?.products,
+      payload?.items,
+      payload?.shop,
+      payload,
+    ];
+
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) {
+        return candidate;
+      }
+    }
+
+    return [];
+  }
+
+  getShopPagination(payload) {
+    if (!payload || typeof payload !== "object") {
+      return {};
+    }
+
+    return (
+      payload?.data?.pagination ||
+      payload?.pagination ||
+      payload?.data?.meta ||
+      payload?.meta ||
+      {}
+    );
+  }
+
+  hasMoreShopPages(pagination, itemCount) {
+    if (
+      pagination &&
+      Object.prototype.hasOwnProperty.call(pagination, "has_more_pages")
+    ) {
+      return Boolean(pagination.has_more_pages);
+    }
+
+    if (pagination?.current_page && (pagination?.last_page || pagination?.total_pages)) {
+      const lastPage = pagination.last_page || pagination.total_pages;
+      return Number(pagination.current_page) < Number(lastPage);
+    }
+
+    return itemCount === 100;
+  }
+
+  async getShopProducts(page = 1, search = "", perPage = 100) {
+    const params = {
+      page,
+      per_page: perPage,
+      search,
+    };
+
+    return await this.fetch("shop/products", params);
+  }
+
+  async getAllShopProducts(search = "") {
+    const products = [];
+    let page = 1;
+    let hasMorePages = true;
+
+    try {
+      while (hasMorePages && page <= 20) {
+        const response = await this.getShopProducts(page, search, 100);
+        const pageItems = this.extractShopProducts(response);
+
+        if (!pageItems.length) {
+          break;
+        }
+
+        products.push(...pageItems);
+        hasMorePages = this.hasMoreShopPages(
+          this.getShopPagination(response),
+          pageItems.length,
+        );
+        page += 1;
+      }
+
+      return products;
+    } catch (error) {
+      console.error("[Seamless] Error fetching shop products:", error);
+      return [];
+    }
+  }
+
   // ============ Courses API Methods ============
 
   /**

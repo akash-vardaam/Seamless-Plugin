@@ -3,10 +3,10 @@ import { useLocation, useParams } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSingleEvent } from '../hooks/useSingleEvent';
 import { SeamlessAccordion } from './SeamlessAccordion';
-import { getEventsListURL } from '../utils/urlHelper';
+import { getEventsListURL, getWordPressSiteUrl } from '../utils/urlHelper';
+import { SeamlessInitialLoader } from './ui/SeamlessInitialLoader';
 
 import type { Event } from '../types/event';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useShadowRoot } from './ShadowRoot';
 
 export const SingleEventPage: React.FC = () => {
@@ -141,23 +141,34 @@ export const SingleEventPage: React.FC = () => {
     };
 
 
+    const extractMeridiemTime = (value?: string) => {
+        if (!value) return '';
+        const match = value.match(/(\d{1,2}:\d{2}\s?[AP]M)$/i);
+        return match ? match[1].toUpperCase().replace(/\s+/g, ' ') : '';
+    };
+
     const getFormattedTimeRange = (startStr: string, endStr: string) => {
         if (!startStr) return '';
+
+        const formattedStart = extractMeridiemTime(startStr);
+        const formattedEnd = extractMeridiemTime(endStr);
+        if (formattedStart) {
+            return `${formattedStart}${formattedEnd ? ` - ${formattedEnd}` : ''} CDT`;
+        }
+
         try {
             const options: Intl.DateTimeFormatOptions = {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true,
-                timeZone: 'America/Chicago' // Enforce timezone
             };
             const start = new Date(startStr).toLocaleTimeString('en-US', options);
             const end = endStr ? new Date(endStr).toLocaleTimeString('en-US', options) : '';
-            return `${start}${end ? ` – ${end}` : ''} CDT`;
+            return `${start}${end ? ` - ${end}` : ''} CDT`;
         } catch {
             return '';
         }
     };
-
     const getCalendarLocation = (evt: Event) => {
         const locationParts = [
             evt.venue?.name,
@@ -328,35 +339,7 @@ export const SingleEventPage: React.FC = () => {
     }, [isSponsorTrackAnimating]);
 
     if (loading) {
-        return (
-            <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
-                <article className="seamless-single-event-container seamless-single-event-container--skeleton">
-                    <div className="seamless-single-event-grid">
-                        <div className="seamless-event-header-wrapper">
-                            <header className="seamless-event-header-group">
-                                <div className="seamless-event-icon-circle"><Skeleton circle width={56} height={56} /></div>
-                                <h1 className="seamless-event-title"><Skeleton width={380} containerClassName="seamless-skeleton-container" /></h1>
-                            </header>
-                            <section className="seamless-single-event-content">
-                                <p className="seamless-event-description"><Skeleton count={8} containerClassName="seamless-skeleton-container" /></p>
-                            </section>
-                        </div>
-                        <aside className="seamless-single-event-sidebar">
-                            <section className="seamless-sidebar-box seamless-details-box">
-                                <ul className="seamless-single-evt-details-list">
-                                    {Array.from({ length: 4 }).map((_, idx) => (
-                                        <li key={idx} className="seamless-detail-row">
-                                            <span className="seamless-detail-label"><Skeleton width={90} containerClassName="seamless-skeleton-container" /></span>
-                                            <p className="seamless-detail-value"><Skeleton width={180} containerClassName="seamless-skeleton-container" /></p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </section>
-                        </aside>
-                    </div>
-                </article>
-            </SkeletonTheme>
-        );
+        return <SeamlessInitialLoader message="Loading event details..." />;
     }
 
     if (error || !event) {
@@ -472,6 +455,8 @@ export const SingleEventPage: React.FC = () => {
     // Choose which date boundaries to use
     const startDateToUse = isGroupEvent && event?.event_date_range?.start ? event?.event_date_range.start : event?.start_date;
     const endDateToUse = isGroupEvent && event?.event_date_range?.end ? event?.event_date_range.end : event?.end_date;
+    const startDateDisplay = event?.formatted_start_date || startDateToUse;
+    const endDateDisplay = event?.formatted_end_date || endDateToUse;
 
     // Check if event has passed
     const isEventPassed = new Date(endDateToUse || startDateToUse).getTime() < new Date().getTime();
@@ -479,8 +464,13 @@ export const SingleEventPage: React.FC = () => {
 
     return (
         <article className="seamless-single-event-container">
-            {/* Breadcrumbs */}
-            {/* ... breadcrumbs commented out ... */}
+            <nav className="seamless-breadcrumbs" aria-label="Breadcrumb">
+                <a href={getWordPressSiteUrl()} className="seamless-breadcrumb-link">Home</a>
+                <span className="seamless-breadcrumb-separator" aria-hidden="true">&gt;</span>
+                <a href={getEventsListURL()} className="seamless-breadcrumb-link">Events</a>
+                <span className="seamless-breadcrumb-separator" aria-hidden="true">&gt;</span>
+                <span className="seamless-breadcrumb-current">{event?.title}</span>
+            </nav>
 
             <div className="seamless-single-event-grid">
                 {/* Header - Moved out for mobile/tab ordering */}
@@ -583,14 +573,14 @@ export const SingleEventPage: React.FC = () => {
                                 <Calendar className="seamless-detail-icon" size={20} />
                                 <div className='seamless-detials-container'>
                                     <span className="seamless-detail-label">Date</span>
-                                    <p className="seamless-detail-value">{formatEventDateRange(startDateToUse, endDateToUse)}</p>
+                                    <p className="seamless-detail-value">{formatEventDateRange(startDateDisplay, endDateDisplay)}</p>
                                 </div>
                             </li>
                             <li className="seamless-detail-row">
                                 <Clock className="seamless-detail-icon" size={20} />
                                 <div className='seamless-detials-container'>
                                     <span className="seamless-detail-label">Time</span>
-                                    <p className="seamless-detail-value">{getFormattedTimeRange(startDateToUse, endDateToUse)}</p>
+                                    <p className="seamless-detail-value">{getFormattedTimeRange(startDateDisplay, endDateDisplay)}</p>
                                 </div>
                             </li>
                             {computedCapacity !== null && (

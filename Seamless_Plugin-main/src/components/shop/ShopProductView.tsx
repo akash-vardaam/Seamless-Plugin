@@ -10,6 +10,8 @@ import {
   X,
 } from 'lucide-react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import { SeamlessInitialLoader } from '../ui/SeamlessInitialLoader';
+import { useInitialLoading } from '../../hooks/useInitialLoading';
 import {
   addItemToCart,
   fetchAllShopProducts,
@@ -82,6 +84,7 @@ export const ShopProductView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isVariantImageLoading, setIsVariantImageLoading] = useState(false);
   const [zoomState, setZoomState] = useState<ZoomState>({ open: false, scale: 1, x: 0, y: 0 });
+  const showInitialLoader = useInitialLoading(loading);
   const galleryThumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const scrollLockRef = useRef<{
     scrollY: number;
@@ -480,6 +483,10 @@ export const ShopProductView: React.FC = () => {
     dragStateRef.current.active = false;
     setZoomState({ open: false, scale: 1, x: 0, y: 0 });
   };
+
+  if (showInitialLoader) {
+    return <SeamlessInitialLoader message="Loading product details..." />;
+  }
 
   if (loading) {
     return (

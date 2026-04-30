@@ -14,9 +14,28 @@
 
 /* Breadcrumbs */
 :host .seamless-breadcrumbs {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
     font-size: var(--seamless-font-size-0-9) !important;
     color: var(--seamless-color-gray-600) !important;
     margin-bottom: 20px !important;
+}
+
+:host .seamless-breadcrumb-link {
+    color: var(--seamless-color-gray-600) !important;
+    text-decoration: none !important;
+}
+
+:host .seamless-breadcrumb-link:hover {
+    color: var(--seamless-color-primary) !important;
+    text-decoration: underline !important;
+}
+
+:host .seamless-breadcrumb-separator {
+    color: var(--seamless-color-gray-500) !important;
+    font-weight: 600 !important;
 }
 
 :host .seamless-breadcrumb-current {

@@ -247,7 +247,7 @@
   border: 1px solid #e2e8f0 !important;
   border-radius: 8px !important;
   background: #ffffff !important;
-  padding: 0 12px 0 40px !important;
+  padding: 0 40px 0 40px !important;
   color: #334155 !important;
   font-size: 14px !important;
   outline: none !important;
@@ -257,6 +257,33 @@
 :host .seamless-shop__input:focus {
   border-color: #cbd5e1 !important;
   box-shadow: 0 0 0 4px rgba(186, 230, 253, 0.7) !important;
+}
+
+:host .seamless-shop__search-clear {
+  position: absolute !important;
+  top: 50% !important;
+  right: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 18px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  transform: translateY(-50%) !important;
+}
+
+:host .seamless-shop__search-clear:hover {
+  color: #475569 !important;
+}
+
+:host .seamless-shop__search-clear svg {
+  width: 14px !important;
+  height: 14px !important;
+  display: block !important;
 }
 
 :host .seamless-shop__checkbox-label {
@@ -488,6 +515,7 @@
   font-weight: 500 !important;
   line-height: 1 !important;
   letter-spacing: 0 !important;
+  width: fit-content !important;
 }
 
 :host .seamless-shop--list .seamless-shop__button:hover,

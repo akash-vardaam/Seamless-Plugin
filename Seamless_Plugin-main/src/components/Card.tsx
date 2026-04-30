@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import type { Event } from '../types/event';
 import { getEventPageURL } from '../utils/urlHelper';
 
@@ -33,7 +32,25 @@ const formatDateRange = (startDate: string, endDate: string): string => {
   }
 };
 
-const formatTimeRange = (startDate: string, endDate: string): string => {
+const extractMeridiemTime = (value?: string): string => {
+  if (!value) return '';
+  const match = value.match(/(\d{1,2}:\d{2}\s?[AP]M)$/i);
+  return match ? match[1].toUpperCase().replace(/\s+/g, ' ') : '';
+};
+
+const formatTimeRange = (
+  startDate: string,
+  endDate: string,
+  formattedStartDate?: string,
+  formattedEndDate?: string,
+): string => {
+  const formattedStartTime = extractMeridiemTime(formattedStartDate);
+  const formattedEndTime = extractMeridiemTime(formattedEndDate);
+  if (formattedStartTime) {
+    const timeText = formattedEndTime ? `${formattedStartTime} - ${formattedEndTime}` : formattedStartTime;
+    return `${timeText} CDT`;
+  }
+
   try {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -41,15 +58,10 @@ const formatTimeRange = (startDate: string, endDate: string): string => {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Chicago',
     };
     const startTime = start.toLocaleTimeString('en-US', formatOptions);
     const endTime = end.toLocaleTimeString('en-US', formatOptions);
-    const timezone = start
-      .toLocaleTimeString('en-US', { timeZone: 'America/Chicago', timeZoneName: 'short' })
-      .split(' ')
-      .pop() || 'CT';
-    return `${startTime} - ${endTime} ${timezone}`;
+    return `${startTime} - ${endTime} CDT`;
   } catch {
     return '';
   }
@@ -97,17 +109,6 @@ const getItemLink = (item: Event): string => {
   const isGroup = item?.is_group_event;
   const slug = item?.slug || createItemSlug(item?.title, item?.id);
   return getEventPageURL(slug, isGroup);
-};
-
-const getItemRoute = (item: Event): string => {
-  const fullUrl = getItemLink(item);
-
-  try {
-    const parsed = new URL(fullUrl, window.location.origin);
-    return `${parsed.pathname}${parsed.search}`;
-  } catch {
-    return fullUrl;
-  }
 };
 
 const stripHtmlTags = (html: string): string => {
@@ -221,12 +222,12 @@ export const Card: React.FC<CardProps> = ({
         {/* Item Details */}
         <div className="seamless-card-content">
           {/* Title */}
-          <Link
-            to={getItemRoute(item)}
+          <a
+            href={getItemLink(item)}
             className="seamless-card-title seamless-font-merriweather"
           >
             {item?.title}
-          </Link>
+          </a>
 
           {/* Date Range */}
           <p className="seamless-card-date">
@@ -241,12 +242,17 @@ export const Card: React.FC<CardProps> = ({
 
           {/* Time */}
           <p className="seamless-card-time">
-            {formatTimeRange(item?.start_date, item?.end_date || item?.start_date)}
+            {formatTimeRange(
+              item?.start_date,
+              item?.end_date || item?.start_date,
+              item?.formatted_start_date,
+              item?.formatted_end_date || item?.formatted_start_date,
+            )}
           </p>
           
           {/* SEE DETAILS Button */}
           <button
-            onClick={() => window.location.href = getItemRoute(item)}
+            onClick={() => window.location.href = getItemLink(item)}
             className="seamless-card-see-details"
           >
             SEE DETAILS
@@ -285,12 +291,12 @@ export const Card: React.FC<CardProps> = ({
         <div className="seamless-card-modern-shell">
           <div className="seamless-card-modern-content">
             <div className="seamless-card-modern-body">
-              <Link
-                to={getItemRoute(item)}
+              <a
+                href={getItemLink(item)}
                 className="seamless-card-modern-title seamless-font-merriweather"
               >
                 {item?.title}
-              </Link>
+              </a>
 
               <div className="seamless-card-modern-meta">
                 {multiDayRange ? (
@@ -302,7 +308,14 @@ export const Card: React.FC<CardProps> = ({
 
                 <div className="seamless-card-modern-meta-row">
                   <ClockIcon />
-                  <span>{formatTimeRange(item?.start_date, item?.end_date || item?.start_date) || 'All Day'}</span>
+                  <span>
+                    {formatTimeRange(
+                      item?.start_date,
+                      item?.end_date || item?.start_date,
+                      item?.formatted_start_date,
+                      item?.formatted_end_date || item?.formatted_start_date,
+                    ) || 'All Day'}
+                  </span>
                 </div>
 
                 <div className="seamless-card-modern-meta-row">
@@ -315,10 +328,10 @@ export const Card: React.FC<CardProps> = ({
                 <p className="seamless-card-modern-description">{description}</p>
               ) : null}
 
-              <Link to={getItemRoute(item)} className="seamless-card-modern-link">
+              <a href={getItemLink(item)} className="seamless-card-modern-link">
                 <span>View Event</span>
                 <ArrowUpRightIcon />
-              </Link>
+              </a>
             </div>
 
             <div className="seamless-card-modern-image-wrap">
@@ -370,7 +383,12 @@ export const Card: React.FC<CardProps> = ({
 
             {/* Time */}
             <p className="seamless-card-list-meta-item">
-              {formatTimeRange(item?.start_date, item?.end_date || item?.start_date)}
+              {formatTimeRange(
+                item?.start_date,
+                item?.end_date || item?.start_date,
+                item?.formatted_start_date,
+                item?.formatted_end_date || item?.formatted_start_date,
+              )}
             </p>
 
             {/* Location */}

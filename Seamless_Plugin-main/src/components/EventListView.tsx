@@ -14,6 +14,8 @@ import { Pagination } from './Pagination';
 import type { ViewType, Event } from '../types/event';
 import { useCalendarEvents } from '../hooks/useCalendarEvents';
 import { useShadowRoot } from './ShadowRoot';
+import { SeamlessInitialLoader } from './ui/SeamlessInitialLoader';
+import { useInitialLoading } from '../hooks/useInitialLoading';
 // ... defaults
 
 export const EventListView: React.FC = () => {
@@ -145,6 +147,7 @@ export const EventListView: React.FC = () => {
     }, [items]);
 
     const loading = itemsLoading || categoriesLoading || tagsLoading;
+    const showInitialLoader = useInitialLoading(loading);
     const weekDayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
     const listItems = useMemo(() => {
@@ -344,6 +347,10 @@ export const EventListView: React.FC = () => {
                 </div>
             </div>
         );
+    }
+
+    if (showInitialLoader) {
+        return <SeamlessInitialLoader message="Loading events..." />;
     }
 
     return (

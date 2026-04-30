@@ -4,7 +4,7 @@
 
 :host .seamless-search-input {
   flex: 1 !important;
-  padding: 0.6rem 1.5rem !important;
+  padding: 0.6rem 2.8rem 0.6rem 1.5rem !important;
   border: 1px solid var(--seamless-color-gray-600) !important;
   border-radius: var(--seamless-radius-full) !important;
   font-size: var(--seamless-font-size-sm) !important;
@@ -15,6 +15,11 @@
   font-family: var(--seamless-font-family-default) !important;
 }
 
+:host .seamless-search-input-wrap {
+  position: relative !important;
+  width: 100% !important;
+}
+
 :host .seamless-search-input::placeholder {
   color: var(--seamless-color-gray-400) !important;
 }
@@ -23,6 +28,33 @@
   outline: none !important;
   border-color: var(--seamless-color-gray-700) !important;
   box-shadow: 0 0 0 1px var(--seamless-color-gray-700) !important;
+}
+
+:host .seamless-search-clear {
+  position: absolute !important;
+  top: 50% !important;
+  right: 0.9rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 1.4rem !important;
+  height: 1.4rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--seamless-color-gray-500) !important;
+  cursor: pointer !important;
+  transform: translateY(-50%) !important;
+}
+
+:host .seamless-search-clear:hover {
+  color: var(--seamless-color-gray-700) !important;
+}
+
+:host .seamless-search-clear svg {
+  width: 0.9rem !important;
+  height: 0.9rem !important;
+  display: block !important;
 }
 
 /* Dropdown base styles */

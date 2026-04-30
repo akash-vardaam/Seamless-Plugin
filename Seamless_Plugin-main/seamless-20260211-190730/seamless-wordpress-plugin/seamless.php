@@ -268,6 +268,295 @@ function seamless_enqueue_react_event_assets()
                     filemtime($js_path),
                     true
                 );
+
+                wp_localize_script('seamless-react-event-js', 'seamlessReactConfig', array(
+                    'siteUrl' => esc_url(home_url()),
+                    'restUrl' => esc_url(rest_url()),
+                    'nonce' => wp_create_nonce('seamless'),
+                    'ajaxUrl' => admin_url('admin-ajax.php'),
+                    'ajaxNonce' => wp_create_nonce('seamless_nonce'),
+                    'clientDomain' => rtrim(get_option('seamless_client_domain', ''), '/'),
+                    'eventListEndpoint' => get_option('seamless_event_list_endpoint', 'events'),
+                    'singleEventEndpoint' => get_option('seamless_single_event_endpoint', 'event'),
+                ));
+
+                wp_add_inline_script(
+                    'seamless-react-event-js',
+                    <<<'JS'
+(function () {
+    if (window.__seamlessCanonicalEventLinksPatched) {
+        return;
+    }
+    window.__seamlessCanonicalEventLinksPatched = true;
+
+    function normalizeEndpoint(value, fallback) {
+        var endpoint = (value || fallback || 'event').toString().trim().replace(/^\/+|\/+$/g, '');
+        return endpoint || fallback || 'event';
+    }
+
+    function getConfig() {
+        return window.seamlessReactConfig || window.seamlessConfig || {};
+    }
+
+    function getSafeReturnPath(value) {
+        if (!value) {
+            return '';
+        }
+
+        try {
+            var decoded = decodeURIComponent(value);
+            if (decoded.indexOf('/') !== 0 || decoded.indexOf('//') === 0 || /[\r\n]/.test(decoded)) {
+                return '';
+            }
+
+            var url = new URL(decoded, window.location.origin);
+            if (url.origin !== window.location.origin) {
+                return '';
+            }
+
+            return url.pathname + url.search + url.hash;
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function getCurrentReturnPath(endpoint) {
+        try {
+            var currentUrl = new URL(window.location.href);
+            var pathParts = currentUrl.pathname.split('/').filter(Boolean);
+            if (pathParts.indexOf(endpoint) !== -1) {
+                return '';
+            }
+
+            return currentUrl.pathname || '/';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function getReturnUrl() {
+        try {
+            var currentUrl = new URL(window.location.href);
+            var returnPath = getSafeReturnPath(currentUrl.searchParams.get('return_to'));
+            return returnPath ? new URL(returnPath, window.location.origin).toString() : '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function injectFilterIconFix(root) {
+        if (!root || root.__seamlessFilterIconFixInjected) {
+            return;
+        }
+
+        var target = root.nodeType === 9 ? document.head : root;
+        if (!target || !target.appendChild) {
+            return;
+        }
+
+        var style = document.createElement('style');
+        style.setAttribute('data-seamless-filter-icon-fix', 'true');
+        style.textContent = [
+            ':host .seamless-filter-search-icon, .seamless-filter-search-icon {',
+            'display: inline-flex !important;',
+            'align-items: center !important;',
+            'justify-content: center !important;',
+            'width: 1rem !important;',
+            'height: 1rem !important;',
+            'line-height: 1 !important;',
+            'overflow: hidden !important;',
+            '}',
+            ':host .seamless-filter-search-icon svg, .seamless-filter-search-icon svg {',
+            'display: block !important;',
+            'flex: 0 0 1rem !important;',
+            'width: 1rem !important;',
+            'height: 1rem !important;',
+            'min-width: 1rem !important;',
+            'min-height: 1rem !important;',
+            'max-width: 1rem !important;',
+            'max-height: 1rem !important;',
+            '}',
+        ].join('');
+        target.appendChild(style);
+        root.__seamlessFilterIconFixInjected = true;
+    }
+
+    function getEventUrl(slug, type) {
+        if (!slug) {
+            return '';
+        }
+
+        var config = getConfig();
+        var siteUrl = (config.siteUrl || window.location.origin).toString().replace(/\/+$/g, '');
+        var endpoint = normalizeEndpoint(config.singleEventEndpoint, 'event');
+        var url = new URL(siteUrl + '/' + endpoint + '/' + encodeURIComponent(slug));
+
+        if (type === 'group-event') {
+            url.searchParams.set('type', 'group-event');
+        }
+
+        var returnPath = getCurrentReturnPath(endpoint);
+        if (returnPath) {
+            url.searchParams.set('return_to', returnPath);
+        }
+
+        return url.toString();
+    }
+
+    function canonicalizeHref(href) {
+        if (!href) {
+            return '';
+        }
+
+        try {
+            var url = new URL(href, window.location.origin);
+            var slug = url.searchParams.get('seamless_event');
+            var config = getConfig();
+            var endpoint = normalizeEndpoint(config.singleEventEndpoint, 'event');
+
+            if (!slug) {
+                var pathParts = url.pathname.split('/').filter(Boolean);
+                var endpointIndex = pathParts.indexOf(endpoint);
+                if (endpointIndex === -1 || !pathParts[endpointIndex + 1]) {
+                    return '';
+                }
+                slug = decodeURIComponent(pathParts[endpointIndex + 1]);
+            }
+
+            var type = url.searchParams.get('type') === 'group-event' ? 'group-event' : '';
+            return getEventUrl(slug, type);
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function normalizeAnchor(anchor) {
+        if (!anchor || !anchor.getAttribute) {
+            return;
+        }
+
+        var canonical = canonicalizeHref(anchor.getAttribute('href') || '');
+        if (canonical && anchor.href !== canonical) {
+            anchor.href = canonical;
+        }
+    }
+
+    function normalizeEventLinks(root) {
+        var scope = root && root.querySelectorAll ? root : document;
+        scope.querySelectorAll('a[href*="seamless_event="]').forEach(normalizeAnchor);
+    }
+
+    function normalizeReturnLinks(root) {
+        var returnUrl = getReturnUrl();
+        if (!returnUrl) {
+            return;
+        }
+
+        var scope = root && root.querySelectorAll ? root : document;
+        scope.querySelectorAll('.seamless-single-evt-back-btn, .seamless-breadcrumb-link').forEach(function (anchor) {
+            var label = (anchor.textContent || '').trim().toLowerCase();
+            if (anchor.classList.contains('seamless-single-evt-back-btn') || label === 'events') {
+                anchor.href = returnUrl;
+            }
+        });
+    }
+
+    function findAnchorFromEvent(event) {
+        var path = event.composedPath ? event.composedPath() : [];
+        for (var i = 0; i < path.length; i++) {
+            if (path[i] && path[i].tagName === 'A' && path[i].getAttribute) {
+                return path[i];
+            }
+        }
+
+        return event.target && event.target.closest ? event.target.closest('a[href]') : null;
+    }
+
+    function observeRoot(root) {
+        if (!root || root.__seamlessCanonicalEventLinksObserved) {
+            return;
+        }
+
+        root.__seamlessCanonicalEventLinksObserved = true;
+        injectFilterIconFix(root);
+        normalizeEventLinks(root);
+        normalizeReturnLinks(root);
+
+        if (window.MutationObserver) {
+            new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    mutation.addedNodes.forEach(function (node) {
+                        if (node.nodeType !== 1) {
+                            return;
+                        }
+
+                        if (node.matches && node.matches('a[href*="seamless_event="]')) {
+                            normalizeAnchor(node);
+                        }
+
+                        normalizeEventLinks(node);
+                        normalizeReturnLinks(node);
+
+                        if (node.shadowRoot) {
+                            observeRoot(node.shadowRoot);
+                        }
+                    });
+                });
+            }).observe(root, { childList: true, subtree: true });
+        }
+    }
+
+    function observeOpenShadowRoots() {
+        document.querySelectorAll('*').forEach(function (node) {
+            if (node.shadowRoot) {
+                observeRoot(node.shadowRoot);
+            }
+        });
+    }
+
+    if (window.Element && Element.prototype.attachShadow && !Element.prototype.__seamlessCanonicalAttachShadowPatched) {
+        var originalAttachShadow = Element.prototype.attachShadow;
+        Element.prototype.attachShadow = function () {
+            var root = originalAttachShadow.apply(this, arguments);
+            setTimeout(function () {
+                observeRoot(root);
+            }, 0);
+            return root;
+        };
+        Element.prototype.__seamlessCanonicalAttachShadowPatched = true;
+    }
+
+    function init() {
+        observeRoot(document);
+        observeOpenShadowRoots();
+
+        document.addEventListener('click', function (event) {
+            var anchor = findAnchorFromEvent(event);
+            if (!anchor) {
+                return;
+            }
+
+            var canonical = canonicalizeHref(anchor.getAttribute('href') || '');
+            if (!canonical) {
+                return;
+            }
+
+            event.preventDefault();
+            window.location.href = canonical;
+        }, true);
+
+        setTimeout(observeOpenShadowRoots, 0);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+JS,
+                    'after'
+                );
                 break;
             }
         }

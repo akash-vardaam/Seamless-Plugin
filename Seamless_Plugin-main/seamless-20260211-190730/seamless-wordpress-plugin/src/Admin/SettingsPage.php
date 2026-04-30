@@ -111,8 +111,6 @@ class SettingsPage
 
 	public function add_submenu_pages(): void
 	{
-		global $submenu;
-
 		add_submenu_page(
 			'seamless',
 			esc_html__('Overview', 'seamless'),
@@ -121,48 +119,6 @@ class SettingsPage
 			'seamless',
 			[$this, 'render_welcome_page']
 		);
-
-		add_submenu_page(
-			'seamless',
-			esc_html__('Settings', 'seamless'),
-			esc_html__('Settings', 'seamless'),
-			'manage_options',
-			'seamless-settings',
-			[$this, 'render_admin_page']
-		);
-
-		add_submenu_page(
-			'seamless',
-			esc_html__('Clear Cache', 'seamless'),
-			esc_html__('Clear Cache', 'seamless'),
-			'manage_options',
-			'seamless-clear-cache',
-			[$this, 'render_welcome_page']
-		);
-
-		if (isset($submenu['seamless'])) {
-			foreach ($submenu['seamless'] as &$item) {
-				if (($item[2] ?? '') === 'seamless-settings') {
-					$item[2] = add_query_arg(
-						[
-							'page' => 'seamless',
-							'view' => 'settings',
-							'tab' => 'authentication',
-						],
-						admin_url('admin.php')
-					);
-				}
-
-				if (($item[2] ?? '') === 'seamless-clear-cache') {
-					$item[2] = wp_nonce_url(
-						admin_url('admin-post.php?action=seamless_clear_cache'),
-						'seamless_clear_cache',
-						'seamless_nonce'
-					);
-				}
-			}
-			unset($item);
-		}
 	}
 
 	public function register_settings(): void
@@ -260,6 +216,18 @@ class SettingsPage
 			'sanitize_callback' => 'sanitize_text_field',
 			'default'           => 'option_1',
 		]);
+		register_setting('seamless_addons_group', 'seamless_addon_debug_logging', [
+			'sanitize_callback' => [$this, 'sanitize_checkbox'],
+			'default'           => 0,
+		]);
+		register_setting('seamless_addons_group', 'seamless_addon_single_event_template', [
+			'sanitize_callback' => 'absint',
+			'default'           => 0,
+		]);
+		register_setting('seamless_addons_group', 'seamless_addon_event_templates', [
+			'sanitize_callback' => [$this, 'sanitize_addon_event_templates'],
+			'default'           => [],
+		]);
 
 		// SSO settings
 		register_setting('seamless_sso_settings_group', 'seamless_sso_enabled', [
@@ -299,12 +267,15 @@ class SettingsPage
 	public function render_settings_content(): void
 	{
 		$active_tab = $this->get_active_tab();
+		$tabs = $this->get_navigation_tabs();
 	?>
 		<div class="seamless-settings-content">
 			<div class="seamless-page-surface seamless-loading-surface is-page-loading" data-seamless-page-loading="settings" data-seamless-loading-tab="<?php echo esc_attr($active_tab); ?>">
-				<div class="seamless-tab-panel is-active" data-tab="<?php echo esc_attr($active_tab); ?>">
-					<?php $this->render_tab_content($active_tab); ?>
-				</div>
+				<?php foreach ($tabs as $tab_key => $tab): ?>
+					<div class="seamless-tab-panel <?php echo ($active_tab === $tab_key) ? 'is-active' : ''; ?>" data-tab="<?php echo esc_attr($tab_key); ?>">
+						<?php $this->render_tab_content((string) $tab_key); ?>
+					</div>
+				<?php endforeach; ?>
 			</div>
 		</div>
 	<?php
@@ -374,8 +345,14 @@ class SettingsPage
 		$tabs['advanced'] = [
 			'label' => __('Advanced', 'seamless'),
 			'description' => __('Adjust color behavior and list presentation settings used by the plugin frontend.', 'seamless'),
-			'icon' => 'dashicons-admin-generic',
+			'icon' => 'dashicons-admin-settings',
 			'url' => $this->get_settings_tab_url('advanced'),
+		];
+		$tabs['addons'] = [
+			'label' => __('Addons', 'seamless'),
+			'description' => __('Configure addon settings.', 'seamless'),
+			'icon' => 'dashicons-admin-plugins',
+			'url' => $this->get_settings_tab_url('addons'),
 		];
 
 		$custom_tabs = apply_filters('seamless_settings_tabs', []);
@@ -439,10 +416,43 @@ class SettingsPage
 			case 'advanced':
 				$this->render_advanced_tab();
 				return;
+			case 'addons':
+				$this->render_addons_tab();
+				return;
 			default:
 				do_action('seamless_settings_tab_content_' . $active_tab);
 				return;
 		}
+	}
+
+	public function sanitize_checkbox($value): int
+	{
+		return !empty($value) ? 1 : 0;
+	}
+
+	public function sanitize_addon_event_templates($value): array
+	{
+		if (!is_array($value)) {
+			return [];
+		}
+
+		$sanitized = [];
+		foreach ($value as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+
+			$event_id = isset($row['event_id']) ? absint($row['event_id']) : 0;
+			$template_id = isset($row['template_id']) ? absint($row['template_id']) : 0;
+			if ($event_id > 0) {
+				$sanitized[] = [
+					'event_id' => $event_id,
+					'template_id' => $template_id,
+				];
+			}
+		}
+
+		return $sanitized;
 	}
 
 	public function render_auth_tab(): void
@@ -509,6 +519,7 @@ class SettingsPage
 									<td>
 										<input type="url"
 											id="seamless_client_domain"
+											class="seamless_client_domain_field"
 											name="seamless_client_domain"
 											value="<?php echo esc_attr(get_option('seamless_client_domain', '')); ?>"
 											class="regular-text"
@@ -541,32 +552,58 @@ class SettingsPage
 								<h3>Successfully Connected!</h3>
 								<p>Connected to <strong><?php echo esc_html($client_domain); ?></strong></p>
 							</div>
+							<div class="seamless-secure-handshake">
+								<span class="dashicons dashicons-shield"></span>
+								<span><?php esc_html_e('Secure handshake verified', 'seamless'); ?></span>
+							</div>
 						</div>
+
+						<div class="seamless-connection-card">
+							<div class="seamless-panel-header">
+								<div>
+									<h2 class="seamless-panel-title"><?php esc_html_e('Connection Details', 'seamless'); ?></h2>
+									<p class="seamless-panel-description"><?php esc_html_e('Live status and metadata for your Seamless AMS link.', 'seamless'); ?></p>
+								</div>
+							</div>
 
 						<div class="seamless-connection-details">
 							<div class="seamless-detail-item">
+									<span class="seamless-detail-icon is-primary">
+										<span class="dashicons dashicons-admin-network"></span>
+									</span>
+									<span class="seamless-detail-content">
 								<span class="seamless-detail-label">
-									<span class="dashicons dashicons-admin-network"></span>
 									Connection Status
 								</span>
 								<span class="seamless-status-badge connected">
 									<span class="dashicons dashicons-yes-alt"></span>
 									Connected
 								</span>
+									</span>
 							</div>
 
 							<div class="seamless-detail-item">
+									<span class="seamless-detail-icon is-primary">
+										<span class="dashicons dashicons-admin-site-alt3"></span>
+									</span>
+									<span class="seamless-detail-content">
 								<span class="seamless-detail-label">
-									<span class="dashicons dashicons-admin-site-alt3"></span>
 									Domain
 								</span>
 								<span class="seamless-detail-value"><?php echo esc_html($client_domain); ?></span>
+									</span>
 							</div>
+						</div>
 						</div>
 
 						<div class="seamless-connection-actions">
+							<div>
+								<h2 class="seamless-panel-title"><?php esc_html_e('Manage connection', 'seamless'); ?></h2>
+								<p class="seamless-panel-description"><?php esc_html_e('Disconnect this site from Seamless AMS.', 'seamless'); ?></p>
+							</div>
 							<button type="button" class="seamless-btn seamless-btn-danger" id="seamless-disconnect-btn">
-								<span>Disconnect</span>
+								<span class="dashicons dashicons-editor-unlink"></span>
+								<span class="seamless-disconnect-label">Disconnect</span>
 							</button>
 						</div>
 					</div>
@@ -731,15 +768,22 @@ class SettingsPage
 			$cache_service->clear_all();
 		}
 
-		wp_safe_redirect(
-			add_query_arg(
+		$redirect_to = isset($_POST['redirect_to']) ? esc_url_raw(wp_unslash($_POST['redirect_to'])) : '';
+		if ($redirect_to === '' || strpos($redirect_to, admin_url()) !== 0) {
+			$redirect_to = add_query_arg(
 				[
 					'page' => 'seamless',
-					'view' => 'settings',
-					'tab' => 'addon',
-					'seamless_addon_cache_cleared' => '1',
+					'view' => 'overview',
 				],
 				admin_url('admin.php')
+			);
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				'seamless_addon_cache_cleared',
+				'1',
+				$redirect_to
 			)
 		);
 		exit;
@@ -747,8 +791,8 @@ class SettingsPage
 
 	public function render_advanced_tab(): void
 	{
-		wp_enqueue_style('wp-color-picker');
-		wp_enqueue_script('wp-color-picker');
+		$color_scheme = (string) get_option('seamless_color_scheme', 'theme');
+		$is_plugin_color_scheme = ($color_scheme === 'plugin');
 	?>
 
 		<div class="seamless-page-stack">
@@ -775,7 +819,7 @@ class SettingsPage
 									</p>
 									<p>
 										<label class="seamless-radio-label">
-											<input type="radio" name="seamless_color_scheme" value="plugin" <?php checked(get_option('seamless_color_scheme'), 'plugin'); ?> />
+											<input type="radio" name="seamless_color_scheme" value="plugin" <?php checked($color_scheme, 'plugin'); ?> />
 											<span>Use plugin's default colors</span>
 										</label>
 									<p class="description">Use the default color scheme that comes with the Seamless plugin.</p>
@@ -783,14 +827,14 @@ class SettingsPage
 								</fieldset>
 							</td>
 						</tr>
-						<tr valign="top" class="plugin-color-settings" style="display: none;">
+						<tr valign="top" class="plugin-color-settings" <?php echo $is_plugin_color_scheme ? '' : 'style="display: none;"'; ?>>
 							<th scope="row">Primary Color</th>
 							<td>
 								<input type="text" name="seamless_primary_color" value="<?php echo esc_attr(get_option('seamless_primary_color', '#26337a')); ?>" class="seamless-color-picker" />
 								<p class="description">Main color for headings and important elements.</p>
 							</td>
 						</tr>
-						<tr valign="top" class="plugin-color-settings" style="display: none;">
+						<tr valign="top" class="plugin-color-settings" <?php echo $is_plugin_color_scheme ? '' : 'style="display: none;"'; ?>>
 							<th scope="row">Secondary Color</th>
 							<td>
 								<input type="text" name="seamless_secondary_color" value="<?php echo esc_attr(get_option('seamless_secondary_color', '#06b6d4')); ?>" class="seamless-color-picker" />
@@ -1012,7 +1056,7 @@ class SettingsPage
 							<span class="dashicons dashicons-search"></span>
 							<input type="text" id="seamless-events-search" placeholder="Search events..." class="seamless-search-field">
 						</div>
-						<button type="button" class="button seamless-search-reset" id="seamless-events-reset" style="display: none;">
+						<button type="button" class="button seamless-search-reset" id="seamless-events-reset">
 							<?php esc_html_e('Clear', 'seamless'); ?>
 						</button>
 					</div>
@@ -1114,6 +1158,175 @@ class SettingsPage
 					?>
 				</p>
 			</div>
+
+			<?php if ($this->auth->is_authenticated()): ?>
+				<div class="seamless-panel-header">
+					<div>
+						<h2 class="seamless-panel-title event-title"><?php esc_html_e('Live Shop Products', 'seamless'); ?></h2>
+						<p class="seamless-panel-description"><?php esc_html_e('Search synced products and copy single-product shortcodes directly from the latest shop data.', 'seamless'); ?></p>
+					</div>
+				</div>
+				<div class="seamless-search-bar">
+					<div class="seamless-search-input">
+						<span class="dashicons dashicons-search"></span>
+						<input type="text" id="seamless-shop-search" placeholder="Search products..." class="seamless-search-field">
+					</div>
+						<button type="button" class="button seamless-search-reset" id="seamless-shop-reset">
+						<?php esc_html_e('Clear', 'seamless'); ?>
+					</button>
+				</div>
+				<div class="seamless-table-area">
+					<table class="wp-list-table widefat striped seamless-table" id="seamless-admin-shop-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e('No.', 'seamless'); ?></th>
+								<th><?php esc_html_e('Title', 'seamless'); ?></th>
+								<th><?php esc_html_e('Slug', 'seamless'); ?></th>
+								<th><?php esc_html_e('SKU', 'seamless'); ?></th>
+								<th><?php esc_html_e('Price', 'seamless'); ?></th>
+								<th><?php esc_html_e('Shortcode', 'seamless'); ?></th>
+							</tr>
+						</thead>
+						<tbody id="seamless-shop-table-body">
+							<?php $this->render_table_skeleton_rows(6); ?>
+						</tbody>
+					</table>
+					<div id="seamless-shop-pagination" class="seamless-pagination-wrapper"></div>
+				</div>
+			<?php endif; ?>
+		</div>
+	<?php
+	}
+
+	private function get_elementor_templates(): array
+	{
+		return get_posts([
+			'post_type' => 'elementor_library',
+			'post_status' => ['publish', 'draft'],
+			'numberposts' => -1,
+			'orderby' => 'title',
+			'order' => 'ASC',
+		]);
+	}
+
+	private function get_event_posts_for_addons(): array
+	{
+		$post_types = ['seamless_event', 'tribe_events', 'event'];
+		$events = [];
+
+		foreach ($post_types as $post_type) {
+			if (!post_type_exists($post_type)) {
+				continue;
+			}
+
+			$events = get_posts([
+				'post_type' => $post_type,
+				'post_status' => 'publish',
+				'numberposts' => -1,
+				'orderby' => 'title',
+				'order' => 'ASC',
+			]);
+
+			if (!empty($events)) {
+				break;
+			}
+		}
+
+		return $events;
+	}
+
+	public function render_addons_tab(): void
+	{
+		$templates = $this->get_elementor_templates();
+		$events = $this->get_event_posts_for_addons();
+		$saved_rows = get_option('seamless_addon_event_templates', []);
+		if (!is_array($saved_rows) || empty($saved_rows)) {
+			$saved_rows = [['event_id' => 0, 'template_id' => 0]];
+		}
+	?>
+		<div class="seamless-page-stack">
+			<div class="seamless-panel-header">
+				<div>
+					<h2 class="seamless-panel-title"><?php esc_html_e('Addon Settings', 'seamless'); ?></h2>
+					<p class="seamless-panel-description"><?php esc_html_e('Configure Addon settings.', 'seamless'); ?></p>
+				</div>
+			</div>
+			<form method="post" action="options.php">
+				<input type="hidden" name="_seamless_return_tab" value="addons">
+				<?php settings_fields('seamless_addons_group'); ?>
+				<table class="form-table">
+					<tr valign="top">
+						<th scope="row"><?php esc_html_e('Debug Mode', 'seamless'); ?></th>
+						<td>
+							<label class="seamless-radio-label">
+								<input type="checkbox" name="seamless_addon_debug_logging" value="1" <?php checked((int) get_option('seamless_addon_debug_logging', 0), 1); ?> />
+								<span><?php esc_html_e('Enable debug logging', 'seamless'); ?></span>
+							</label>
+							<p class="description"><?php esc_html_e('Enable detailed logging for troubleshooting. Requires WP_DEBUG to be enabled.', 'seamless'); ?></p>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><?php esc_html_e('Single Event Template', 'seamless'); ?></th>
+						<td>
+							<select name="seamless_addon_single_event_template" class="regular-text">
+								<option value="0"><?php esc_html_e('None', 'seamless'); ?></option>
+								<?php foreach ($templates as $template): ?>
+									<option value="<?php echo esc_attr((string) $template->ID); ?>" <?php selected((int) get_option('seamless_addon_single_event_template', 0), (int) $template->ID); ?>>
+										<?php echo esc_html(get_the_title($template)); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+							<p class="description"><?php esc_html_e('Select an Elementor template to use for all single event pages.', 'seamless'); ?></p>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><?php esc_html_e('Event-specific Templates', 'seamless'); ?></th>
+						<td>
+							<table class="wp-list-table widefat striped seamless-addon-event-templates-table" id="seamless-addon-event-templates-table">
+								<thead>
+									<tr>
+										<th><?php esc_html_e('Event', 'seamless'); ?></th>
+										<th><?php esc_html_e('Elementor Template', 'seamless'); ?></th>
+										<th><?php esc_html_e('Actions', 'seamless'); ?></th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach (array_values($saved_rows) as $row_index => $row): ?>
+										<tr class="seamless-addon-template-row">
+											<td>
+												<select name="seamless_addon_event_templates[<?php echo esc_attr((string) $row_index); ?>][event_id]" class="regular-text">
+													<option value="0"><?php esc_html_e('Select event', 'seamless'); ?></option>
+													<?php foreach ($events as $event): ?>
+														<option value="<?php echo esc_attr((string) $event->ID); ?>" <?php selected((int) ($row['event_id'] ?? 0), (int) $event->ID); ?>>
+															<?php echo esc_html(get_the_title($event)); ?>
+														</option>
+													<?php endforeach; ?>
+												</select>
+											</td>
+											<td>
+												<select name="seamless_addon_event_templates[<?php echo esc_attr((string) $row_index); ?>][template_id]" class="regular-text">
+													<option value="0"><?php esc_html_e('None', 'seamless'); ?></option>
+													<?php foreach ($templates as $template): ?>
+														<option value="<?php echo esc_attr((string) $template->ID); ?>" <?php selected((int) ($row['template_id'] ?? 0), (int) $template->ID); ?>>
+															<?php echo esc_html(get_the_title($template)); ?>
+														</option>
+													<?php endforeach; ?>
+												</select>
+											</td>
+											<td class="seamless-addon-template-actions">
+												<button type="button" class="button seamless-addon-add-row"><span class="dashicons dashicons-plus-alt2"></span></button>
+												<button type="button" class="button seamless-addon-remove-row"><span class="dashicons dashicons-minus"></span></button>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+							<p class="description"><?php esc_html_e('Assign specific Elementor templates to individual events. If an event has a matching slug here, its template will override the base event template.', 'seamless'); ?></p>
+						</td>
+					</tr>
+				</table>
+				<?php submit_button('Save Addon Settings'); ?>
+			</form>
 		</div>
 	<?php
 	}
@@ -1167,7 +1380,7 @@ class SettingsPage
 							<span class="dashicons dashicons-search"></span>
 							<input type="text" id="seamless-membership-search" placeholder="Search membership plans..." class="seamless-search-field">
 						</div>
-						<button type="button" class="button seamless-search-reset" id="seamless-membership-reset" style="display: none;">
+						<button type="button" class="button seamless-search-reset" id="seamless-membership-reset">
 							<?php esc_html_e('Clear', 'seamless'); ?>
 						</button>
 					</div>
@@ -1350,17 +1563,8 @@ class SettingsPage
 
 				// Advanced Tab JS - initialize once and reuse
 				function initAdvancedTabOnce() {
-					if (window.__seamlessAdvancedInitialized) {
-						return;
-					}
-					window.__seamlessAdvancedInitialized = true;
-
-					if ($('.seamless-color-picker').length) {
-						$('.seamless-color-picker').wpColorPicker();
-					}
-
 					var color_scheme_radio = $('input[name="seamless_color_scheme"]');
-					if (color_scheme_radio.length) {
+					if (color_scheme_radio.length && !color_scheme_radio.data('seamlessToggleBound')) {
 						var plugin_color_settings = $('.plugin-color-settings');
 
 						function toggle_color_settings() {
@@ -1373,11 +1577,82 @@ class SettingsPage
 
 						toggle_color_settings();
 						color_scheme_radio.on('change', toggle_color_settings);
+						color_scheme_radio.data('seamlessToggleBound', true);
 					}
+
+					if (window.__seamlessAdvancedInitialized) {
+						return;
+					}
+
+					var $pickers = $('.seamless-color-picker');
+					if (!$pickers.length) {
+						window.__seamlessAdvancedInitialized = true;
+						return;
+					}
+
+					if (typeof $.fn.wpColorPicker !== 'function') {
+						window.setTimeout(initAdvancedTabOnce, 120);
+						return;
+					}
+
+					$pickers.each(function() {
+						var $picker = $(this);
+						if (!$picker.data('seamlessColorPickerReady')) {
+							$picker.wpColorPicker();
+							$picker.data('seamlessColorPickerReady', true);
+						}
+					});
+
+					window.__seamlessAdvancedInitialized = true;
 				}
 
 				if (activeTab === 'advanced') {
 					initAdvancedTabOnce();
+				}
+
+				function initAddonsTabRows() {
+					var $table = $('#seamless-addon-event-templates-table');
+					if (!$table.length || $table.data('seamlessRowsReady')) {
+						return;
+					}
+					$table.data('seamlessRowsReady', true);
+
+					function nextIndex() {
+						var maxIndex = -1;
+						$table.find('tbody tr').each(function() {
+							var nameAttr = $(this).find('select[name*="[event_id]"]').attr('name') || '';
+							var match = nameAttr.match(/seamless_addon_event_templates\[(\d+)\]/);
+							if (match) {
+								maxIndex = Math.max(maxIndex, parseInt(match[1], 10));
+							}
+						});
+						return maxIndex + 1;
+					}
+
+					$table.on('click', '.seamless-addon-add-row', function() {
+						var $row = $(this).closest('tr');
+						var newIndex = nextIndex();
+						var rowHtml = $row.prop('outerHTML')
+							.replace(/seamless_addon_event_templates\[\d+\]/g, 'seamless_addon_event_templates[' + newIndex + ']')
+							.replace(/selected="selected"/g, '')
+							.replace(/selected/g, '');
+						var $newRow = $(rowHtml);
+						$newRow.find('select').val('0');
+						$row.after($newRow);
+					});
+
+					$table.on('click', '.seamless-addon-remove-row', function() {
+						var $rows = $table.find('tbody tr');
+						if ($rows.length <= 1) {
+							$rows.first().find('select').val('0');
+							return;
+						}
+						$(this).closest('tr').remove();
+					});
+				}
+
+				if (activeTab === 'addons') {
+					initAddonsTabRows();
 				}
 
 				// Scoped loader overlay helpers for table areas
@@ -1411,10 +1686,10 @@ class SettingsPage
 					});
 				}
 
-				function showScopedLoading() {
+				function showScopedLoading($scope) {
 					ensureScopedLoaders();
-					$('[data-seamless-page-loading="settings"]').addClass('is-page-loading');
-					$('.seamless-table-area').each(function() {
+					var $areas = $scope && $scope.length ? $scope.closest('.seamless-table-area') : $('.seamless-table-area');
+					$areas.each(function() {
 						var $area = $(this);
 						var $tbody = $area.find('tbody').first();
 
@@ -1443,6 +1718,10 @@ class SettingsPage
 
 				// Search reset buttons - remove search & paged params and reload
 				$('.seamless-card, .seamless-settings-content').on('click', '.seamless-search-reset', function(e) {
+					if ($(this).is('#seamless-events-reset, #seamless-membership-reset')) {
+						return;
+					}
+
 					e.preventDefault();
 					var $form = $(this).closest('form');
 					var url = new URL(window.location.href);
@@ -1502,7 +1781,7 @@ class SettingsPage
 					var button = $(this);
 					var originalText = button.html();
 					button.html('<span class="dashicons dashicons-update spin"></span> Fetching...').prop('disabled', true);
-					showScopedLoading();
+					showScopedLoading($('#seamless-events-table-body'));
 
 					$.post(ajaxurl, {
 						action: 'seamless_fetch_latest_events',
@@ -1643,9 +1922,10 @@ class SettingsPage
 						'Are you sure you want to disconnect from Seamless? You will need to re-authenticate to access your data.',
 						function() {
 							// User confirmed - proceed with disconnect
+							var originalText = button.html();
 							button
 								.css('width', button.outerWidth() + 'px')
-								.addClass('seamless-btn--loading')
+								.html('<span class="dashicons dashicons-update spin"></span><span class="seamless-disconnect-label">Disconnecting...</span>')
 								.prop('disabled', true)
 								.attr('aria-busy', 'true');
 
@@ -1654,14 +1934,12 @@ class SettingsPage
 								nonce: '<?php echo wp_create_nonce('seamless_disconnect'); ?>'
 							}).done(function(response) {
 								if (response.success) {
-									var redirectUrl = window.location.href.includes('view=settings') ?
-										'?page=seamless&tab=authentication&disconnected=1' :
-										'?page=seamless&tab=authentication&disconnected=1';
+									var redirectUrl = '?page=seamless&view=settings&tab=authentication&disconnected=1';
 									window.location.href = redirectUrl;
 								} else {
 									showToast('Failed to disconnect: ' + (response.data || 'Unknown error'), 'error');
 									button
-										.removeClass('seamless-btn--loading')
+										.html(originalText)
 										.prop('disabled', false)
 										.css('width', '')
 										.removeAttr('aria-busy');
@@ -1669,7 +1947,7 @@ class SettingsPage
 							}).fail(function() {
 								showToast('Failed to disconnect. Please try again.', 'error');
 								button
-									.removeClass('seamless-btn--loading')
+									.html(originalText)
 									.prop('disabled', false)
 									.css('width', '')
 									.removeAttr('aria-busy');
@@ -1703,7 +1981,7 @@ class SettingsPage
 					var button = $(this);
 					var originalText = button.html();
 					button.html('<span class="dashicons dashicons-update spin"></span> Fetching...').prop('disabled', true);
-					showScopedLoading();
+					showScopedLoading($('#seamless-membership-table-body'));
 
 					$.post(ajaxurl, {
 						action: 'seamless_fetch_latest_membership_data',
@@ -1753,6 +2031,11 @@ class SettingsPage
 		if (strpos($hook, 'seamless') === false) {
 			return;
 		}
+
+		// Load the WordPress color picker early so the Advanced tab can enhance
+		// its inputs on the first paint instead of waiting for a reload.
+		wp_enqueue_style('wp-color-picker');
+		wp_enqueue_script('wp-color-picker');
 
 		// Enqueue a custom handle for inline styles
 		wp_enqueue_style('seamless-admin-inline', false);
@@ -3066,6 +3349,17 @@ class SettingsPage
 
 			.seamless-search-input .dashicons {
 				color: #6c5ce7;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 18px;
+				height: 18px;
+				font-size: 18px;
+				line-height: 1;
+			}
+
+			.seamless-loading-surface.is-page-loading .seamless-search-input .dashicons {
+				opacity: 0;
 			}
 
 			.seamless-search-field {

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Minus, Plus, ShoppingCart } from 'lucide-react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import { SeamlessInitialLoader } from '../ui/SeamlessInitialLoader';
+import { useInitialLoading } from '../../hooks/useInitialLoading';
 import {
   fetchCurrentCart,
   removeCartItem,
@@ -27,6 +29,7 @@ export const ShopCartView: React.FC = () => {
   const [removingKey, setRemovingKey] = useState<string | null>(null);
   const [draftQuantities, setDraftQuantities] = useState<DraftQuantities>({});
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const showInitialLoader = useInitialLoading(loading);
 
   useEffect(() => {
     void loadCart();
@@ -162,6 +165,10 @@ export const ShopCartView: React.FC = () => {
     const timer = window.setTimeout(() => setToast(null), 5000);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  if (showInitialLoader) {
+    return <SeamlessInitialLoader message="Loading your cart..." />;
+  }
 
   if (loading) {
     return (

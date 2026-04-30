@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useShadowRoot } from '../ShadowRoot';
+import { SeamlessInitialLoader } from '../ui/SeamlessInitialLoader';
+import { useInitialLoading } from '../../hooks/useInitialLoading';
 import {
   addItemToCart,
   fetchAllShopProducts,
@@ -96,6 +98,7 @@ export const ShopListView: React.FC = () => {
   const [addingProductId, setAddingProductId] = useState<string | null>(null);
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
   const addedResetTimerRef = useRef<number | null>(null);
+  const showInitialLoader = useInitialLoading(loading);
 
   useEffect(() => {
     let cancelled = false;
@@ -337,6 +340,10 @@ export const ShopListView: React.FC = () => {
     }
   };
 
+  if (showInitialLoader) {
+    return <SeamlessInitialLoader message="Loading shop products..." />;
+  }
+
   if (loading) {
     return (
       <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
@@ -449,17 +456,30 @@ export const ShopListView: React.FC = () => {
 
         {filtersOpen ? (
           <div className="seamless-shop__filters" data-shop-filter-wrap>
-            <div className="seamless-shop__filter-group">
+              <div className="seamless-shop__filter-group">
               <label className="seamless-shop__label">Search</label>
               <div className="seamless-shop__search-wrap">
                 <Search className="seamless-shop__search-icon" />
                 <input
-                  type="search"
+                  type="text"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Find items..."
                   className="seamless-shop__input"
                 />
+                {search && (
+                  <button
+                    type="button"
+                    className="seamless-shop__search-clear"
+                    onClick={() => setSearch('')}
+                    aria-label="Clear search"
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <line x1="4" y1="4" x2="12" y2="12"></line>
+                      <line x1="12" y1="4" x2="4" y2="12"></line>
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
 

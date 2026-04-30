@@ -8,11 +8,51 @@ export interface EventURLConfig {
   shopCartEndpoint?: string;
 }
 
-const LIST_QUERY_KEYS = ['search', 'status', 'categories', 'year', 'page', 'view', 'date'];
-
 const normalizeEndpoint = (value: string | undefined, fallback: string): string => {
   const normalized = (value || fallback).trim().replace(/^\/+|\/+$/g, '');
   return normalized || fallback;
+};
+
+const getSafeRelativeReturnPath = (value: string | null): string => {
+  if (!value || typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    const decoded = decodeURIComponent(value);
+    if (!decoded.startsWith('/') || decoded.startsWith('//') || /[\r\n]/.test(decoded)) {
+      return '';
+    }
+
+    const url = new URL(decoded, window.location.origin);
+    if (url.origin !== window.location.origin) {
+      return '';
+    }
+
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return '';
+  }
+};
+
+const getCurrentEventListReturnPath = (singleEventEndpoint: string): string => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    const currentUrl = new URL(window.location.href);
+    const pathParts = currentUrl.pathname.split('/').filter(Boolean);
+    const endpoint = normalizeEndpoint(singleEventEndpoint, 'event');
+
+    if (pathParts.indexOf(endpoint) !== -1) {
+      return '';
+    }
+
+    return currentUrl.pathname || '/';
+  } catch {
+    return '';
+  }
 };
 
 const getWindowConfig = (): Partial<EventURLConfig> | null => {
@@ -97,37 +137,21 @@ export const createEventSlug = (title: string, id: string): string => {
 };
 
 export const getEventPageURL = (eventSlug: string, isGroupEvent: boolean = false): string => {
-  if (typeof window !== 'undefined') {
-    const currentUrl = new URL(window.location.href);
-    const currentParams = currentUrl.searchParams;
-    const currentEventSlug = currentParams.get('seamless_event');
-
-    // When the user is already on a shortcode-driven Seamless page, keep them on
-    // that same page and switch the rendered detail via query params.
-    if (document.querySelector('[data-seamless-view="events"]') || currentEventSlug) {
-      LIST_QUERY_KEYS.forEach((key) => currentParams.delete(key));
-      currentParams.set('seamless_event', eventSlug);
-
-      if (isGroupEvent) {
-        currentParams.set('type', 'group-event');
-      } else {
-        currentParams.delete('type');
-      }
-
-      return currentUrl.toString();
-    }
-  }
-
   const config = getSeamlessConfig();
   const baseUrl = config?.siteUrl || window.location.origin;
   const singleEventEndpoint = config?.singleEventEndpoint || 'event';
-  const eventUrl = `${baseUrl.replace(/\/+$/g, '')}/${singleEventEndpoint}/${encodeURIComponent(eventSlug)}`;
+  const eventUrl = new URL(`${baseUrl.replace(/\/+$/g, '')}/${singleEventEndpoint}/${encodeURIComponent(eventSlug)}`);
 
-  if (!isGroupEvent) {
-    return eventUrl;
+  if (isGroupEvent) {
+    eventUrl.searchParams.set('type', 'group-event');
   }
 
-  return `${eventUrl}?type=group-event`;
+  const returnPath = getCurrentEventListReturnPath(singleEventEndpoint);
+  if (returnPath) {
+    eventUrl.searchParams.set('return_to', returnPath);
+  }
+
+  return eventUrl.toString();
 };
 
 export const getEventURL = (
@@ -178,9 +202,15 @@ export const getShopCartRoutePath = (): string => {
 export const getEventsListURL = (): string => {
   if (typeof window !== 'undefined') {
     const currentUrl = new URL(window.location.href);
+    const returnPath = getSafeRelativeReturnPath(currentUrl.searchParams.get('return_to'));
+    if (returnPath) {
+      return new URL(returnPath, window.location.origin).toString();
+    }
+
     if (currentUrl.searchParams.has('seamless_event')) {
       currentUrl.searchParams.delete('seamless_event');
       currentUrl.searchParams.delete('type');
+      currentUrl.searchParams.delete('return_to');
       return currentUrl.toString();
     }
   }

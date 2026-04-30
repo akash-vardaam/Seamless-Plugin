@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Event } from '../../types/event';
 import { navigateToEvent, createEventSlug } from '../../utils/urlHelper';
+import { getCategoryColor } from './utils';
 
 interface YearViewProps {
   currentDate: Date;
@@ -19,6 +20,23 @@ const dateOnly = (value: string): Date => {
   const parsed = new Date(value);
   parsed.setHours(0, 0, 0, 0);
   return parsed;
+};
+
+const YEAR_EVENT_DOT_COLORS: Record<string, string> = {
+  amber: '#f59e0b',
+  red: '#ef4444',
+  indigo: '#6366f1',
+  green: '#22c55e',
+  purple: '#a855f7',
+  orange: '#f97316',
+  pink: '#ec4899',
+  blue: '#3b82f6',
+  teal: '#14b8a6',
+  slate: '#64748b',
+};
+
+const getYearEventDotColor = (event: Event): string => {
+  return YEAR_EVENT_DOT_COLORS[getCategoryColor(event)] || YEAR_EVENT_DOT_COLORS.amber;
 };
 
 export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonthClick }) => {
@@ -109,7 +127,7 @@ export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonth
           {/* Day cells */}
           <div className="seamless-year-days-grid">
             {days.map((dayObj, dIdx) => {
-              const isToday = dayObj.date.toDateString() === today.toDateString();
+              const isToday = dayObj.inMonth && dayObj.date.toDateString() === today.toDateString();
               const dateKey = toDateKey(dayObj.date);
               const dayEvents = dayObj.inMonth ? (eventsByDate[dateKey] || []) : [];
               const hasEvents = dayEvents.length > 0;
@@ -121,12 +139,31 @@ export const YearView: React.FC<YearViewProps> = ({ currentDate, events, onMonth
                   onClick={() => handleDayClick(dayObj, dayEvents)}
                   role={hasEvents ? 'button' : undefined}
                   tabIndex={hasEvents ? 0 : undefined}
-                  title={hasEvents ? `${dayEvents.length} event${dayEvents.length > 1 ? 's' : ''} — ${dayEvents.map(e => e.title).join(', ')}` : undefined}
+                  aria-label={hasEvents ? `${dayEvents.length} event${dayEvents.length > 1 ? 's' : ''}: ${dayEvents.map(e => e.title).join(', ')}` : undefined}
                   onKeyDown={hasEvents ? (e) => e.key === 'Enter' && handleDayClick(dayObj, dayEvents) : undefined}
                 >
                   <span className="seamless-year-day-num">{dayObj.date.getDate()}</span>
                   {hasEvents && (
-                      <span className="seamless-year-event-dot" aria-hidden="true" />
+                    <>
+                      <span className="seamless-year-event-dots" aria-hidden="true">
+                        {dayEvents.slice(0, 4).map((event, eventIdx) => (
+                          <span
+                            key={`${event.id || event.title}-${eventIdx}`}
+                            className="seamless-year-event-dot"
+                            style={{
+                              '--seamless-year-dot-color': getYearEventDotColor(event),
+                            } as React.CSSProperties}
+                          />
+                        ))}
+                      </span>
+                      <span className="seamless-year-event-tooltip" role="tooltip">
+                        {dayEvents.map((event, eventIdx) => (
+                          <span key={`${event.id || event.title}-tooltip-${eventIdx}`} className="seamless-year-event-tooltip-title">
+                            {event.title}
+                          </span>
+                        ))}
+                      </span>
+                    </>
                   )}
                 </div>
               );
