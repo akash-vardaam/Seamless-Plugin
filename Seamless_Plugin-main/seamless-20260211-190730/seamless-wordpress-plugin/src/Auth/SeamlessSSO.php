@@ -78,11 +78,7 @@ class SeamlessSSO
 
     public function get_public_login_url(): string
     {
-        if ($this->client_domain === '') {
-            return set_url_scheme(add_query_arg('sso_login_redirect', '1', home_url('/')), 'https');
-        }
-
-        return $this->client_domain . '/' . self::LOGIN_ROUTE;
+        return home_url(self::LOGIN_ROUTE);
     }
 
     public function register_login_rewrite_rule(): void
@@ -100,8 +96,8 @@ class SeamlessSSO
 
     public function handle_login_redirect(): void
     {
-        $login_requested = get_query_var('sso_login_redirect') || isset($_GET['sso_login_redirect']);
-        $logout_requested = get_query_var('sso_logout_redirect') || isset($_GET['sso_logout_redirect']);
+        $login_requested = get_query_var('sso_login_redirect') || isset($_GET['sso_login_redirect']) || $this->is_current_auth_route(self::LOGIN_ROUTE);
+        $logout_requested = get_query_var('sso_logout_redirect') || isset($_GET['sso_logout_redirect']) || $this->is_current_auth_route(self::LOGOUT_ROUTE);
 
         if ($login_requested) {
             $this->ensure_session_started();
@@ -120,6 +116,20 @@ class SeamlessSSO
             $this->handle_logout_redirect($return_to);
             return;
         }
+    }
+
+    private function is_current_auth_route(string $route): bool
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
+        $request_path = (string) wp_parse_url($request_uri, PHP_URL_PATH);
+        if ($request_path === '') {
+            return false;
+        }
+
+        $home_path = (string) wp_parse_url(home_url('/'), PHP_URL_PATH);
+        $expected_path = '/' . trim(trim($home_path, '/') . '/' . trim($route, '/'), '/');
+
+        return trim($request_path, '/') === trim($expected_path, '/');
     }
 
     // --- REST API Callback ---

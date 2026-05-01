@@ -628,10 +628,9 @@ class SettingsPage
 									<td>
 										<input type="url"
 											id="seamless_client_domain"
-											class="seamless_client_domain_field"
+											class="regular-text seamless_client_domain_field"
 											name="seamless_client_domain"
 											value="<?php echo esc_attr(get_option('seamless_client_domain', '')); ?>"
-											class="regular-text"
 											placeholder="https://yourdomain.com"
 											required />
 										<p class="description">Enter the base domain for API requests (public/read-only endpoints)</p>
@@ -729,11 +728,17 @@ class SettingsPage
 		$has_sso_credentials = !empty($sso_client_id);
 	?>
 
+		<div class="seamless-page-stack seamless-section-card">
 			<form method="post" action="options.php">
 				<input type="hidden" name="_seamless_return_tab" value="sso">
 				<?php settings_fields('seamless_sso_settings_group'); ?>
 				<div class="seamless-sso-config">
-					<h2 class="seamless-panel-title">SSO Configuration</h2>
+					<div class="seamless-panel-header">
+						<div>
+							<h2 class="seamless-panel-title"><?php esc_html_e('SSO Configuration', 'seamless'); ?></h2>
+							<p class="seamless-panel-description"><?php esc_html_e('Configure the OAuth client used by the Seamless login button.', 'seamless'); ?></p>
+						</div>
+					</div>
 					<table class="form-table">
 						<tr>
 							<th scope="row">Client ID</th>
@@ -772,6 +777,7 @@ class SettingsPage
 					</div>
 				</div>
 			<?php endif; ?>
+		</div>
 	<?php
 	}
 
@@ -785,7 +791,7 @@ class SettingsPage
 		$protected_types_array = array_map('trim', explode(',', $protected_post_types));
 	?>
 
-		<div class="seamless-page-stack">
+		<div class="seamless-page-stack seamless-section-card">
 				<div class="seamless-panel-header">
 					<div>
 						<h2 class="seamless-panel-title"><?php esc_html_e('Content Restriction Settings', 'seamless'); ?></h2>
@@ -904,7 +910,7 @@ class SettingsPage
 		$is_plugin_color_scheme = ($color_scheme === 'plugin');
 	?>
 
-		<div class="seamless-page-stack">
+		<div class="seamless-page-stack seamless-section-card">
 				<div class="seamless-panel-header">
 					<div>
 						<h2 class="seamless-panel-title"><?php esc_html_e('Advanced Settings', 'seamless'); ?></h2>
@@ -980,7 +986,7 @@ class SettingsPage
 	public function render_endpoints_tab(): void
 	{
 	?>
-			<section class="seamless-page-block seamless-endpoints-panel">
+			<section class="seamless-page-block seamless-endpoints-panel seamless-section-card">
 				<div class="seamless-panel-header">
 					<div>
 						<h2 class="seamless-panel-title"><?php esc_html_e('Public Route Settings', 'seamless'); ?></h2>
@@ -1352,7 +1358,7 @@ class SettingsPage
 			$saved_rows = [['event_id' => 0, 'template_id' => 0]];
 		}
 	?>
-		<div class="seamless-page-stack">
+		<div class="seamless-page-stack seamless-section-card">
 			<div class="seamless-panel-header">
 				<div>
 					<h2 class="seamless-panel-title"><?php esc_html_e('Addon Settings', 'seamless'); ?></h2>
@@ -2364,6 +2370,239 @@ class SettingsPage
 
 
 			/* Shortcodes Section & Tabs Alignment */
+			.seamless-tab-panel {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
+				color: #2d3748;
+			}
+
+			.seamless-page-stack {
+				display: grid;
+				gap: 30px;
+			}
+
+			.seamless-section-card,
+			.seamless-page-block,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-panel-header,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-shortcodes-list,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-api-notice,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-search-bar,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-table-area {
+				background: #fff;
+				border: 1px solid #e1e5e9;
+				border-radius: 12px;
+				box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+				box-sizing: border-box;
+				overflow: hidden;
+			}
+
+			.seamless-page-stack.seamless-section-card > *,
+			.seamless-page-block > * {
+				padding: 20px;
+			}
+
+			.seamless-page-stack.seamless-section-card > * + *,
+			.seamless-page-block > * + * {
+				border-top: 1px solid #edf2f7;
+			}
+
+			.seamless-page-stack.seamless-section-card > form,
+			.seamless-page-block > form,
+			.seamless-sso-config {
+				padding: 0;
+			}
+
+			.seamless-page-stack.seamless-section-card > form > *,
+			.seamless-page-block > form > *,
+			.seamless-sso-config > * {
+				padding: 20px;
+			}
+
+			.seamless-page-stack.seamless-section-card > form > * + *,
+			.seamless-page-block > form > * + *,
+			.seamless-sso-config > * + * {
+				border-top: 1px solid #edf2f7;
+			}
+
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-panel-header {
+				border-bottom: 0;
+				border-radius: 12px 12px 0 0;
+				margin-bottom: -30px;
+			}
+
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-panel-header + .seamless-shortcodes-list,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-panel-header + .seamless-search-bar {
+				border-top: 0;
+				border-radius: 0;
+				box-shadow: none;
+			}
+
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-shortcodes-list,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-api-notice,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-search-bar,
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-table-area {
+				padding: 20px;
+			}
+
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-panel-header + .seamless-shortcodes-list {
+				border-radius: 0 0 12px 12px;
+			}
+
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-search-bar {
+				margin: -30px 0;
+			}
+
+			.seamless-page-stack:not(.seamless-section-card) > .seamless-search-bar + .seamless-table-area {
+				border-top: 0;
+				border-radius: 0 0 12px 12px;
+				box-shadow: none;
+				padding-top: 0;
+			}
+
+			.seamless-page-stack .seamless-panel-header,
+			.seamless-page-block .seamless-panel-header,
+			.seamless-sso-config .seamless-panel-header {
+				display: flex;
+				align-items: flex-start;
+				justify-content: space-between;
+				gap: 16px;
+				padding: 20px;
+				background: #fff;
+			}
+
+			.seamless-page-stack .seamless-panel-title,
+			.seamless-page-block .seamless-panel-title,
+			.seamless-sso-config .seamless-panel-title {
+				margin: 0;
+				font-size: 18px;
+				font-weight: 600;
+				line-height: 1.3;
+				color: #2d3748;
+				letter-spacing: 0;
+			}
+
+			.seamless-page-stack .seamless-panel-description,
+			.seamless-page-block .seamless-panel-description,
+			.seamless-sso-config .seamless-panel-description {
+				margin: 6px 0 0;
+				max-width: 760px;
+				font-size: 14px;
+				font-weight: 400;
+				line-height: 1.55;
+				color: #64748b;
+			}
+
+			.seamless-page-stack .form-table,
+			.seamless-page-block .form-table {
+				margin: 0;
+			}
+
+			.seamless-page-stack .form-table th,
+			.seamless-page-block .form-table th {
+				width: 220px;
+				padding: 18px 20px 18px 0;
+				color: #2d3748;
+				font-size: 14px;
+				font-weight: 600;
+				line-height: 1.45;
+			}
+
+			.seamless-page-stack .form-table td,
+			.seamless-page-block .form-table td {
+				padding: 14px 0;
+				color: #4a5568;
+				font-size: 14px;
+				line-height: 1.55;
+			}
+
+			.seamless-page-stack .form-table tr:not(:last-child) th,
+			.seamless-page-stack .form-table tr:not(:last-child) td,
+			.seamless-page-block .form-table tr:not(:last-child) th,
+			.seamless-page-block .form-table tr:not(:last-child) td {
+				border-bottom: 1px solid #f1f5f9;
+			}
+
+			.seamless-page-stack .submit,
+			.seamless-page-block .submit {
+				margin: 0;
+				padding: 20px;
+				border-top: 1px solid #edf2f7;
+			}
+
+			.seamless-page-stack select,
+			.seamless-page-block select,
+			.seamless-page-stack .regular-text,
+			.seamless-page-block .regular-text,
+			.seamless-page-stack .message-container,
+			.seamless-page-block .message-container {
+				border-color: #e1e5e9;
+				border-radius: 8px;
+				box-shadow: none;
+				color: #2d3748;
+				font-size: 14px;
+				min-height: 40px;
+			}
+
+			.seamless-page-stack textarea.message-container,
+			.seamless-page-block textarea.message-container {
+				min-height: 120px;
+			}
+
+			.seamless-page-stack .description,
+			.seamless-page-block .description {
+				color: #718096;
+				font-size: 13px;
+				line-height: 1.5;
+			}
+
+			.seamless-page-stack fieldset p,
+			.seamless-page-block fieldset p {
+				margin: 0 0 14px;
+			}
+
+			.seamless-page-stack fieldset p:last-child,
+			.seamless-page-block fieldset p:last-child {
+				margin-bottom: 0;
+			}
+
+			.seamless-page-stack .field-inline,
+			.seamless-page-block .field-inline {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				max-width: 620px;
+			}
+
+			.seamless-page-stack .field-inline code,
+			.seamless-page-block .field-inline code {
+				flex: 0 0 auto;
+				background: #f8fafc;
+				border: 1px solid #e1e5e9;
+				border-radius: 8px;
+				color: #64748b;
+				font-size: 13px;
+				line-height: 20px;
+				padding: 9px 10px;
+			}
+
+			.seamless-page-stack .seamless-api-notice,
+			.seamless-page-block .seamless-api-notice {
+				background: #f8fafc;
+				border-left: 3px solid #6c5ce7;
+				color: #4a5568;
+			}
+
+			.seamless-page-stack .seamless-api-notice p,
+			.seamless-page-block .seamless-api-notice p {
+				margin: 0;
+				font-size: 14px;
+				line-height: 1.55;
+			}
+
+			.seamless-page-stack .seamless-table-area,
+			.seamless-page-block .seamless-table-area {
+				padding-top: 0;
+			}
+
 			.seamless-section-container {
 				background: #fff;
 				border: 1px solid #e1e5e9;
@@ -2372,22 +2611,33 @@ class SettingsPage
 			}
 
 			.seamless-shortcodes-list {
-				margin: 0 0 0 20px;
-				list-style-type: disc;
+				display: grid;
+				gap: 12px;
+				margin: 0;
+				list-style: none;
 				color: #4a5568;
 			}
 
 			.seamless-shortcodes-list li {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
 				line-height: 1.5;
+				background: #f8fafc;
+				border: 1px solid #edf2f7;
+				border-radius: 10px;
+				padding: 12px 14px;
 			}
 
 			.seamless-shortcodes-list code {
-				background: #f1f5f9;
-				padding: 2px 6px;
-				border-radius: 4px;
-				color: #e11d48;
+				background: #fff;
+				padding: 6px 10px;
+				border: 1px solid #e1e5e9;
+				border-radius: 6px;
+				color: #6c5ce7;
 				font-size: 13px;
-				margin-left: 8px;
+				margin-left: 0;
 			}
 
 			.seamless-tabs-actions-bar {
@@ -2459,6 +2709,8 @@ class SettingsPage
 
 			/* Authentication Container */
 			.seamless-auth-container {
+				display: grid;
+				gap: 30px;
 				padding: 0;
 			}
 
@@ -3001,17 +3253,45 @@ class SettingsPage
 				background: #fff;
 				border: 1px solid #e1e5e9;
 				border-radius: 12px;
-				padding: 20px;
+				box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+				overflow: hidden;
+				padding: 0;
 			}
 
 			.seamless-auth-setup h3 {
-				margin: 0 0 24px 0;
+				margin: 0;
+				padding: 20px;
+				border-bottom: 1px solid #edf2f7;
 				font-size: 18px;
 				font-weight: 600;
 				color: #2d3748;
 				display: flex;
 				align-items: center;
 				gap: 10px;
+			}
+
+			.seamless-auth-setup form > .form-table {
+				padding: 20px;
+			}
+
+			.seamless-auth-setup .form-table {
+				margin: 0;
+			}
+
+			.seamless-auth-setup .form-table th {
+				padding: 18px 20px 18px 0;
+				color: #2d3748;
+				font-size: 14px;
+				font-weight: 600;
+				line-height: 1.45;
+				width: 220px;
+			}
+
+			.seamless-auth-setup .form-table td {
+				padding: 14px 0;
+				color: #4a5568;
+				font-size: 14px;
+				line-height: 1.55;
 			}
 
 			.seamless-form-grid {
@@ -3103,7 +3383,7 @@ class SettingsPage
 			.seamless-form-actions {
 				display: flex;
 				gap: 10px;
-				padding-top: 20px;
+				padding: 20px;
 				border-top: 1px solid #e1e5e9;
 			}
 
@@ -3167,15 +3447,21 @@ class SettingsPage
 				padding: 20px;
 			} */
 
+			.seamless-auth-connected {
+				display: grid;
+				gap: 30px;
+			}
+
 			.seamless-connection-success {
 				display: flex;
 				align-items: center;
 				gap: 14px;
-				padding: 16px;
-				background: #f0fdf4;
+				padding: 30px;
+				background: #fff;
 				border: 1px solid #bbf7d0;
 				border-radius: 12px;
-				margin-bottom: 20px;
+				box-shadow: 0 12px 32px rgba(15, 23, 42, 0.035);
+				margin-bottom: 0;
 			}
 
 			.seamless-success-icon {
@@ -3209,20 +3495,51 @@ class SettingsPage
 				font-size: 13px;
 			}
 
-			.seamless-connection-details {
-				background: #f7fafc;
+			.seamless-secure-handshake {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				margin-left: auto;
+				color: #009b5b;
+				font-size: 14px;
+				font-weight: 600;
+				white-space: nowrap;
+			}
+
+			.seamless-connection-card {
+				background: #fff;
+				border: 1px solid #e1e5e9;
 				border-radius: 12px;
-				border: 1px solid #8573e7a8;
-				padding: 8px 16px;
-				margin-bottom: 20px;
+				box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+				overflow: hidden;
+			}
+
+			.seamless-connection-card .seamless-panel-header {
+				padding: 30px 30px 24px;
+			}
+
+			.seamless-connection-details {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 20px;
+				background: transparent;
+				border-radius: 0;
+				border: 0;
+				padding: 0 30px 30px;
+				margin-bottom: 0;
 			}
 
 			.seamless-detail-item {
 				display: flex;
-				justify-content: space-between;
+				justify-content: flex-start;
 				align-items: center;
-				padding: 10px 0;
-				border-bottom: 1px solid #e1e5e9;
+				gap: 18px;
+				min-height: 76px;
+				padding: 14px 22px;
+				background: #fff;
+				border: 1px solid #dbe3ee;
+				border-radius: 10px;
+				box-sizing: border-box;
 			}
 
 			.seamless-detail-label {
@@ -3232,6 +3549,24 @@ class SettingsPage
 				font-size: 14px;
 				font-weight: 500;
 				color: #4a5568;
+			}
+
+			.seamless-detail-icon {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 50px;
+				height: 50px;
+				border-radius: 14px;
+				background: #f2eafe;
+				color: #6c5ce7;
+				flex: 0 0 auto;
+			}
+
+			.seamless-detail-content {
+				display: grid;
+				gap: 8px;
+				min-width: 0;
 			}
 
 			.seamless-detail-label .dashicons {
@@ -3255,7 +3590,20 @@ class SettingsPage
 
 			.seamless-connection-actions {
 				display: flex;
-				justify-content: flex-end;
+				align-items: center;
+				justify-content: space-between;
+				gap: 20px;
+				background: #fff;
+				border: 1px solid #e1e5e9;
+				border-radius: 12px;
+				box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+				padding: 30px;
+			}
+
+			.seamless-section-card > .seamless-sso-shortcode-section {
+				background: transparent;
+				border: 0;
+				border-radius: 0;
 			}
 
 			/* Standardize all buttons */
@@ -3798,6 +4146,40 @@ class SettingsPage
 				.seamless-welcome-main,
 				.seamless-welcome-features {
 					grid-template-columns: auto;
+				}
+
+				.seamless-page-stack > *,
+				.seamless-page-block > *,
+				.seamless-page-stack > form > *,
+				.seamless-page-block > form > *,
+				.seamless-sso-config > *,
+				.seamless-page-stack .seamless-panel-header,
+				.seamless-page-block .seamless-panel-header {
+					padding: 16px;
+				}
+
+				.seamless-page-stack .form-table th,
+				.seamless-page-block .form-table th,
+				.seamless-page-stack .form-table td,
+				.seamless-page-block .form-table td {
+					padding-left: 0;
+					padding-right: 0;
+				}
+
+				.seamless-page-stack .field-inline,
+				.seamless-page-block .field-inline,
+				.seamless-shortcodes-list li,
+				.shortcode-container {
+					align-items: stretch;
+					flex-direction: column;
+				}
+
+				.seamless-page-stack .field-inline code,
+				.seamless-page-block .field-inline code,
+				.shortcode-container,
+				.seamless-shortcodes-list code {
+					width: 100%;
+					box-sizing: border-box;
 				}
 
 				.seamless-auth-section,

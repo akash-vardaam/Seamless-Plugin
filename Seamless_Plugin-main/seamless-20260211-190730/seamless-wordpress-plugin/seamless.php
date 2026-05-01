@@ -198,11 +198,16 @@ add_action('init', 'seamless_register_react_event_shortcode', 5);
  */
 function seamless_react_event_render()
 {
-    // Enqueue React Event scripts and styles
+    $autoloader = \Seamless\SeamlessAutoLoader::getInstance();
+    $render = $autoloader ? $autoloader->get_component('render') : null;
+
+    if ($render && method_exists($render, 'shortcode_react_events_list')) {
+        return $render->shortcode_react_events_list();
+    }
+
+    // Fallback: if SeamlessRender is not yet loaded, output the mount point
     seamless_enqueue_react_event_assets();
-    
-    // Return the container where React will mount
-    return '<div id="seamless-react-root" class="seamless-react-container"></div>';
+    return '<div id="seamless-react-root" class="seamless-react-root" data-seamless-view="events" data-site-url="' . esc_url(home_url()) . '"></div>';
 }
 
 /**
@@ -247,7 +252,7 @@ function seamless_enqueue_react_event_assets()
             if (strpos($file, 'index-') === 0 && strpos($file, '.css') !== false) {
                 $css_path = $assets_folder . $file;
                 wp_enqueue_style(
-                    'seamless-react-event-css',
+                    'seamless-react-css',
                     $dist_url . 'assets/' . $file,
                     array(),
                     filemtime($css_path),
@@ -262,14 +267,14 @@ function seamless_enqueue_react_event_assets()
             if (strpos($file, 'index-') === 0 && strpos($file, '.js') !== false) {
                 $js_path = $assets_folder . $file;
                 wp_enqueue_script(
-                    'seamless-react-event-js',
+                    'seamless-react-js',
                     $dist_url . 'assets/' . $file,
                     array(),
                     filemtime($js_path),
                     true
                 );
 
-                wp_localize_script('seamless-react-event-js', 'seamlessReactConfig', array(
+                wp_localize_script('seamless-react-js', 'seamlessReactConfig', array(
                     'siteUrl' => esc_url(home_url()),
                     'restUrl' => esc_url(rest_url()),
                     'nonce' => wp_create_nonce('seamless'),
@@ -278,10 +283,15 @@ function seamless_enqueue_react_event_assets()
                     'clientDomain' => rtrim(get_option('seamless_client_domain', ''), '/'),
                     'eventListEndpoint' => get_option('seamless_event_list_endpoint', 'events'),
                     'singleEventEndpoint' => get_option('seamless_single_event_endpoint', 'event'),
+                    'amsContentEndpoint' => get_option('seamless_ams_content_endpoint', 'ams-content'),
+                    'shopListEndpoint' => get_option('seamless_shop_list_endpoint', 'shop'),
+                    'singleProductEndpoint' => get_option('seamless_single_product_endpoint', 'product'),
+                    'shopCartEndpoint' => get_option('seamless_shop_cart_endpoint', 'shops/cart'),
+                    'isLoggedIn' => is_user_logged_in(),
                 ));
 
                 wp_add_inline_script(
-                    'seamless-react-event-js',
+                    'seamless-react-js',
                     <<<'JS'
 (function () {
     if (window.__seamlessCanonicalEventLinksPatched) {

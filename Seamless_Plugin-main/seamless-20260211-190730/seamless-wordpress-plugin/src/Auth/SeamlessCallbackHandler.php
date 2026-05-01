@@ -76,18 +76,12 @@ class SeamlessCallbackHandler
 
         list($nonce, $encoded_return_to) = explode('|', $state) + [null, null];
 
-        // Retrieve PKCE verifier from the wp_options table (guaranteed DB storage, bypasses all caching).
-        $pkce_option_key = 'seamless_pkce_' . $nonce;
-        $pkce_data = get_option($pkce_option_key, null);
-        $pkce_verifier = $pkce_data['verifier'] ?? null;
+        $pkce_verifier = $this->resolve_pkce_verifier($nonce);
 
         if (empty($pkce_verifier)) {
-            Helper::log('Expired or missing PKCE verifier in wp_options for state: ' . $nonce);
+            Helper::log('Expired or missing PKCE verifier for state: ' . $nonce);
             return new WP_Error('missing_verifier', 'Invalid session or login expired. Please try again.');
         }
-
-        // Clean up immediately after use
-        delete_option($pkce_option_key);
 
         $decoded_return_to = $encoded_return_to ? base64_decode($encoded_return_to) : '';
         $return_to = SeamlessSSO::sanitize_return_to_url($decoded_return_to);
@@ -119,6 +113,40 @@ class SeamlessCallbackHandler
             Helper::log('SeamlessCallbackHandler | handle | Exception: ' . $e->getMessage());
             return new WP_Error('sso_exception', 'An unexpected error occurred during SSO: ' . $e->getMessage(), ['status' => 500]);
         }
+    }
+
+    private function resolve_pkce_verifier(string $nonce): ?string
+    {
+        // Current core flow stores PKCE in wp_options so it survives object-cache/session issues.
+        $pkce_option_key = 'seamless_pkce_' . $nonce;
+        $pkce_data = get_option($pkce_option_key, null);
+        if (is_array($pkce_data) && !empty($pkce_data['verifier'])) {
+            delete_option($pkce_option_key);
+            return (string) $pkce_data['verifier'];
+        }
+
+        // Working legacy/addon flow stores PKCE under a WP nonce in PHP session.
+        if (!wp_verify_nonce($nonce, SeamlessSSO::NONCE_ACTION)) {
+            return null;
+        }
+
+        foreach ([SeamlessSSO::SSO_PREFIX, 'seamless_react_sso'] as $session_prefix) {
+            if (!empty($_SESSION[$session_prefix]['pkce'][$nonce]['verifier'])) {
+                $verifier = (string) $_SESSION[$session_prefix]['pkce'][$nonce]['verifier'];
+                unset($_SESSION[$session_prefix]['pkce'][$nonce]);
+                return $verifier;
+            }
+        }
+
+        $react_transient_key = 'sr_sso_pkce_' . md5($nonce);
+        $react_pkce_data = get_transient($react_transient_key);
+        delete_transient($react_transient_key);
+
+        if (is_array($react_pkce_data) && !empty($react_pkce_data['verifier'])) {
+            return (string) $react_pkce_data['verifier'];
+        }
+
+        return null;
     }
 
     /**

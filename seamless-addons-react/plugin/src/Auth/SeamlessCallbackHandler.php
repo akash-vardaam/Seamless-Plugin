@@ -13,14 +13,14 @@ use WP_User;
 class SeamlessCallbackHandler {
 
 	const PREFIX       = 'seamless_react_sso';
-	const NONCE_ACTION = 'seamless_react_sso_state';
+	const NONCE_ACTION = 'seamless_sso_state';
 
 	private string $client_domain;
 	private string $sso_client_id;
 
 	public function __construct() {
-		$this->client_domain = rtrim( (string) get_option( 'seamless_react_client_domain', '' ), '/' );
-		$this->sso_client_id = (string) get_option( 'seamless_react_sso_client_id', '' );
+		$this->client_domain = $this->resolve_client_domain();
+		$this->sso_client_id = $this->resolve_sso_client_id();
 	}
 
 	public function handle( WP_REST_Request $req ): WP_Error|WP_User {
@@ -171,15 +171,20 @@ class SeamlessCallbackHandler {
 		// Store tokens
 		if ( ! empty( $tokens['access_token'] ) ) {
 			update_user_meta( $wp_user->ID, 'seamless_react_access_token', sanitize_text_field( $tokens['access_token'] ) );
+			update_user_meta( $wp_user->ID, 'seamless_access_token', sanitize_text_field( $tokens['access_token'] ) );
 		}
 		if ( ! empty( $tokens['refresh_token'] ) ) {
 			update_user_meta( $wp_user->ID, 'seamless_react_refresh_token', sanitize_text_field( $tokens['refresh_token'] ) );
+			update_user_meta( $wp_user->ID, 'seamless_refresh_token', sanitize_text_field( $tokens['refresh_token'] ) );
 		}
-		update_user_meta( $wp_user->ID, 'seamless_react_token_expires', time() + (int) ( $tokens['expires_in'] ?? 3600 ) );
+		$expires_at = time() + (int) ( $tokens['expires_in'] ?? 3600 );
+		update_user_meta( $wp_user->ID, 'seamless_react_token_expires', $expires_at );
+		update_user_meta( $wp_user->ID, 'seamless_token_expires', $expires_at );
 
 		// Cache memberships
 		if ( ! empty( $user_data['data']['active_memberships'] ) ) {
 			update_user_meta( $wp_user->ID, 'seamless_react_active_memberships', $user_data['data']['active_memberships'] );
+			update_user_meta( $wp_user->ID, 'seamless_active_memberships', $user_data['data']['active_memberships'] );
 		}
 
 		return $wp_user;
@@ -219,5 +224,51 @@ class SeamlessCallbackHandler {
 			return $configured;
 		}
 		return home_url( '/' );
+	}
+
+	private function resolve_client_domain(): string {
+		$core_domain  = $this->normalize_client_domain( (string) get_option( 'seamless_client_domain', '' ) );
+		$react_domain = $this->normalize_client_domain( (string) get_option( 'seamless_react_client_domain', '' ) );
+
+		if ( $core_domain && ! $this->is_site_domain( $core_domain ) ) {
+			return $core_domain;
+		}
+
+		if ( $react_domain && ! $this->is_site_domain( $react_domain ) ) {
+			return $react_domain;
+		}
+
+		return $core_domain ?: $react_domain;
+	}
+
+	private function resolve_sso_client_id(): string {
+		$core_client_id = (string) get_option( 'seamless_sso_client_id', '' );
+		if ( $core_client_id !== '' ) {
+			return $core_client_id;
+		}
+
+		return (string) get_option( 'seamless_react_sso_client_id', '' );
+	}
+
+	private function normalize_client_domain( string $domain ): string {
+		$domain = trim( $domain );
+		if ( $domain === '' ) {
+			return '';
+		}
+
+		if ( strpos( $domain, '//' ) === 0 ) {
+			$domain = 'https:' . $domain;
+		} elseif ( strpos( $domain, 'http' ) !== 0 ) {
+			$domain = 'https://' . $domain;
+		}
+
+		return untrailingslashit( $domain );
+	}
+
+	private function is_site_domain( string $url ): bool {
+		$url_host  = wp_parse_url( $url, PHP_URL_HOST );
+		$home_host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+
+		return $url_host && $home_host && strcasecmp( (string) $url_host, (string) $home_host ) === 0;
 	}
 }

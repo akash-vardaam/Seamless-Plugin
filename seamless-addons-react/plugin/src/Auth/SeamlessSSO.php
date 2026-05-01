@@ -15,8 +15,8 @@ use WP_User;
 class SeamlessSSO {
 
 	const PREFIX              = 'seamless_react_sso';
-	const REST_NAMESPACE      = 'seamless-react/v1';
-	const NONCE_ACTION        = 'seamless_react_sso_state';
+	const REST_NAMESPACE      = 'seamless-oauth/v1';
+	const NONCE_ACTION        = 'seamless_sso_state';
 	const LOGIN_ROUTE         = 'auth/login';
 	const LOGOUT_ROUTE        = 'logout';
 	const PKCE_TRANSIENT_PFX  = 'sr_sso_pkce_';
@@ -26,8 +26,8 @@ class SeamlessSSO {
 	private string $sso_client_id;
 
 	public function __construct() {
-		$this->client_domain = rtrim( (string) get_option( 'seamless_react_client_domain', '' ), '/' );
-		$this->sso_client_id = (string) get_option( 'seamless_react_sso_client_id', '' );
+		$this->client_domain = $this->resolve_client_domain();
+		$this->sso_client_id = $this->resolve_sso_client_id();
 
 		add_action( 'init',              [ $this, 'register_rewrite_rules' ] );
 		add_filter( 'query_vars',        [ $this, 'add_query_vars' ] );
@@ -50,13 +50,13 @@ class SeamlessSSO {
 	}
 
 	public function handle_login_redirect(): void {
-		if ( get_query_var( 'sso_react_login' ) ) {
+		if ( get_query_var( 'sso_react_login' ) || isset( $_GET['sso_react_login'] ) || $this->is_current_auth_route( self::LOGIN_ROUTE ) ) {
 			$this->ensure_session();
 			wp_redirect( $this->build_login_url( $this->resolve_return_url() ) );
 			exit;
 		}
 
-		if ( get_query_var( 'sso_react_logout' ) ) {
+		if ( get_query_var( 'sso_react_logout' ) || isset( $_GET['sso_react_logout'] ) || $this->is_current_auth_route( self::LOGOUT_ROUTE ) ) {
 			$this->ensure_session();
 			$this->do_logout_redirect();
 		}
@@ -231,6 +231,65 @@ class SeamlessSSO {
 		if ( PHP_SESSION_NONE === session_status() ) {
 			session_start();
 		}
+	}
+
+	private function resolve_client_domain(): string {
+		$core_domain  = $this->normalize_client_domain( (string) get_option( 'seamless_client_domain', '' ) );
+		$react_domain = $this->normalize_client_domain( (string) get_option( 'seamless_react_client_domain', '' ) );
+
+		if ( $core_domain && ! $this->is_site_domain( $core_domain ) ) {
+			return $core_domain;
+		}
+
+		if ( $react_domain && ! $this->is_site_domain( $react_domain ) ) {
+			return $react_domain;
+		}
+
+		return $core_domain ?: $react_domain;
+	}
+
+	private function resolve_sso_client_id(): string {
+		$core_client_id = (string) get_option( 'seamless_sso_client_id', '' );
+		if ( $core_client_id !== '' ) {
+			return $core_client_id;
+		}
+
+		return (string) get_option( 'seamless_react_sso_client_id', '' );
+	}
+
+	private function normalize_client_domain( string $domain ): string {
+		$domain = trim( $domain );
+		if ( $domain === '' ) {
+			return '';
+		}
+
+		if ( strpos( $domain, '//' ) === 0 ) {
+			$domain = 'https:' . $domain;
+		} elseif ( strpos( $domain, 'http' ) !== 0 ) {
+			$domain = 'https://' . $domain;
+		}
+
+		return untrailingslashit( $domain );
+	}
+
+	private function is_site_domain( string $url ): bool {
+		$url_host  = wp_parse_url( $url, PHP_URL_HOST );
+		$home_host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+
+		return $url_host && $home_host && strcasecmp( (string) $url_host, (string) $home_host ) === 0;
+	}
+
+	private function is_current_auth_route( string $route ): bool {
+		$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
+		if ( $request_path === '' ) {
+			return false;
+		}
+
+		$home_path     = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		$expected_path = '/' . trim( trim( $home_path, '/' ) . '/' . trim( $route, '/' ), '/' );
+
+		return trim( $request_path, '/' ) === trim( $expected_path, '/' );
 	}
 
 	private function resolve_return_url(): string {
