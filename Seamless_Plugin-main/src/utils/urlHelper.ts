@@ -35,26 +35,6 @@ const getSafeRelativeReturnPath = (value: string | null): string => {
   }
 };
 
-const getCurrentEventListReturnPath = (singleEventEndpoint: string): string => {
-  if (typeof window === 'undefined') {
-    return '';
-  }
-
-  try {
-    const currentUrl = new URL(window.location.href);
-    const pathParts = currentUrl.pathname.split('/').filter(Boolean);
-    const endpoint = normalizeEndpoint(singleEventEndpoint, 'event');
-
-    if (pathParts.indexOf(endpoint) !== -1) {
-      return '';
-    }
-
-    return currentUrl.pathname || '/';
-  } catch {
-    return '';
-  }
-};
-
 const getWindowConfig = (): Partial<EventURLConfig> | null => {
   if (typeof window === 'undefined') {
     return null;
@@ -144,11 +124,6 @@ export const getEventPageURL = (eventSlug: string, isGroupEvent: boolean = false
 
   if (isGroupEvent) {
     eventUrl.searchParams.set('type', 'group-event');
-  }
-
-  const returnPath = getCurrentEventListReturnPath(singleEventEndpoint);
-  if (returnPath) {
-    eventUrl.searchParams.set('return_to', returnPath);
   }
 
   return eventUrl.toString();

@@ -149,13 +149,13 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
             {/* Year — ‹ 2026 › */}
             <div className="cal-year-nav" aria-label="Year">
-              <button className="cal-year-arrow" onClick={handleYearDown} aria-label="Previous year" type="button">
+              <button className="cal-year-arrow last-year-btn" onClick={handleYearDown} aria-label="Previous year" type="button">
                 <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 1 1 6 6 11" />
                 </svg>
               </button>
               <span className="cal-year-label">{currentYear}</span>
-              <button className="cal-year-arrow" onClick={handleYearUp} aria-label="Next year" type="button">
+              <button className="cal-year-arrow next-year-btn" onClick={handleYearUp} aria-label="Next year" type="button">
                 <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="1 1 6 6 1 11" />
                 </svg>

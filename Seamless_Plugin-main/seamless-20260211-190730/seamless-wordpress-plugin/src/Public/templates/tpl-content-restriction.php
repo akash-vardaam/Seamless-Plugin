@@ -34,7 +34,7 @@ get_header();
         background: #0f172a !important;
         color: #ffffff !important;
         border: 1px solid #0f172a !important;
-        border-radius: 10px !important;
+        border-radius: 14px !important;
         padding: 0.7rem 1rem !important;
         font-weight: 600;
         text-decoration: none !important;
@@ -45,9 +45,7 @@ get_header();
     }
 
     .seamless-restriction-actions .seamless-login-btn:hover {
-        background: #009fb8 !important;
-        border-color: #009fb8 !important;
-        color: #ffffff !important;
+        transform: translateY(-2px);
     }
 </style>
 
@@ -56,7 +54,7 @@ get_header();
         <!-- Restriction Container -->
         <div class="seamless-restriction-container">
             <div class="seamless-restriction-modal">
-                <div class="seamless-restriction-content" style="border: 1px solid #E6E9F0 ; border-radius: 12px; padding: 30px;">
+                <div class="seamless-restriction-content" style="display: flex;flex-direction: column;justify-content: center;border: 1px solid #e5e7eb;background: #F9FAFB;padding: 40px 0px;text-align: center;border-radius: 8px;">
                     <div class="seamless-restriction-header" style="text-align: center;">
                         <div class="seamless-restriction-icon">
                             <?php if ($is_logged_in): ?>

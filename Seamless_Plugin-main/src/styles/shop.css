@@ -538,8 +538,8 @@
 }
 
 :host .seamless-shop--list .seamless-shop__badge {
-  min-width: 26px !important;
-  min-height: 26px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
   background: #0a2d4e !important;
   font-size: 14px !important;
 }
@@ -759,22 +759,13 @@
   height: auto !important;
   max-height: 560px !important;
   display: block !important;
-  object-fit: contain !important;
+  object-fit: cover !important;
+  width: -webkit-fill-available !important;
   transition: transform 300ms ease !important;
 }
 
 :host .seamless-shop__image-contain.is-loading {
   opacity: 0.15 !important;
-}
-
-:host .seamless-shop--product.is-variant-loading .seamless-shop__product-info > :is(span, p, h1, h2, h3, h4, h5, h6),
-:host .seamless-shop--product.is-variant-loading .seamless-shop__details-section > :is(span, p, h1, h2, h3, h4, h5, h6),
-:host .seamless-shop--product.is-variant-loading .seamless-shop__similar-section > :is(span, p, h1, h2, h3, h4, h5, h6) {
-  color: transparent !important;
-  border-radius: 6px !important;
-  background: linear-gradient(90deg, #e8edf3 25%, #f8fbff 37%, #e8edf3 63%) !important;
-  background-size: 400% 100% !important;
-  animation: seamlessShopVariantImageShimmer 1.25s ease-in-out infinite !important;
 }
 
 :host .seamless-shop__gallery-nav,

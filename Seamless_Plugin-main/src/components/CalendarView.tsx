@@ -139,10 +139,10 @@ const SeamlessListView: React.FC<{ events: Event[] }> = ({ events }) => {
             width: '100%',
             padding: '10px 14px',
             borderRadius: '6px',
-            border: '1px solid var#d1d5db',
             fontSize: '14px',
             outline: 'none',
             background: '#f8fafc',
+            border: '1px solid #e2e8f0 !important'
           }}
         />
       </div>

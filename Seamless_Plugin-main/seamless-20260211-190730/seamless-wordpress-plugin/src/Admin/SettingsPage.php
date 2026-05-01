@@ -652,19 +652,6 @@ class SettingsPage
 				<!-- Connected State -->
 				<div class="seamless-auth-section">
 					<div class="seamless-auth-connected">
-						<div class="seamless-connection-success">
-							<div class="seamless-success-icon">
-								<span class="dashicons dashicons-yes-alt"></span>
-							</div>
-							<div class="seamless-success-content">
-								<h3>Successfully Connected!</h3>
-								<p>Connected to <strong><?php echo esc_html($client_domain); ?></strong></p>
-							</div>
-							<div class="seamless-secure-handshake">
-								<span class="dashicons dashicons-shield"></span>
-								<span><?php esc_html_e('Secure handshake verified', 'seamless'); ?></span>
-							</div>
-						</div>
 
 						<div class="seamless-connection-card">
 							<div class="seamless-panel-header">
@@ -1108,7 +1095,7 @@ class SettingsPage
 	public function render_events_tab(): void
 	{
 	?>
-		<div class="seamless-page-stack">
+		<div class="seamless-page-stack seamless-section-card">
 				<div class="seamless-panel-header">
 					<div>
 						<h2 class="seamless-panel-title"><?php esc_html_e('Event Shortcodes', 'seamless'); ?></h2>
@@ -1203,7 +1190,7 @@ class SettingsPage
 		$single_product_endpoint = get_option('seamless_single_product_endpoint', 'product');
 		$shop_cart_endpoint = get_option('seamless_shop_cart_endpoint', 'shops/cart');
 	?>
-		<div class="seamless-page-stack">
+		<div class="seamless-page-stack seamless-section-card">
 				<div class="seamless-panel-header">
 					<div>
 						<h2 class="seamless-panel-title"><?php esc_html_e('Shop Shortcodes', 'seamless'); ?></h2>
@@ -1450,7 +1437,7 @@ class SettingsPage
 	public function render_membership_tab(): void
 	{
 	?>
-		<div class="seamless-page-stack">
+		<div class="seamless-page-stack seamless-section-card">
 				<div class="seamless-panel-header">
 					<div>
 						<h2 class="seamless-panel-title"><?php esc_html_e('Membership Shortcodes', 'seamless'); ?></h2>
@@ -1678,23 +1665,51 @@ class SettingsPage
 				// Advanced Tab JS - initialize once and reuse
 				function initAdvancedTabOnce() {
 					var color_scheme_radio = $('input[name="seamless_color_scheme"]');
-					if (color_scheme_radio.length && !color_scheme_radio.data('seamlessToggleBound')) {
-						var plugin_color_settings = $('.plugin-color-settings');
+					var plugin_color_settings = $('.plugin-color-settings');
 
-						function toggle_color_settings() {
-							if (color_scheme_radio.filter(':checked').val() === 'plugin') {
-								plugin_color_settings.show();
-							} else {
-								plugin_color_settings.hide();
-							}
+					function ensureAdvancedColorPickers() {
+						var $pickers = plugin_color_settings.find('.seamless-color-picker');
+						if (!$pickers.length) {
+							return;
 						}
 
-						toggle_color_settings();
-						color_scheme_radio.on('change', toggle_color_settings);
+						if (typeof $.fn.wpColorPicker !== 'function') {
+							window.setTimeout(initAdvancedTabOnce, 120);
+							return;
+						}
+
+						$pickers.each(function() {
+							var $picker = $(this);
+							if (!$picker.data('seamlessColorPickerReady')) {
+								$picker.wpColorPicker();
+								$picker.data('seamlessColorPickerReady', true);
+							}
+						});
+					}
+
+					function syncAdvancedColorSettingsVisibility() {
+						var showPluginColors = color_scheme_radio.filter(':checked').val() === 'plugin';
+						plugin_color_settings.toggle(showPluginColors);
+
+						if (!showPluginColors) {
+							return;
+						}
+
+						ensureAdvancedColorPickers();
+
+						// Keep picker controls visible after toggling from hidden rows.
+						plugin_color_settings.find('.wp-picker-container').css('display', 'inline-block');
+						plugin_color_settings.find('.wp-picker-holder').hide();
+					}
+
+					if (color_scheme_radio.length && !color_scheme_radio.data('seamlessToggleBound')) {
+						syncAdvancedColorSettingsVisibility();
+						color_scheme_radio.on('change', syncAdvancedColorSettingsVisibility);
 						color_scheme_radio.data('seamlessToggleBound', true);
 					}
 
 					if (window.__seamlessAdvancedInitialized) {
+						syncAdvancedColorSettingsVisibility();
 						return;
 					}
 
@@ -1717,6 +1732,7 @@ class SettingsPage
 						}
 					});
 
+					syncAdvancedColorSettingsVisibility();
 					window.__seamlessAdvancedInitialized = true;
 				}
 

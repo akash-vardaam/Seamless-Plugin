@@ -83,6 +83,7 @@ export const ShopProductView: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isVariantImageLoading, setIsVariantImageLoading] = useState(false);
+  const [displayedImage, setDisplayedImage] = useState('');
   const [zoomState, setZoomState] = useState<ZoomState>({ open: false, scale: 1, x: 0, y: 0 });
   const showInitialLoader = useInitialLoading(loading);
   const galleryThumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -101,7 +102,6 @@ export const ShopProductView: React.FC = () => {
     baseX: 0,
     baseY: 0,
   });
-  const variantImageLoadingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -168,14 +168,6 @@ export const ShopProductView: React.FC = () => {
       cancelled = true;
     };
   }, [slug]);
-
-  useEffect(() => {
-    return () => {
-      if (variantImageLoadingTimerRef.current) {
-        window.clearTimeout(variantImageLoadingTimerRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (!zoomState.open) return;
@@ -293,6 +285,35 @@ export const ShopProductView: React.FC = () => {
   }, [galleryIndex]);
 
   const currentImage = galleryImages[galleryIndex] || product?.featuredImage || getPlaceholderImage(product?.title || 'Product');
+  useEffect(() => {
+    if (!currentImage) return;
+    if (!displayedImage) {
+      setDisplayedImage(currentImage);
+      return;
+    }
+    if (displayedImage === currentImage) return;
+
+    let cancelled = false;
+    setIsVariantImageLoading(true);
+
+    const preload = new Image();
+    preload.onload = () => {
+      if (cancelled) return;
+      setDisplayedImage(currentImage);
+      setIsVariantImageLoading(false);
+    };
+    preload.onerror = () => {
+      if (cancelled) return;
+      setDisplayedImage(currentImage);
+      setIsVariantImageLoading(false);
+    };
+    preload.src = currentImage;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentImage, displayedImage]);
+
   const productCategories = useMemo(() => (product ? resolveProductCategories(product, categoryMap) : []), [categoryMap, product]);
   const richDescriptionBlocks = useMemo(
     () => buildSafeRichTextBlocks(product?.descriptionHtml || product?.shortDescription || ''),
@@ -380,24 +401,6 @@ export const ShopProductView: React.FC = () => {
       })
       .slice(0, 4);
   }, [allProducts, categoryMap, product, productCategories]);
-
-  const triggerVariantImageLoading = () => {
-    setIsVariantImageLoading(true);
-    if (variantImageLoadingTimerRef.current) {
-      window.clearTimeout(variantImageLoadingTimerRef.current);
-    }
-    variantImageLoadingTimerRef.current = window.setTimeout(() => {
-      setIsVariantImageLoading(false);
-    }, 900);
-  };
-
-  const clearVariantImageLoading = () => {
-    if (variantImageLoadingTimerRef.current) {
-      window.clearTimeout(variantImageLoadingTimerRef.current);
-      variantImageLoadingTimerRef.current = null;
-    }
-    setIsVariantImageLoading(false);
-  };
 
   const handleAddToCart = async () => {
     if (!product || isOutOfStock || submitting) return;
@@ -601,11 +604,9 @@ export const ShopProductView: React.FC = () => {
               onClick={() => setZoomState({ open: true, scale: 1, x: 0, y: 0 })}
             >
               <img
-                src={currentImage}
+                src={displayedImage || currentImage}
                 alt={product.title}
                 className={`seamless-shop__image-contain ${isVariantImageLoading ? 'is-loading' : ''}`}
-                onLoad={clearVariantImageLoading}
-                onError={clearVariantImageLoading}
               />
             </button>
           </div>
@@ -684,7 +685,6 @@ export const ShopProductView: React.FC = () => {
                                 className={optionClassName}
                                 style={hasSwatch ? ({ '--swatch-color': option.swatch || '#ffffff' } as React.CSSProperties) : undefined}
                                 onClick={() => {
-                                  triggerVariantImageLoading();
                                   setSelectedVariantIds((current) => {
                                     const next = [...current];
                                     next[groupIndex] = option.id;

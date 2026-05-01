@@ -52,15 +52,92 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
     );
 };
 
-const DashboardSkeletonLoader = ({ rows = 4, compact = false }: { rows?: number; compact?: boolean }) => (
+const ProfileSectionSkeleton = () => (
     <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
-        <div className={`seamless-dashboard-loading-panel seamless-dashboard-skeleton ${compact ? 'is-compact' : ''}`} aria-live="polite" aria-busy="true">
-            <div className="seamless-dashboard-skeleton-stack">
-                <span className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-title"><Skeleton width="55%" containerClassName="seamless-skeleton-container" /></span>
-                {Array.from({ length: rows }).map((_, index) => (
-                    <span key={index} className="seamless-dashboard-skeleton-line seamless-dashboard-skeleton-line-body"><Skeleton width={`${92 - index * 7}%`} containerClassName="seamless-skeleton-container" /></span>
+        <div className="seamless-section-skeleton seamless-section-skeleton-profile" aria-live="polite" aria-busy="true">
+            <div className="seamless-section-skeleton-grid-3 seamless-profile-skeleton-fields">
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+            </div>
+            <Skeleton height={30} width={180} />
+            <div className="seamless-section-skeleton-grid-3 seamless-profile-skeleton-fields">
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+                <Skeleton height={52} />
+            </div>
+        </div>
+    </SkeletonTheme>
+);
+
+const MembershipSectionSkeleton = () => (
+    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-section-skeleton seamless-section-skeleton-membership" aria-live="polite" aria-busy="true">
+            <div className="seamless-membership-skeleton-card">
+                <div className="seamless-membership-skeleton-top">
+                    <Skeleton height={34} width={230} />
+                    <div className="seamless-membership-skeleton-actions">
+                        <Skeleton height={28} width={82} />
+                        <Skeleton height={24} width={24} />
+                        <Skeleton height={30} width={64} />
+                    </div>
+                </div>
+                <Skeleton height={22} width={280} />
+            </div>
+            <div className="seamless-membership-skeleton-card">
+                <div className="seamless-membership-skeleton-top">
+                    <Skeleton height={34} width={250} />
+                    <div className="seamless-membership-skeleton-actions">
+                        <Skeleton height={24} width={24} />
+                        <Skeleton height={30} width={64} />
+                    </div>
+                </div>
+                <Skeleton height={22} width={280} />
+            </div>
+        </div>
+    </SkeletonTheme>
+);
+
+const CoursesSectionSkeleton = () => (
+    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-section-skeleton seamless-section-skeleton-courses" aria-live="polite" aria-busy="true">
+            <div className="seamless-courses-skeleton-stats">
+                <Skeleton height={92} />
+                <Skeleton height={92} />
+                <Skeleton height={92} />
+            </div>
+            <div className="seamless-courses-skeleton-tabs">
+                <Skeleton height={34} width={290} />
+            </div>
+            <div className="seamless-courses-skeleton-cards">
+                {Array.from({ length: 3 }).map((_, index) => (
+                    <div key={index} className="seamless-courses-skeleton-card">
+                        <Skeleton height={132} />
+                        <div className="seamless-courses-skeleton-card-body">
+                            <Skeleton height={26} width="78%" />
+                            <Skeleton height={16} width="55%" />
+                            <Skeleton height={38} width={140} />
+                        </div>
+                    </div>
                 ))}
             </div>
+        </div>
+    </SkeletonTheme>
+);
+
+const OrdersSectionSkeleton = () => (
+    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-section-skeleton seamless-section-skeleton-orders" aria-live="polite" aria-busy="true">
+            <Skeleton height={22} width="28%" />
+            <Skeleton height={50} />
+            <Skeleton height={50} />
+            <Skeleton height={50} />
+            <Skeleton height={50} />
+            <Skeleton height={50} />
         </div>
     </SkeletonTheme>
 );
@@ -171,7 +248,6 @@ const isAwsSesIdentityError = (message: string) => {
 export const UserDashboardView: React.FC = () => {
     const shadowRoot = useShadowRoot();
     // SSO / Login State
-    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // Data State
     const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -198,6 +274,7 @@ export const UserDashboardView: React.FC = () => {
     const [pendingOrgActionKey, setPendingOrgActionKey] = useState<string | null>(null);
     const [memberRoleDrafts, setMemberRoleDrafts] = useState<Record<string, string>>({});
     const [orgInlineNotice, setOrgInlineNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [hasHydratedProfileDetails, setHasHydratedProfileDetails] = useState<boolean>(false);
 
     // Action States
     const [actionModal, setActionModal] = useState<MembershipAction | null>(null);
@@ -206,6 +283,15 @@ export const UserDashboardView: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [renewingPlanId, setRenewingPlanId] = useState<string | null>(null);
     const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [ordersPage, setOrdersPage] = useState<number>(1);
+    const navigationViews: DashboardView[] = ['memberships', 'organization', 'courses', 'orders', 'profile'];
+    const [sectionLoading, setSectionLoading] = useState<Record<DashboardView, boolean>>({
+        profile: false,
+        memberships: false,
+        organization: false,
+        courses: false,
+        orders: false,
+    });
 
 
     const getAuthenticatedCourseBaseUrl = (): string => {
@@ -224,7 +310,7 @@ export const UserDashboardView: React.FC = () => {
         return Array.isArray(plans) ? plans : [];
     };
 
-    const reloadMembershipData = (preferCache: boolean = true) => {
+    const reloadMembershipData = (preferCache: boolean = false) => {
         fetchApiEndpoint('/dashboard/memberships', setMemberships, true, 'GET', undefined, preferCache);
         fetchApiEndpoint('/dashboard/memberships/history', setExpiredMemberships, true, 'GET', undefined, preferCache);
     };
@@ -243,7 +329,7 @@ export const UserDashboardView: React.FC = () => {
         const email = getDashboardEmail();
         if (!email) return;
 
-        setIsLoading(true);
+        setSectionLoading((prev) => ({ ...prev, organization: true }));
         try {
             const response = await requestWithCache<any>({
                 method: 'GET',
@@ -258,24 +344,25 @@ export const UserDashboardView: React.FC = () => {
             setOrganization((prev) => prev || {});
             setGroupMemberships((prev) => prev || []);
         } finally {
-            setIsLoading(false);
+            setSectionLoading((prev) => ({ ...prev, organization: false }));
         }
     };
 
     const isMembershipCurrentlyActive = (membership: any) => {
         const status = String(membership?.status || '').toLowerCase();
+        if (status !== 'active') return false;
+
         const expiryAt = membership?.expiry_date || membership?.expires_at;
-        if (!expiryAt) return status === 'active' || status === 'cancelled';
+        if (!expiryAt) return true;
 
         const expiryTime = new Date(expiryAt).getTime();
-        const notExpired = Number.isNaN(expiryTime) ? true : expiryTime > Date.now();
-
-        if (!notExpired) return false;
-
-        return status === 'active' || status === 'cancelled';
+        return Number.isNaN(expiryTime) ? true : expiryTime > Date.now();
     };
 
     const isMembershipExpired = (membership: any) => {
+        const status = String(membership?.status || '').toLowerCase();
+        if (status === 'cancelled' || status === 'canceled') return true;
+
         const expiryAt = membership?.expiry_date || membership?.expires_at || membership?.ended_at;
         if (!expiryAt) return false;
 
@@ -325,21 +412,102 @@ export const UserDashboardView: React.FC = () => {
         };
     }, [groupMemberships, organization]);
 
+    const ORDERS_PAGE_SIZE = 5;
+    const totalOrderPages = useMemo(() => {
+        if (!Array.isArray(orders) || orders.length === 0) return 1;
+        return Math.max(1, Math.ceil(orders.length / ORDERS_PAGE_SIZE));
+    }, [orders]);
+
+    const paginatedOrders = useMemo(() => {
+        if (!Array.isArray(orders) || orders.length === 0) return [];
+        const safePage = Math.min(Math.max(ordersPage, 1), totalOrderPages);
+        const start = (safePage - 1) * ORDERS_PAGE_SIZE;
+        return orders.slice(start, start + ORDERS_PAGE_SIZE);
+    }, [orders, ordersPage, totalOrderPages]);
+
+    const getStateOptions = (countryCode?: string) =>
+        Object.entries((COUNTRIES_STATES.states[countryCode as keyof typeof COUNTRIES_STATES.states] as Record<string, string>) || {});
+
+    const getCountryCode = (countryValue?: string) => {
+        const safeCountry = (countryValue || '').trim();
+        if (!safeCountry) return '';
+        if (COUNTRIES_STATES.countries[safeCountry as keyof typeof COUNTRIES_STATES.countries]) return safeCountry;
+        const matchedCode = Object.entries(COUNTRIES_STATES.countries).find(([, name]) => name === safeCountry)?.[0];
+        return matchedCode || '';
+    };
+
+    const getStateCode = (countryCode?: string, stateValue?: string) => {
+        const safeCountryCode = getCountryCode(countryCode);
+        const safeState = (stateValue || '').trim();
+        if (!safeCountryCode || !safeState) return '';
+        const stateMap = (COUNTRIES_STATES.states[safeCountryCode as keyof typeof COUNTRIES_STATES.states] as Record<string, string>) || {};
+        if (stateMap[safeState]) return safeState;
+        const matchedCode = Object.entries(stateMap).find(([, name]) => name === safeState)?.[0];
+        return matchedCode || '';
+    };
+
+    const normalizeProfileForForm = (profileData: any) => {
+        if (!profileData || typeof profileData !== 'object') return profileData;
+        const countryCode = getCountryCode(profileData.country);
+        const stateCode = getStateCode(countryCode, profileData.state);
+        return {
+            ...profileData,
+            country: countryCode || profileData.country || '',
+            state: stateCode || profileData.state || '',
+        };
+    };
+
+    const mergeProfilePreservingLocation = (previousProfile: any, nextProfile: any) => {
+        if (!previousProfile || typeof previousProfile !== 'object') return nextProfile;
+        if (!nextProfile || typeof nextProfile !== 'object') return previousProfile;
+
+        const nextCountryCode = getCountryCode(nextProfile.country);
+        const resolvedCountry = nextCountryCode || getCountryCode(previousProfile.country) || previousProfile.country || '';
+
+        const nextStateCode = getStateCode(resolvedCountry, nextProfile.state);
+        const resolvedState = nextStateCode || getStateCode(resolvedCountry, previousProfile.state) || previousProfile.state || '';
+
+        return {
+            ...previousProfile,
+            ...nextProfile,
+            country: resolvedCountry,
+            state: resolvedState,
+        };
+    };
+
+    const getStateSelectValue = (countryCode?: string, currentState?: string) => {
+        const safeState = currentState || '';
+        const stateMap = (COUNTRIES_STATES.states[countryCode as keyof typeof COUNTRIES_STATES.states] as Record<string, string>) || {};
+        if (!safeState) return '';
+        if (stateMap[safeState]) return safeState;
+        const matchedCode = Object.entries(stateMap).find(([, name]) => name === safeState)?.[0];
+        return matchedCode || '';
+    };
+
     const fetchApiEndpoint = async (
         endpoint: string,
         stateSetter: React.Dispatch<React.SetStateAction<any>>,
         isArray: boolean = true,
         method: string = 'GET',
         bodyPayload?: any,
-        preferCache: boolean = true
+        preferCache: boolean = true,
+        section?: DashboardView
     ) => {
-        setIsLoading(true);
+        if (section) {
+            setSectionLoading((prev) => ({ ...prev, [section]: true }));
+        }
         try {
-            const response = await requestWithCache<any>({
-                method,
-                url: endpoint,
-                data: bodyPayload
-            }, { preferCache });
+            const isGet = method.toUpperCase() === 'GET';
+            const response = isGet
+                ? await requestWithCache<any>({
+                    method,
+                    url: endpoint
+                }, { preferCache })
+                : await api.request<any>({
+                    method,
+                    url: endpoint,
+                    data: bodyPayload
+                });
 
             const data = response.data;
 
@@ -349,25 +517,64 @@ export const UserDashboardView: React.FC = () => {
             }
 
             const parsedData = data?.data || data;
+            const isProfileEndpoint = endpoint.includes('/dashboard/profile');
+            const normalizedData = !isArray && isProfileEndpoint ? normalizeProfileForForm(parsedData) : parsedData;
 
             stateSetter((prev: any) => {
                 if (!isArray && prev && typeof prev === 'object') {
-                    return { ...prev, ...parsedData };
+                    if (isProfileEndpoint) {
+                        return mergeProfilePreservingLocation(prev, normalizedData);
+                    }
+                    return { ...prev, ...normalizedData };
                 }
                 if (isArray) {
-                    if (Array.isArray(parsedData)) return parsedData;
-                    if (parsedData && Array.isArray(parsedData.data)) return parsedData.data;
+                    if (Array.isArray(normalizedData)) return normalizedData;
+                    if (normalizedData && Array.isArray(normalizedData.data)) return normalizedData.data;
                     return [];
                 }
-                return parsedData;
+                return normalizedData;
             });
         } catch (err: any) {
             console.error(`[Dashboard] Failed to fetch API data for ${endpoint}:`, err);
             stateSetter((prev: any) => prev || (isArray ? [] : null));
         } finally {
-            setIsLoading(false);
+            if (section) {
+                setSectionLoading((prev) => ({ ...prev, [section]: false }));
+            }
         }
     };
+
+    useEffect(() => {
+        const handleCacheUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent<{ key?: string; data?: any }>;
+            const payload = customEvent.detail?.data;
+            if (!payload) return;
+            if (activeView === 'orders') {
+                const ordersData = payload?.data || payload;
+                const isOrderLikeArray =
+                    Array.isArray(ordersData)
+                    && (ordersData.length === 0
+                        || ordersData.some((item: any) =>
+                            item
+                            && typeof item === 'object'
+                            && (
+                                'invoice_url' in item
+                                || 'ordered_product' in item
+                                || 'products_count' in item
+                                || 'customer_name' in item
+                                || 'total' in item
+                            )
+                        ));
+
+                if (isOrderLikeArray) {
+                    setOrders(ordersData);
+                }
+            }
+        };
+
+        window.addEventListener('seamless:cache-updated', handleCacheUpdated);
+        return () => window.removeEventListener('seamless:cache-updated', handleCacheUpdated);
+    }, [activeView]);
 
 
     useEffect(() => {
@@ -377,32 +584,53 @@ export const UserDashboardView: React.FC = () => {
         } else {
             savedView = 'profile';
         }
-        // Always fetch the quick sidebar info using GET
-        if (!profile) fetchApiEndpoint('/dashboard/profile', setProfile, false);
+        // Load profile first to stabilize dashboard hydration.
+        if (!profile) fetchApiEndpoint('/dashboard/profile', setProfile, false, 'GET', undefined, true, 'profile');
     }, []);
 
     useEffect(() => {
         if (activeView === 'profile') {
-            // Then fetch the extended profile data using PUT when on the profile page
-            fetchApiEndpoint('/dashboard/profile/edit', setProfile, false, 'PUT', {});
+            if (profile === null) {
+                fetchApiEndpoint('/dashboard/profile', setProfile, false, 'GET', undefined, true, 'profile');
+            }
         } else if (activeView === 'orders' && orders === null) {
-            fetchApiEndpoint('/dashboard/orders', setOrders);
+            fetchApiEndpoint('/dashboard/orders', setOrders, true, 'GET', undefined, true, 'orders');
         } else if (activeView === 'courses') {
-            if (courses === null) fetchApiEndpoint('/dashboard/courses/enrolled', setCourses);
-            if (includedCourses === null) fetchApiEndpoint('/dashboard/courses/included', setIncludedCourses);
+            if (courses === null) fetchApiEndpoint('/dashboard/courses/enrolled', setCourses, true, 'GET', undefined, true, 'courses');
+            if (includedCourses === null) fetchApiEndpoint('/dashboard/courses/included', setIncludedCourses, true, 'GET', undefined, true, 'courses');
         } else if (activeView === 'organization' && profile?.email) {
             if (groupMemberships === null) {
                 reloadOrganizationData();
             }
         } else if (activeView === 'memberships') {
             if (memberships === null) {
-                fetchApiEndpoint('/dashboard/memberships', setMemberships);
+                fetchApiEndpoint('/dashboard/memberships', setMemberships, true, 'GET', undefined, true, 'memberships');
             }
             if (expiredMemberships === null) {
-                fetchApiEndpoint('/dashboard/memberships/history', setExpiredMemberships);
+                fetchApiEndpoint('/dashboard/memberships/history', setExpiredMemberships, true, 'GET', undefined, true, 'memberships');
             }
         }
     }, [activeView, activeCourseTab, activeMembershipTab, profile?.email]);
+
+    useEffect(() => {
+        if (activeView !== 'profile' || !profile || hasHydratedProfileDetails) return;
+
+        // Some installs return richer profile data from this endpoint.
+        fetchApiEndpoint('/dashboard/profile/edit', setProfile, false, 'PUT', {}, false, 'profile');
+        setHasHydratedProfileDetails(true);
+    }, [activeView, profile, hasHydratedProfileDetails]);
+
+    useEffect(() => {
+        if (activeView === 'orders') {
+            setOrdersPage(1);
+        }
+    }, [activeView]);
+
+    useEffect(() => {
+        if (ordersPage > totalOrderPages) {
+            setOrdersPage(totalOrderPages);
+        }
+    }, [ordersPage, totalOrderPages]);
 
     useEffect(() => {
         // Fetch progress for any loaded course that doesn't have progress yet
@@ -410,7 +638,7 @@ export const UserDashboardView: React.FC = () => {
             if (!c?.id || courseProgressMap[c.id]) return;
             try {
                 // Use the proxied api instance instead of direct fetch
-                const res = await requestWithCache<any>({
+                const res = await api.request<any>({
                     method: 'GET',
                     url: `/dashboard/courses/${c.id}/progress`
                 });
@@ -469,9 +697,11 @@ export const UserDashboardView: React.FC = () => {
                 address_line_1: profile?.address_line_1 || '',
                 address_line_2: profile?.address_line_2 || '',
                 city: profile?.city || '',
-                state: profile?.state || '',
+                state: getStateCode(getCountryCode(profile?.country), profile?.state),
                 zip_code: profile?.zip_code || '',
-                country: profile?.country || ''
+                country: getCountryCode(profile?.country),
+                state_code: getStateCode(getCountryCode(profile?.country), profile?.state),
+                country_code: getCountryCode(profile?.country),
             };
 
             // Switch to proxied api call
@@ -480,7 +710,7 @@ export const UserDashboardView: React.FC = () => {
 
             setToast({ type: 'success', message: 'Profile updated successfully!' });
             setIsEditingProfile(false);
-            fetchApiEndpoint('/dashboard/profile/edit', setProfile, false, 'PUT', {}, false);
+            fetchApiEndpoint('/dashboard/profile', setProfile, false, 'GET', undefined, false, 'profile');
         } catch (error: any) {
             console.error("Profile update failed!", error);
             if (error.response) {
@@ -507,7 +737,13 @@ export const UserDashboardView: React.FC = () => {
         });
     };
 
-    const triggerSystemAction = async (endpoint: string, method: string = 'POST', payload: any = {}, successMsg: string = 'Action successful.') => {
+    const triggerSystemAction = async (
+        endpoint: string,
+        method: string = 'POST',
+        payload: any = {},
+        successMsg: string = 'Action successful.',
+        onSuccess?: () => void
+    ) => {
         setIsSubmitting(true);
         try {
             // Proxied api handles the rest
@@ -520,6 +756,7 @@ export const UserDashboardView: React.FC = () => {
             if (data?.success || response.status === 200) {
                 setToast({ type: 'success', message: successMsg });
                 reloadMembershipData(false);
+                onSuccess?.();
             } else {
                 setToast({ type: 'error', message: data?.message || 'Failed to apply action.' });
             }
@@ -610,7 +847,13 @@ export const UserDashboardView: React.FC = () => {
             setToast({ type: 'error', message: 'Membership details are missing. Please refresh and try again.' });
             return;
         }
-        triggerSystemAction(`/dashboard/memberships/cancel/${membership.id}`, 'POST', { email }, 'Membership successfully canceled.');
+        triggerSystemAction(
+            `/dashboard/memberships/cancel/${membership.id}`,
+            'POST',
+            { email },
+            'Membership successfully canceled.',
+            () => setActiveMembershipTab('history')
+        );
     };
 
     const handleCancelScheduledChange = async (membershipId: string) => {
@@ -1155,16 +1398,6 @@ export const UserDashboardView: React.FC = () => {
         );
     };
 
-    if (isLoading && !profile) {
-        return (
-            <div className="seamless-user-dashboard-section">
-                <div className="seamless-dashboard-content-container">
-                    <DashboardSkeletonLoader rows={6} />
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="seamless-user-dashboard-section">
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -1335,7 +1568,7 @@ export const UserDashboardView: React.FC = () => {
                     </div>
 
                     <nav className="seamless-user-dashboard-nav">
-                        {(['profile', 'memberships', 'organization', 'courses', 'orders'] as DashboardView[]).map(view => (
+                        {navigationViews.map(view => (
                             <a
                                 key={view}
                                 href={`#${view}`}
@@ -1351,11 +1584,8 @@ export const UserDashboardView: React.FC = () => {
                         <a
                             href={(() => {
                                 const cfg = (window as any).seamlessReactConfig;
-                                // logoutUrl is already set to ?sso_logout_redirect=1 by PHP.
-                                // Append return_to so user lands back on this page after logout.
-                                const base = cfg?.logoutUrl
-                                    || `${(cfg?.siteUrl || window.location.origin).replace(/\/$/, '')}/?sso_logout_redirect=1`;
-                                return `${base}&return_to=${encodeURIComponent(window.location.href)}`;
+                                return cfg?.logoutUrl
+                                    || `${(cfg?.siteUrl || window.location.origin).replace(/\/$/, '')}/auth/logout`;
                             })()}
                             className="seamless-user-dashboard-nav-item seamless-user-dashboard-nav-logout seamless-nav-link seamless-no-underline"
                         >
@@ -1380,7 +1610,9 @@ export const UserDashboardView: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {!isEditingProfile ? (
+                                    {sectionLoading.profile ? (
+                                        <ProfileSectionSkeleton />
+                                    ) : !isEditingProfile ? (
                                         <div className="seamless-user-dashboard-profile-view-mode">
                                             <div className="seamless-grid-3-col">
                                                 <div><label className="seamless-value-label">First Name</label><div className="seamless-value-text">{profile?.first_name || '—'}</div></div>
@@ -1430,30 +1662,33 @@ export const UserDashboardView: React.FC = () => {
                                                 {profile?.country ? (
                                                     <div>
                                                         <label className="seamless-user-dashboard-label-text">State</label>
-                                                        {Object.keys((COUNTRIES_STATES.states[profile?.country as keyof typeof COUNTRIES_STATES.states] as any) || {}).length > 0 ? (
-                                                            <select name="state" value={profile?.state || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input">
-                                                                <option value="">Select State</option>
-                                                                {Object.entries((COUNTRIES_STATES.states[profile?.country as keyof typeof COUNTRIES_STATES.states] as any) || {}).map(([code, name]) => (
-                                                                    <option key={code} value={code as string}>{name as string}</option>
-                                                                ))}
-                                                            </select>
-                                                        ) : (
-                                                            <input name="state" value={profile?.state || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" />
-                                                        )}
+                                                        <select
+                                                            name="state"
+                                                            value={getStateSelectValue(profile?.country, profile?.state)}
+                                                            onChange={handleProfileChange}
+                                                            className="seamless-user-dashboard-input"
+                                                            disabled={getStateOptions(profile?.country).length === 0}
+                                                        >
+                                                            <option value="">
+                                                                {getStateOptions(profile?.country).length > 0 ? 'Select State' : 'No states available'}
+                                                            </option>
+                                                            {getStateOptions(profile?.country).map(([code, name]) => (
+                                                                <option key={code} value={code}>{name}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                 ) : (
                                                     <div>
                                                         <label className="seamless-user-dashboard-label-text restricted">State</label>
-                                                        {Object.keys((COUNTRIES_STATES.states[profile?.country as keyof typeof COUNTRIES_STATES.states] as any) || {}).length > 0 ? (
-                                                            <select name="state" value={profile?.state || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input">
-                                                                <option value="">Select State</option>
-                                                                {Object.entries((COUNTRIES_STATES.states[profile?.country as keyof typeof COUNTRIES_STATES.states] as any) || {}).map(([code, name]) => (
-                                                                    <option key={code} value={code as string}>{name as string}</option>
-                                                                ))}
-                                                            </select>
-                                                        ) : (
-                                                            <input name="state" value={profile?.state || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" />
-                                                        )}
+                                                        <select
+                                                            name="state"
+                                                            value={getStateSelectValue(profile?.country, profile?.state)}
+                                                            onChange={handleProfileChange}
+                                                            className="seamless-user-dashboard-input"
+                                                            disabled
+                                                        >
+                                                            <option value="">Select Country First</option>
+                                                        </select>
                                                     </div>
                                                 )}
                                                 <div><label className="seamless-user-dashboard-label-text">City</label><input name="city" value={profile?.city || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
@@ -1516,8 +1751,8 @@ export const UserDashboardView: React.FC = () => {
 
                                     <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
                                         {activeMembershipTab === 'active' ? (
-                                            memberships === null ? (
-                                                <DashboardSkeletonLoader rows={4} />
+                                            memberships === null && sectionLoading.memberships ? (
+                                                <MembershipSectionSkeleton />
                                             ) : activeMemberships.length === 0 ? (
                                                 <div className="seamless-empty-card">
                                                     <p>You do not have any active memberships.</p>
@@ -1546,6 +1781,7 @@ export const UserDashboardView: React.FC = () => {
                                                                         </div>
 
                                                                         {/* ACTIONS (Three dots menu) */}
+                                                                        <div className="seamless-tags-and-menu-container">
                                                                         <div className='seamless-tag-container'>
                                                                         {isGroupMembership && (
                                                                                 <span className="seamless-membership-type-tag">
@@ -1568,9 +1804,13 @@ export const UserDashboardView: React.FC = () => {
                                                                             </div>
                                                                         )}
                                                                         </div>
+                                                                        {isActive && !isCancelled && (
+                                                                            <div className="seamless-user-dashboard-badge seamless-user-dashboard-badge-active seamless-capitalize">Active</div>
+                                                                        )}
                                                                         {isCancelled && (
                                                                             <div className="seamless-cancelled-badge seamless-capitalize">Cancelled</div>
                                                                         )}
+                                                                    </div>
                                                                     </div>
                                                                     <div className="seamless-flex-gap-24-slate">
                                                                         <span>Purchased: {purchasedAt ? new Date(purchasedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
@@ -1599,8 +1839,8 @@ export const UserDashboardView: React.FC = () => {
                                             )
                                         ) : (
                                             /* HISTORY */
-                                            expiredMemberships === null ? (
-                                                <DashboardSkeletonLoader rows={4} />
+                                            expiredMemberships === null && sectionLoading.memberships ? (
+                                                <MembershipSectionSkeleton />
                                             ) : historyMemberships.length === 0 ? (
                                                 <div className="seamless-empty-card">
                                                     <p>No past membership history available.</p>
@@ -1657,8 +1897,8 @@ export const UserDashboardView: React.FC = () => {
                     {activeView === 'organization' && (
                         <div className="seamless-user-dashboard-view active">
                             <div className="seamless-dashboard-content-container">
-                                {groupMemberships === null ? (
-                                    <DashboardSkeletonLoader rows={4} />
+                                {groupMemberships === null && sectionLoading.organization ? (
+                                    <MembershipSectionSkeleton />
                                 ) : organizationSummary.plans.length === 0 ? (
                                     <div className="seamless-user-dashboard-org-empty">
                                         <div className="seamless-user-dashboard-org-empty-icon">
@@ -1705,7 +1945,7 @@ export const UserDashboardView: React.FC = () => {
                                             const isExpanded = Boolean(expandedOrgPlans[membershipId]);
 
                                             return (
-                                                <div key={membershipId} className="seamless-user-dashboard-org-plan">
+                                                <div key={membershipId} className={`seamless-user-dashboard-org-plan ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
                                                     <button type="button" className="seamless-user-dashboard-org-plan-header" onClick={() => toggleOrganizationPlan(membershipId)}>
                                                         <div className="seamless-user-dashboard-org-plan-info">
                                                             <h3 className="seamless-user-dashboard-org-plan-title">{membership?.plan?.label || 'Group Plan'}</h3>
@@ -1882,7 +2122,7 @@ export const UserDashboardView: React.FC = () => {
                                     <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
                                         {activeCourseTab === 'enrolled' && (
                                             courses === null ? (
-                                                <DashboardSkeletonLoader rows={5} />
+                                                <CoursesSectionSkeleton />
                                             ) : courses.length === 0 ? (
                                                 <div className="seamless-empty-card"><p>You have not enrolled in any courses yet.</p></div>
                                             ) : (
@@ -1912,7 +2152,7 @@ export const UserDashboardView: React.FC = () => {
                                         )}
                                         {activeCourseTab === 'included' && (
                                             includedCourses === null ? (
-                                                <DashboardSkeletonLoader rows={5} />
+                                                <CoursesSectionSkeleton />
                                             ) : includedCourses.length === 0 ? (
                                                 <div className="seamless-empty-card"><p>You do not have any courses included in your membership.</p></div>
                                             ) : (
@@ -1950,12 +2190,25 @@ export const UserDashboardView: React.FC = () => {
                     {activeView === 'orders' && (
                         <div className="seamless-user-dashboard-view active">
                             <div className="seamless-dashboard-content-container">
-                                <div className="seamless-orders-content-card">
-                                    <div className="seamless-orders-content-header">
-                                        <h3 className="seamless-user-dashboard-view-title seamless-mt-0">Order History</h3>
-                                    </div>
+                                <div className="seamless-orders-content-header">
+                                    <h3 className="seamless-user-dashboard-view-title seamless-mt-0">Order History</h3>
+                                    {Array.isArray(orders) && orders.length > 0 && (
+                                        <p className="seamless-orders-meta">
+                                            Showing {paginatedOrders.length} of {orders.length} orders
+                                        </p>
+                                    )}
+                                </div>
                                     <div className="seamless-table-wrapper seamless-mt-24">
                                     <table className="seamless-styled-table">
+                                        <colgroup>
+                                            <col className="seamless-col-customer" />
+                                            <col className="seamless-col-count" />
+                                            <col className="seamless-col-product" />
+                                            <col className="seamless-col-status" />
+                                            <col className="seamless-col-total" />
+                                            <col className="seamless-col-date" />
+                                            <col className="seamless-col-invoice" />
+                                        </colgroup>
                                         <thead className="seamless-styled-thead">
                                             <tr>
                                                 <th>Customer</th>
@@ -1969,31 +2222,59 @@ export const UserDashboardView: React.FC = () => {
                                         </thead>
                                         <tbody>
                                             {orders === null ? (
-                                                <tr><td colSpan={7} className="seamless-p-24-center-slate"><DashboardSkeletonLoader rows={4} compact /></td></tr>
+                                                <tr><td colSpan={7} className="seamless-p-24-center-slate"><OrdersSectionSkeleton /></td></tr>
                                             ) : orders.length === 0 ? (
                                                 <tr><td colSpan={7} className="seamless-p-24-center-slate">No orders found.</td></tr>
                                             ) : (
-                                                orders.map((order: any, i: number) => {
+                                                paginatedOrders.map((order: any, i: number) => {
                                                     const statusLower = (order.status || 'unknown').toLowerCase();
                                                     let badgeClass = 'seamless-badge-default';
                                                     if (statusLower === 'completed' || statusLower === 'success') badgeClass = 'seamless-badge-success';
                                                     else if (statusLower === 'pending') badgeClass = 'seamless-badge-pending';
                                                     else if (statusLower === 'failed' || statusLower === 'cancelled') badgeClass = 'seamless-badge-failed';
 
+                                                    const helperText =
+                                                        order?.helper_text ||
+                                                        order?.status_message ||
+                                                        order?.description ||
+                                                        order?.notes ||
+                                                        order?.meta?.helper_text ||
+                                                        order?.metadata?.helper_text ||
+                                                        order?.metadata?.status_message ||
+                                                        '';
+                                                    const unpaidInvoiceText =
+                                                        order?.unpaid_invoice ||
+                                                        order?.unpaid_invoice_text ||
+                                                        order?.invoice_status ||
+                                                        order?.payment_status_text ||
+                                                        (String(order?.payment_status || '').toLowerCase() === 'unpaid' ? 'Unpaid Invoice' : '') ||
+                                                        (statusLower === 'processing' ? helperText : '');
+
                                                     const fmtDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
 
                                                     return (
-                                                        <tr key={order.id || i} className="seamless-styled-tr">
-                                                            <td>{order.customer_name || 'N/A'}</td>
+                                                        <tr key={`${order.id || 'order'}-${i}`} className="seamless-styled-tr">
+                                                            <td className="seamless-order-customer-name">{order.customer_name || 'N/A'}</td>
                                                             <td className="seamless-text-center">{order.products_count || 1}</td>
-                                                            <td>{order.ordered_product || '—'}</td>
+                                                            <td>
+                                                                <div className="seamless-order-product-cell">
+                                                                    <span>{order.ordered_product || '-'}</span>
+                                                                    {helperText ? (
+                                                                        <span className="seamless-order-helper-tag" title={String(helperText)}>
+                                                                            {String(helperText)}
+                                                                        </span>
+                                                                    ) : null}
+                                                                </div>
+                                                            </td>
                                                             <td><span className={`seamless-badge ${badgeClass}`}>{order.status || 'Status'}</span></td>
                                                             <td className="seamless-total-amount">${parseFloat(order.total || 0).toFixed(2)}</td>
                                                             <td className="seamless-text-slate-600">{fmtDate}</td>
                                                             <td>
-                                                                {order.invoice_url ? (
+                                                                {statusLower === 'processing' && unpaidInvoiceText ? (
+                                                                    <span className="seamless-invoice-unpaid">{String(unpaidInvoiceText)}</span>
+                                                                ) : order.invoice_url ? (
                                                                     <button onClick={() => window.open(order.invoice_url, '_blank', 'noopener,noreferrer')} className="seamless-btn-invoice">Invoice</button>
-                                                                ) : '—'}
+                                                                ) : '-'}
                                                             </td>
                                                         </tr>
                                                     );
@@ -2002,7 +2283,27 @@ export const UserDashboardView: React.FC = () => {
                                         </tbody>
                                     </table>
                                     </div>
-                                </div>
+                                    {Array.isArray(orders) && orders.length > ORDERS_PAGE_SIZE && (
+                                        <div className="seamless-orders-pagination">
+                                            <button
+                                                type="button"
+                                                className="seamless-orders-page-btn"
+                                                onClick={() => setOrdersPage((prev) => Math.max(1, prev - 1))}
+                                                disabled={ordersPage === 1}
+                                            >
+                                                Previous
+                                            </button>
+                                            <span className="seamless-orders-page-meta">Page {ordersPage} of {totalOrderPages}</span>
+                                            <button
+                                                type="button"
+                                                className="seamless-orders-page-btn"
+                                                onClick={() => setOrdersPage((prev) => Math.min(totalOrderPages, prev + 1))}
+                                                disabled={ordersPage >= totalOrderPages}
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
+                                    )}
                             </div>
                         </div>
                     )}

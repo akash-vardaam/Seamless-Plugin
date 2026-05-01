@@ -336,7 +336,6 @@
 :host .seamless-card-modern-shell {
   flex: 1 !important;
   background: #ffffff !important;
-  border: 1px solid #d1d5db !important;
   border-radius: 18px !important;
   overflow: hidden !important;
   position: relative !important;
@@ -357,6 +356,9 @@
   width: 100% !important;
   align-items: stretch !important;
   min-height: 0 !important;
+  border: 1px solid rgb(209, 213, 219) !important;
+  border-radius: 18px !important;
+  transition: border-color 0.2s ease !important;
 }
 
 :host .seamless-card-modern-body {

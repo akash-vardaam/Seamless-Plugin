@@ -395,7 +395,7 @@ class SeamlessRender
 				isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
 				amsUserId: '<?php echo esc_js($ams_user_id); ?>',
 				userEmail: '<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->user_email) : ''; ?>',
-				logoutUrl: '<?php echo is_user_logged_in() ? esc_js(wp_logout_url(home_url())) : ''; ?>',
+				logoutUrl: '<?php echo is_user_logged_in() ? esc_js($this->sso->get_public_logout_url(null, false)) : ''; ?>',
 				eventListEndpoint: '<?php echo esc_js(get_option('seamless_event_list_endpoint', 'events')); ?>',
 				singleEventEndpoint: '<?php echo esc_js(get_option('seamless_single_event_endpoint', 'event')); ?>',
 				amsContentEndpoint: '<?php echo esc_js(get_option('seamless_ams_content_endpoint', 'ams-content')); ?>',
@@ -523,9 +523,8 @@ class SeamlessRender
 			'shopCartEndpoint' => get_option('seamless_shop_cart_endpoint', 'shops/cart'),
 			'shopProductTypeLabel' => __('Physical', 'seamless'),
 			'shopAvailabilityLabel' => __('Available', 'seamless'),
-			// Query-param logout: works without needing rewrite rules flushed.
 			'logoutUrl' => is_user_logged_in()
-				? add_query_arg('sso_logout_redirect', '1', home_url('/'))
+				? $this->sso->get_public_logout_url(null, false)
 				: '',
 			// Whether the current WP user has a valid SSO token stored.
 			// React uses this to decide whether to show a "Connect SSO" prompt.
@@ -1131,10 +1130,10 @@ JS,
 	public function shortcode_react_dashboard($atts = []): string
 	{
 		if (!is_user_logged_in()) {
-			$login_button = do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn" style="display: flex; justify-content: center; background-color: #0F172A; color: white; padding: 10px 50px; border-radius: 15px; font-weight: 500;"]');
+			$login_button = do_shortcode('[seamless_login_button text="Sign in to view your dashboard" class="seamless-premium-btn seamless-login-btn" style="display: flex; justify-content: center; background-color: #0F172A; color: white; padding: 10px 50px; border-radius: 14px; font-weight: 500;"]');
 			return sprintf(
 				'<style> .seamless-login-btn {display: flex; justify-content: center; background-color: #0F172A; color: white; padding: 8px 40px; border-radius: 15px; font-weight: 500; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;} .seamless-login-btn:hover {background-color: #009fb8; color:#fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);} </style>
-				<div class="seamless-dashboard-login-state" style="display: flex; justify-content: center; border: 1px solid #e5e7eb; background: #F9FAFB; padding: 40px 0px; text-align: center;"><div class="seamless-dashboard-login-panel"><p class="seamless-dashboard-login-copy">%s</p>%s</div></div>',
+				<div class="seamless-dashboard-login-state" style="display: flex; justify-content: center; border: 1px solid #e5e7eb; background: #F9FAFB; padding: 40px 0px; text-align: center; border-radius: 8px;"><div class="seamless-dashboard-login-panel"><p class="seamless-dashboard-login-copy">%s</p>%s</div></div>',
 				esc_html__('Please log in to view your dashboard.', 'seamless-addon'),
 				$login_button
 			);

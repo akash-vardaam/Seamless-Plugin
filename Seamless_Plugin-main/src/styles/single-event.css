@@ -5,7 +5,6 @@
     max-width: var(--seamless-layout-container-max-width, 80rem) !important;
     min-height: calc(100vh - 40px) !important;
     margin: 0 auto !important;
-    padding: 20px !important;
     font-family: var(--seamless-font-family-default) !important;
     color: var(--seamless-color-font) !important;
     box-sizing: border-box !important;
@@ -259,6 +258,7 @@
 
 :host p.seamless-detail-value.seamless-location-details {
     margin-bottom: 0px !important;
+    color: var(--seamless-color-primary) !important;
 }
 
 :host a {

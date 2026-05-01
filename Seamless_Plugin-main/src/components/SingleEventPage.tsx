@@ -28,6 +28,12 @@ export const SingleEventPage: React.FC = () => {
     const [activeSponsorIndex, setActiveSponsorIndex] = useState(0);
     const [isSponsorTrackAnimating, setIsSponsorTrackAnimating] = useState(true);
     const calendarDropdownRef = React.useRef<HTMLDivElement>(null);
+    const configuredFallbackImage = ((window as any)?.seamlessReactConfig?.fallbackEventImageUrl as string | undefined) || '';
+    const fallbackEventImageUrl =
+        (configuredFallbackImage
+            ? configuredFallbackImage.replace(/seamless-logo\.png(?:\?.*)?$/i, 'seamless-logo-small.png')
+            : '') ||
+        `${getWordPressSiteUrl().replace(/\/+$/g, '')}/seamless-logo-small.png`;
 
     const handleCalendarOptionClick = () => {
         setCalendarDropdownOpen(false);
@@ -342,6 +348,17 @@ export const SingleEventPage: React.FC = () => {
         return <SeamlessInitialLoader message="Loading event details..." />;
     }
 
+    const handleEventImageError = (evt: React.SyntheticEvent<HTMLImageElement>) => {
+        const target = evt.currentTarget;
+        if (target.dataset.fallbackApplied === 'true') {
+            return;
+        }
+
+        target.dataset.fallbackApplied = 'true';
+        target.classList.add('seamless-default-icon');
+        target.src = fallbackEventImageUrl;
+    };
+
     if (error || !event) {
         return (
             <div className="seamless-single-event-container">
@@ -501,11 +518,12 @@ export const SingleEventPage: React.FC = () => {
                 <div className="seamless-event-header-wrapper">
                     <header className="seamless-event-header-group">
                         <div className="seamless-event-icon-circle">
-                            {event?.featured_image ? (
-                                <img src={event?.featured_image} alt="Event Icon" />
-                            ) : (
-                                <img src="/seamless-logo-small.png" className='seamless-default-icon' alt="Seamless Logo" />
-                            )}
+                            <img
+                                src={event?.featured_image || fallbackEventImageUrl}
+                                className={event?.featured_image ? '' : 'seamless-default-icon'}
+                                alt={event?.featured_image ? 'Event Icon' : 'Seamless Logo'}
+                                onError={handleEventImageError}
+                            />
                         </div>
                         <h1 className="seamless-event-title">{event?.title}</h1>
                     </header>

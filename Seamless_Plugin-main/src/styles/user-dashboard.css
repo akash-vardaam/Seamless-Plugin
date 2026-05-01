@@ -871,6 +871,27 @@
     font-weight: inherit !important;
 }
 
+:host .seamless-order-product-cell {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+}
+
+:host .seamless-order-helper-tag {
+    display: inline-flex !important;
+    max-width: 100% !important;
+    width: fit-content !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+    background: #0b3354 !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    font-weight: 400 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
 /* Courses Section */
 
 :host .seamless-user-dashboard-summary-grid {
@@ -950,9 +971,70 @@
 :host .seamless-user-dashboard-course-card .seamless-user-dashboard-course-content .seamless-user-dashboard-course-title {
     margin: 0 0 10px 0 !important;
     font-size: var(--seamless-font-size-16) !important;
-    font-weight: 600 !important;
+    font-weight: 400 !important;
     color: #1a1a1a !important;
     line-height: var(--seamless-line-height-1-4) !important;
+}
+
+/* 2026 dashboard polish: align with current Seamless screenshots */
+:host .seamless-user-dashboard{
+  gap: 18px !important;
+}
+
+:host .seamless-user-dashboard-profile-card{
+  border-radius: 14px !important;
+  padding: 18px 16px !important;
+  background: #0b3354 !important;
+  border: 0 !important;
+}
+
+:host .seamless-user-dashboard-nav{
+  border-radius: 14px !important;
+  padding: 10px !important;
+  border-color: #d9e0ea !important;
+  gap: 6px !important;
+}
+
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item{
+  min-height: 42px !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  border-bottom: 0 !important;
+}
+
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-item.active{
+  background: #0b3354 !important;
+}
+
+:host .seamless-user-dashboard-nav a.seamless-user-dashboard-nav-logout{
+  margin-top: 2px !important;
+}
+
+:host .seamless-user-dashboard-main .seamless-user-dashboard-summary-grid{
+  grid-template-columns: minmax(220px, 0.9fr) minmax(300px, 1fr) minmax(360px, 1.35fr) !important;
+  gap: 18px !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-tabs-wrapper{
+  border-color: #d7dee8 !important;
+  border-radius: 14px !important;
+}
+
+:host .seamless-user-dashboard-tabs-wrapper .seamless-user-dashboard-tabs-header{
+  background: #f9fbfd !important;
+}
+
+:host .seamless-user-dashboard-tabs-wrapper .seamless-user-dashboard-tab-content.active{
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 0 0 14px 14px !important;
+  padding: 18px !important;
+}
+
+:host .seamless-profile-content-card,
+:host .seamless-orders-content-card{
+  border-radius: 14px !important;
+  border-color: #d7dee8 !important;
 }
 
 /* Course Progress Section */
@@ -2949,9 +3031,29 @@
 
 :host .seamless-user-dashboard-input {
     width: 100% !important;
-    padding: 8px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 8px 12px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 6px !important;
+    line-height: 1.2 !important;
+    box-sizing: border-box !important;
+    background-color: #ffffff !important;
+}
+
+:host select.seamless-user-dashboard-input {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    padding-right: 38px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%231f2937' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 14px 14px !important;
+}
+
+:host select.seamless-user-dashboard-input::-ms-expand {
+    display: none !important;
 }
 
 :host .seamless-user-dashboard-form-actions {
@@ -2963,7 +3065,7 @@
 :host .seamless-user-dashboard-btn-primary {
     background: var(--seamless-color-primary) !important;
     color: #ffffff !important;
-    padding: 5px 18px !important;
+    padding: 5px 18px 3px !important;
     border: none !important;
     border-radius: 6px !important;
     cursor: pointer !important;
@@ -3003,7 +3105,7 @@
 :host .seamless-user-dashboard-btn-secondary {
     background: #f3f4f6 !important;
     color: #374151 !important;
-    padding: 5px 18px !important;
+    padding: 5px 18px 3px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 6px !important;
     cursor: pointer !important;
@@ -3645,6 +3747,8 @@
     font-size: var(--seamless-font-size-18) !important;
     font-weight: 600 !important;
     color: var(--seamless-color-heading) !important;
+    border-top: 1px solid #e5e7eb !important;
+    padding-top: 22px !important;
 }
 
 :host .seamless-form-actions {
@@ -4133,8 +4237,8 @@
     align-items: center !important;
     gap: 6px !important;
     width: fit-content !important;
-    padding:3px 15px !important;
-    border-radius: 6px !important;
+    padding:7px 15px !important;
+    border-radius: 8px !important;
     background: #eef2ff !important;
     color: #3730a3 !important;
     border: 1px solid #c7d2fe !important;
@@ -4409,7 +4513,7 @@
     margin-top: auto !important;
     font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
-    color: #6366f1 !important;
+    color: #173b61 !important;
     text-decoration: none !important;
     display: flex !important;
     align-items: center !important;
@@ -4418,30 +4522,38 @@
 }
 
 :host .seamless-course-card-action:hover {
-    color: var(--seamless-color-secondary) !important;
+    color: var(--seamless-color-primary) !important;
 }
 
 /* --- New Orders View Styles --- */
 :host .seamless-orders-content-card {
-    border-radius: 16px !important;
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-    padding: 24px !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
 }
 
 :host .seamless-orders-content-header {
-    border-bottom: 1px solid #e5e7eb !important;
-    padding-bottom: 16px !important;
+    border-bottom: 1px solid #d8e4ef !important;
+    padding-bottom: 14px !important;
 }
 
 :host .seamless-orders-content-header .seamless-user-dashboard-view-title {
     margin: 0 !important;
+    color: #0f2742 !important;
+}
+
+:host .seamless-orders-meta {
+    margin: 8px 0 0 0 !important;
+    color: #4b6077 !important;
+    font-size: var(--seamless-font-size-13) !important;
+    font-weight: 400 !important;
 }
 
 :host .seamless-table-wrapper {
     background: #fff !important;
-    border: 1px solid var(--seamless-color-gray-700) !important;
+    border: 1px solid #d8e4ef !important;
     border-radius: 12px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
@@ -4454,22 +4566,27 @@
 }
 
 :host .seamless-styled-thead th {
-    background: #f8fafc !important;
-    padding: 16px 24px !important;
+    background: #eef5fb !important;
+    padding: 16px !important;
     font-size: var(--seamless-font-size-14) !important;
     font-weight: 600 !important;
-    color: var(--seamless-color-font) !important;
-    border-bottom: 1px solid var(--seamless-color-gray-700) !important;
+    color: #173b61 !important;
+    border-bottom: 1px solid #d8e4ef !important;
     text-align: center !important;
 }
 
 :host .seamless-styled-tr td {
-    padding: 8px 2px !important;
-    border-bottom: 1px solid #f1f5f9 !important;
-    color: var(--seamless-color-heading) !important;
+    padding: 11px 10px !important;
+    border-bottom: 1px solid #edf3f9 !important;
+    color: #0f2742 !important;
     font-size: var(--seamless-font-size-14) !important;
     vertical-align: middle !important;
     text-align: center !important;
+    font-weight: 400 !important;
+}
+
+:host .seamless-styled-tr:nth-child(even) td {
+    background: #f9fcff !important;
 }
 
 :host .seamless-styled-tr:last-child td {
@@ -4480,7 +4597,7 @@
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 3px 8px !important;
+    padding: 4px 10px !important;
     border-radius: 9999px !important;
     font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
@@ -4488,29 +4605,28 @@
 }
 
 :host .seamless-badge-success {
-    background: #d1fae5 !important;
-    color: #059669 !important;
+    background: #dff7ed !important;
+    color: #0f6e4c !important;
 }
 
 :host .seamless-badge-pending {
-    background: #fef08a !important;
-    color: #ca8a04 !important;
+    background: #fff4d6 !important;
+    color: #a16207 !important;
 }
 
 :host .seamless-badge-failed {
     background: #fee2e2 !important;
-    color: #ef4444 !important;
+    color: #b91c1c !important;
 }
 
 :host .seamless-badge-default {
-    background: #f1f5f9 !important;
-    color: var(--seamless-color-font) !important;
+    background: #e9f0f8 !important;
+    color: #173b61 !important;
 }
 
 :host .seamless-total-amount {
-    font-weight: 700 !important;
-    color: #059669 !important;
-    /* Green text in screenshot */
+    font-weight: 400 !important;
+    color: #0f6e4c !important;
 }
 
 :host .semaless-tag-container {
@@ -4521,23 +4637,244 @@
 }
 
 :host .seamless-btn-invoice {
-    background: var(--seamless-color-primary) !important;
+    background: #173b61 !important;
     color: #fff !important;
-    padding: 2px 13px 5px !important;
+    padding: 2px 13px 2px !important;
     border-radius: 6px !important;
     font-size: var(--seamless-font-size-13) !important;
     font-weight: 600 !important;
     text-decoration: none !important;
     display: inline-block !important;
     transition: opacity 0.2s !important;
-    border: 2px solid var(--seamless-color-primary) !important;
+    border: 2px solid #173b61 !important;
 }
 
 :host .seamless-btn-invoice:hover {
     background: #ffffff !important;
-    color: var(--seamless-color-primary) !important;
-    border: 2px solid var(--seamless-color-primary) !important;
+    color: #173b61 !important;
+    border: 2px solid #173b61 !important;
     text-decoration: none !important;
+}
+
+:host .seamless-orders-pagination {
+    margin-top: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+}
+
+:host .seamless-orders-page-meta {
+    color: #4b6077 !important;
+    font-size: var(--seamless-font-size-13) !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-orders-page-btn {
+    border: 1px solid #d8e4ef !important;
+    background: #ffffff !important;
+    color: #173b61 !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    font-size: var(--seamless-font-size-13) !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+
+:host .seamless-orders-page-btn:hover:not(:disabled) {
+    background: #eef5fb !important;
+    border-color: #b9cfe3 !important;
+}
+
+:host .seamless-orders-page-btn:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+}
+
+:host .seamless-section-skeleton {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+}
+
+:host .seamless-section-skeleton-grid-3 {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+}
+
+:host .seamless-section-skeleton-grid-cards {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+:host .seamless-section-skeleton-orders {
+    padding: 8px !important;
+}
+@media (max-width: 900px) {
+    :host .seamless-section-skeleton-grid-3,
+    :host .seamless-section-skeleton-grid-cards {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Dashboard consistency pass: border + organization states + orders density */
+:host .seamless-user-dashboard {
+    --seamless-color-gray-700: #d8e4ef !important;
+}
+
+:host .seamless-user-dashboard .seamless-dashboard-content-container,
+:host .seamless-user-dashboard .seamless-profile-content-card,
+:host .seamless-user-dashboard .seamless-user-dashboard-tabs-wrapper,
+:host .seamless-user-dashboard .seamless-membership-card-box,
+:host .seamless-user-dashboard .seamless-user-dashboard-org-plan,
+:host .seamless-user-dashboard .seamless-user-dashboard-org-members-section,
+:host .seamless-user-dashboard .seamless-user-dashboard-org-capacity-item,
+:host .seamless-user-dashboard .seamless-table-wrapper {
+    border-color: #d8e4ef !important;
+    box-shadow: none !important;
+}
+
+:host .seamless-styled-table .seamless-col-customer {
+    width: 18% !important;
+}
+
+:host .seamless-styled-table .seamless-col-count {
+    width: 8% !important;
+}
+
+:host .seamless-styled-table .seamless-col-product {
+    width: 28% !important;
+}
+
+:host .seamless-styled-table .seamless-col-status {
+    width: 12% !important;
+}
+
+:host .seamless-styled-table .seamless-col-total {
+    width: 10% !important;
+}
+
+:host .seamless-styled-table .seamless-col-date {
+    width: 14% !important;
+}
+
+:host .seamless-styled-table .seamless-col-invoice {
+    width: 10% !important;
+}
+
+:host .seamless-styled-table th:nth-child(2),
+:host .seamless-styled-table td:nth-child(2) {
+    white-space: nowrap !important;
+}
+
+:host .seamless-order-customer-name {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-order-product-cell {
+    align-items: center !important;
+}
+
+:host .seamless-orders-content-header {
+    margin-bottom: 10px !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-collapsed {
+    border: 1px solid #d8e4ef !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+}
+
+:host .seamless-user-dashboard-org-plan {
+    transition: border-color 0.25s ease, transform 0.25s ease !important;
+}
+
+:host .seamless-user-dashboard-org-plan:hover {
+    border-color: #b9cfe3 !important;
+    box-shadow: none !important;
+    transform: translateY(0) !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-collapsed .seamless-user-dashboard-org-plan-header {
+    padding: 24px !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-collapsed .seamless-user-dashboard-org-plan-title {
+    font-size: var(--seamless-font-size-22) !important;
+    margin-bottom: 8px !important;
+    color: #0f2742 !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-collapsed .seamless-user-dashboard-org-plan-stats {
+    gap: 18px !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-expanded {
+    border: 1px solid #d8e4ef !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-expanded .seamless-user-dashboard-org-plan-body {
+    border-top: 1px solid #d8e4ef !important;
+}
+
+:host .seamless-user-dashboard-org-plan-header {
+    transition: background-color 0.2s ease !important;
+}
+
+:host .seamless-user-dashboard-org-plan:hover .seamless-user-dashboard-org-plan-header {
+    background: #fbfdff !important;
+}
+
+:host .seamless-user-dashboard-org-plan-body {
+    overflow: hidden !important;
+    transform-origin: top center !important;
+    animation: seamless-org-plan-expand 0.28s ease-out !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-collapsed .seamless-user-dashboard-org-plan-toggle svg {
+    transition: transform 0.25s ease !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-expanded .seamless-user-dashboard-org-plan-toggle svg {
+    transition: transform 0.25s ease !important;
+}
+
+@keyframes seamless-org-plan-expand {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scaleY(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scaleY(1);
+    }
+}
+
+:host .seamless-user-dashboard-org-plan.is-expanded .seamless-user-dashboard-org-capacity-item.seamless-org-capacity {
+    background: #f1efff !important;
+    border-color: #c8baf8 !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-expanded .seamless-user-dashboard-org-capacity-item.seamless-org-current {
+    background: #edf4ff !important;
+    border-color: #bcd3ff !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-expanded .seamless-user-dashboard-org-capacity-item.seamless-org-remaining {
+    background: #fff9eb !important;
+    border-color: #f5d38a !important;
+}
+
+:host .seamless-user-dashboard-org-plan.is-expanded .seamless-user-dashboard-org-capacity-item.seamless-org-additional {
+    background: #fff1f1 !important;
+    border-color: #f7c6c6 !important;
 }
 
 /* Organization */
@@ -4611,7 +4948,7 @@
     display: inline-flex !important;
     align-items: center !important;
     padding: 3px 15px !important;
-    border-radius: 999px !important;
+    border-radius: 6px !important;
     font-size: var(--seamless-font-size-12) !important;
     font-weight: 600 !important;
 }
@@ -4677,7 +5014,7 @@
 }
 
 :host .seamless-user-dashboard-org-plan-stats {
-    padding-top: 5px !important;
+    padding-top: 10px !important;
 }
 
 :host .seamless-user-dashboard-org-plan-scope {
@@ -4782,7 +5119,7 @@
     color: #fff !important;
     border: none !important;
     border-radius: 12px !important;
-    padding: 10px 16px !important;
+    padding: 6px 20px !important;
     cursor: pointer !important;
     font-weight: 600 !important;
 }
@@ -4849,11 +5186,13 @@
 :host .seamless-org-status-accepted {
     background: #dcfce7 !important;
     color: #166534 !important;
+    border: 1px solid #86efac !important;
 }
 
 :host .seamless-org-status-pending {
     background: #fef3c7 !important;
     color: #92400e !important;
+    border: 1px solid #fcd34d !important;
 }
 
 :host .seamless-org-status-declined {
@@ -5090,5 +5429,238 @@
     :host .seamless-user-dashboard-profile-view-mode .seamless-grid-3-col {
         display: flex !important;
         flex-direction: column !important;
+    }
+}
+
+/* Membership visual stabilization (final override) */
+:host .seamless-user-dashboard-view .seamless-user-dashboard-tabs-header {
+    border-bottom: 1px solid #d8e4ef !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-tab {
+    color: #4b6077 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-tab.active {
+    color: #0f2742 !important;
+    border-bottom-color: #173b61 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-tab-count {
+    min-width: 22px !important;
+    height: 22px !important;
+    border-radius: 999px !important;
+    background: #dbe6f3 !important;
+    color: #6b7f95 !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-tab.active .seamless-tab-count {
+    background: #c7d9ec !important;
+    color: #173b61 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box {
+    border: 1px solid #d8e4ef !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    padding: 18px 22px !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box .seamless-flex-between-center {
+    align-items: center !important;
+    gap: 16px !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box .seamless-card-title {
+    margin: 0 !important;
+    font-size: 20px !important;
+    line-height: 1.25 !important;
+    color: #0f2742 !important;
+    font-weight: 600 !important;
+}
+
+:host .seamless-tags-and-menu-container {
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    gap: 15px !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box .seamless-flex-gap-24-slate {
+    margin-top: 2px !important;
+    gap: 24px !important;
+    color: #516a84 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box .seamless-tag-container {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box .seamless-user-dashboard-menu-container {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box .seamless-btn-transparent {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-membership-card-box .seamless-user-dashboard-badge-active {
+    background: #b7f0d0 !important;
+    border: 1px solid #86ddb0 !important;
+    color: #0f6e4c !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    padding: 4px 14px !important;
+}
+
+
+
+:host .seamless-membership-skeleton-card {
+    border: 1px solid #d8e4ef !important;
+    border-radius: 12px !important;
+    padding: 18px 22px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    background: #ffffff !important;
+}
+
+:host .seamless-membership-skeleton-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+
+:host .seamless-membership-skeleton-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+/* Organization capacity tiles: match compact screenshot style */
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item {
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item .seamless-user-dashboard-org-content-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-label {
+    font-size: 16px !important;
+    font-weight: 500 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-value {
+    margin-top: 0 !important;
+    line-height: 1 !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-capacity {
+    background: #f1efff !important;
+    border-color: #c9baf8 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-capacity .seamless-user-dashboard-org-content-icon,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-capacity .seamless-user-dashboard-org-capacity-label,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-capacity .seamless-user-dashboard-org-capacity-value {
+    color: #5b31d6 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-current {
+    background: #edf4ff !important;
+    border-color: #bcd3ff !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-current .seamless-user-dashboard-org-content-icon,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-current .seamless-user-dashboard-org-capacity-label,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-current .seamless-user-dashboard-org-capacity-value {
+    color: #2d5ddd !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-remaining {
+    background: #fff9eb !important;
+    border-color: #f5d38a !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-remaining .seamless-user-dashboard-org-content-icon,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-remaining .seamless-user-dashboard-org-capacity-label,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-remaining .seamless-user-dashboard-org-capacity-value {
+    color: #e18711 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-additional {
+    background: #fff1f1 !important;
+    border-color: #f7c6c6 !important;
+}
+
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-additional .seamless-user-dashboard-org-content-icon,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-additional .seamless-user-dashboard-org-capacity-label,
+:host .seamless-user-dashboard-view .seamless-user-dashboard-org-capacity-item.seamless-org-additional .seamless-user-dashboard-org-capacity-value {
+    color: #e53935 !important;
+}
+
+:host .seamless-courses-skeleton-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+:host .seamless-courses-skeleton-tabs {
+    padding: 4px 0 !important;
+}
+
+:host .seamless-courses-skeleton-cards {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+:host .seamless-courses-skeleton-card {
+    border: 1px solid #d8e4ef !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+}
+
+:host .seamless-courses-skeleton-card-body {
+    padding: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+@media (max-width: 900px) {
+    :host .seamless-courses-skeleton-stats,
+    :host .seamless-courses-skeleton-cards {
+        grid-template-columns: 1fr !important;
     }
 }

@@ -20,7 +20,8 @@ class SeamlessSSO
     const REST_NAMESPACE = 'seamless-oauth/v1';
     const NONCE_ACTION = 'seamless_sso_state';
     const LOGIN_ROUTE = 'auth/login';
-    const LOGOUT_ROUTE = 'logout';
+    const LOGOUT_ROUTE = 'auth/logout';
+    const LEGACY_LOGOUT_ROUTE = 'logout';
 
     private string $client_domain;
     private string $sso_client_id;
@@ -81,10 +82,28 @@ class SeamlessSSO
         return home_url(self::LOGIN_ROUTE);
     }
 
+    public function get_public_logout_url(?string $return_to = null, bool $include_return_to = true): string
+    {
+        $logout_url = home_url(self::LOGOUT_ROUTE);
+
+        if (!$include_return_to) {
+            return $logout_url;
+        }
+
+        $return_to = self::sanitize_return_to_url($return_to ?: self::get_return_to_url());
+
+        if ($return_to !== '') {
+            $logout_url = add_query_arg('return_to', $return_to, $logout_url);
+        }
+
+        return $logout_url;
+    }
+
     public function register_login_rewrite_rule(): void
     {
         add_rewrite_rule('^' . self::LOGIN_ROUTE . '/?$', 'index.php?sso_login_redirect=1', 'top');
         add_rewrite_rule('^' . self::LOGOUT_ROUTE . '/?$', 'index.php?sso_logout_redirect=1', 'top');
+        add_rewrite_rule('^' . self::LEGACY_LOGOUT_ROUTE . '/?$', 'index.php?sso_logout_redirect=1', 'top');
     }
 
     public function add_login_query_vars(array $vars): array
@@ -97,7 +116,7 @@ class SeamlessSSO
     public function handle_login_redirect(): void
     {
         $login_requested = get_query_var('sso_login_redirect') || isset($_GET['sso_login_redirect']) || $this->is_current_auth_route(self::LOGIN_ROUTE);
-        $logout_requested = get_query_var('sso_logout_redirect') || isset($_GET['sso_logout_redirect']) || $this->is_current_auth_route(self::LOGOUT_ROUTE);
+        $logout_requested = get_query_var('sso_logout_redirect') || isset($_GET['sso_logout_redirect']) || $this->is_current_logout_route();
 
         if ($login_requested) {
             $this->ensure_session_started();
@@ -111,11 +130,15 @@ class SeamlessSSO
 
         if ($logout_requested) {
             $this->ensure_session_started();
-            // Read optional return_to so the user lands back on the page they came from.
-            $return_to = isset($_GET['return_to']) ? esc_url_raw(wp_unslash($_GET['return_to'])) : '';
+            $return_to = isset($_GET['return_to']) ? wp_unslash($_GET['return_to']) : self::get_return_to_url();
             $this->handle_logout_redirect($return_to);
             return;
         }
+    }
+
+    private function is_current_logout_route(): bool
+    {
+        return $this->is_current_auth_route(self::LOGOUT_ROUTE) || $this->is_current_auth_route(self::LEGACY_LOGOUT_ROUTE);
     }
 
     private function is_current_auth_route(string $route): bool
@@ -219,7 +242,7 @@ class SeamlessSSO
             strpos($url, 'sso_login_redirect=1') !== false ||
             strpos($url, 'sso_logout_redirect=1') !== false ||
             strpos($url, '/wp-json/' . self::REST_NAMESPACE . '/callback') !== false ||
-            preg_match('#/(?:' . preg_quote(self::LOGIN_ROUTE, '#') . '|' . preg_quote(self::LOGOUT_ROUTE, '#') . ')(?:/|$)#', (string) wp_parse_url($url, PHP_URL_PATH))
+            preg_match('#/(?:' . preg_quote(self::LOGIN_ROUTE, '#') . '|' . preg_quote(self::LOGOUT_ROUTE, '#') . '|' . preg_quote(self::LEGACY_LOGOUT_ROUTE, '#') . ')(?:/|$)#', (string) wp_parse_url($url, PHP_URL_PATH))
         );
     }
 
@@ -392,9 +415,11 @@ class SeamlessSSO
      */
     private function handle_logout_redirect(string $return_to = ''): void
     {
+        $return_to = self::sanitize_return_to_url($return_to);
+
         $user = wp_get_current_user();
         if (!$user || empty($user->user_email)) {
-            wp_redirect($return_to ?: home_url('/'));
+            wp_safe_redirect($return_to ?: home_url('/'));
             exit;
         }
 
@@ -443,11 +468,9 @@ class SeamlessSSO
 
         // Redirect back to the page the user came from (same-site only),
         // or fall back to home if no valid return_to was provided.
-        $redirect = (!empty($return_to) && strpos($return_to, home_url()) === 0)
-            ? $return_to
-            : home_url('/');
+        $redirect = $return_to ?: home_url('/');
 
-        wp_redirect($redirect);
+        wp_safe_redirect($redirect);
         exit;
     }
 
@@ -495,8 +518,7 @@ class SeamlessSSO
             }
 
             // Fully SSO-authenticated: show the Logout button.
-            // Use query-param approach (no rewrite rule needed — always works).
-            $logout_url = add_query_arg(['sso_logout_redirect' => '1', 'return_to' => self::get_return_to_url()], home_url('/'));
+            $logout_url = $this->get_public_logout_url(null, false);
             return sprintf(
                 '<a class="%s" href="%s">%s</a>',
                 esc_attr($atts['logout_class']),
