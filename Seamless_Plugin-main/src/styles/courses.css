@@ -1,4 +1,15 @@
 
+@keyframes seamless-slide-up-fade {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 12px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
 :host .seamless-courses-container {
     margin: 0px auto !important;
     font-family: 'Inter', sans-serif !important;
@@ -65,7 +76,20 @@
     flex-direction: column !important;
     border: 1px solid #f1f5f9 !important;
     overflow: hidden !important;
+    opacity: 0 !important;
+    animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
 }
+
+:host .seamless-courses-grid > .seamless-course-card:nth-child(1) { animation-delay: 0.02s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(2) { animation-delay: 0.05s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(3) { animation-delay: 0.08s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(4) { animation-delay: 0.11s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(5) { animation-delay: 0.14s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(6) { animation-delay: 0.17s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(7) { animation-delay: 0.2s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(8) { animation-delay: 0.23s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(9) { animation-delay: 0.26s !important; }
+:host .seamless-courses-grid > .seamless-course-card:nth-child(10) { animation-delay: 0.29s !important; }
 
 :host .seamless-course-card:hover {
     transform: translateY(-8px) !important;

@@ -21,7 +21,8 @@
 :host .seamless-month-event-bar,
 :host .seamless-week-event-block,
 :host .seamless-week-allday-event,
-:host .seamless-year-month-card {
+:host .seamless-year-month-card,
+:host .seamless-list-view-item {
     opacity: 0;
     animation: seamless-calendar-slide-up-fade 0.4s ease-out forwards !important;
 }
@@ -49,6 +50,15 @@
 :host .seamless-month-cell:nth-child(7n + 6) { animation-delay: 0.13s !important; }
 :host .seamless-month-cell:nth-child(7n + 7) { animation-delay: 0.15s !important; }
 
+:host .seamless-list-view-item:nth-child(1) { animation-delay: 0.02s !important; }
+:host .seamless-list-view-item:nth-child(2) { animation-delay: 0.05s !important; }
+:host .seamless-list-view-item:nth-child(3) { animation-delay: 0.08s !important; }
+:host .seamless-list-view-item:nth-child(4) { animation-delay: 0.11s !important; }
+:host .seamless-list-view-item:nth-child(5) { animation-delay: 0.14s !important; }
+:host .seamless-list-view-item:nth-child(6) { animation-delay: 0.17s !important; }
+:host .seamless-list-view-item:nth-child(7) { animation-delay: 0.2s !important; }
+:host .seamless-list-view-item:nth-child(8) { animation-delay: 0.23s !important; }
+
 @media (prefers-reduced-motion: reduce) {
     :host .seamless-calendar-container,
     :host .calendar-header,
@@ -57,7 +67,8 @@
     :host .seamless-month-event-bar,
     :host .seamless-week-event-block,
     :host .seamless-week-allday-event,
-    :host .seamless-year-month-card {
+    :host .seamless-year-month-card,
+    :host .seamless-list-view-item {
         opacity: 1 !important;
         transform: none !important;
         animation: none !important;
@@ -387,11 +398,34 @@
     overflow: hidden !important;
 }
 
+:host .seamless-list-view-search .seamless-search-input {
+    width: 100% !important;
+    padding: 0.6rem 2.8rem 0.6rem 1.5rem !important;
+    border-radius: var(--seamless-radius-full) !important;
+    font-size: var(--seamless-font-size-sm) !important;
+    background: #f8fafc !important;
+    border: 1px solid rgba(15, 23, 42, 0.12) !important;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    color: var(--seamless-color-font, #0f172a) !important;
+    transition: border-color 160ms ease-out, box-shadow 160ms ease-out !important;
+}
+
+:host .seamless-list-view-search .seamless-search-input:focus {
+    border-color: rgb(55 65 81) !important;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.18) !important;
+    outline: none !important;
+}
+
+:host .seamless-list-view-search .seamless-search-input:active {
+    border-color: rgb(55 65 81) !important;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.20) !important;
+}
+
 :host .seamless-list-view-item {
     display: flex !important;
     align-items: center !important;
     gap: 16px !important;
-    padding: 12px 16px !important;
+    padding: 18px 22px !important;
     background: #ffffff !important;
     border-bottom: 1px solid #f1f5f9 !important;
     cursor: pointer !important;

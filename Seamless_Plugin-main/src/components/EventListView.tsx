@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useSegmentedEventPagination } from '../hooks/useSegmentedEventPagination';
@@ -113,7 +113,11 @@ export const EventListView: React.FC = () => {
     };
 
     const handleCalViewChange = (cal_view: string) => {
-        updateUrlParams({ cal_view });
+        if (currentIsListView) {
+            updateUrlParams({ cal_view, cal_list: null });
+        } else {
+            updateUrlParams({ cal_view });
+        }
     };
 
     const handleCalListToggle = () => {
@@ -165,6 +169,13 @@ export const EventListView: React.FC = () => {
             return { item, showTimelineDate };
         });
     }, [filteredItems]);
+
+    const [listEnterKey, setListEnterKey] = useState(0);
+    useEffect(() => {
+        if (!loading && currentView === 'list') {
+            setListEnterKey(prev => prev + 1);
+        }
+    }, [currentView, loading, filteredItems.length]);
 
     const renderCalendarLoadingSkeleton = () => {
         const headerSkeleton = (
@@ -521,7 +532,7 @@ export const EventListView: React.FC = () => {
                     </>
                 ) : !loading && (
                     <>
-                        <div className="seamless-items-list">
+                        <div className="seamless-items-list" key={`list-enter-${listEnterKey}`}>
                             {listItems.map(({ item, showTimelineDate }) => (
                                 <Card
                                     key={item?.id}

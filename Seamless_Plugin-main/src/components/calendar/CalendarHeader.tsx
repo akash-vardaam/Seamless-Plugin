@@ -80,6 +80,8 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     year: 'numeric',
   });
 
+  const showNavigation = viewMode !== 'YEAR' && !isListView;
+
   return (
     <div className="calendar-header">
       <div className="calendar-title">
@@ -87,6 +89,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <div className="date-info" onClick={onToday} title="Go to today" role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onToday()}>
           <div className="month-abbr">{todayMonthAbbr}</div>
           <div className="day-number">{todayDate}</div>
+          <span className="sr-only">Today, {today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
         </div>
 
         {/* Month + Year selectors */}
@@ -171,19 +174,21 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       {/* Controls: Navigation + View Switcher */}
       <div className="calendar-controls">
         {/* Prev / Today / Next */}
-        <div className="calendar-navigation">
-          <button className="nav-button" onClick={onPrev} title="Previous" aria-label="Previous" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <button className="nav-button today-button" onClick={onToday} type="button">Today</button>
-          <button className="nav-button" onClick={onNext} title="Next" aria-label="Next" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-        </div>
+        {showNavigation && (
+          <div className="calendar-navigation">
+            <button className="nav-button" onClick={onPrev} title="Previous" aria-label="Previous" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <button className="nav-button today-button" onClick={onToday} type="button">Today</button>
+            <button className="nav-button" onClick={onNext} title="Next" aria-label="Next" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* View buttons */}
         <div className="view-selector">
@@ -194,7 +199,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             title="Month View"
             aria-label="Month View"
             type="button"
-            onClick={() => { onViewModeChange('MONTH'); onListViewToggle && isListView && onListViewToggle(); }}
+            onClick={() => onViewModeChange('MONTH')}
           >
             <svg width="25" height="25" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="8" y="12" width="48" height="44" rx="4" />
@@ -216,7 +221,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             title="Week View"
             aria-label="Week View"
             type="button"
-            onClick={() => { onViewModeChange('WEEK'); onListViewToggle && isListView && onListViewToggle(); }}
+            onClick={() => onViewModeChange('WEEK')}
           >
             <svg width="25" height="25" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="8" y="12" width="48" height="44" rx="4" />
@@ -236,7 +241,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             title="Day View"
             aria-label="Day View"
             type="button"
-            onClick={() => { onViewModeChange('DAY'); onListViewToggle && isListView && onListViewToggle(); }}
+            onClick={() => onViewModeChange('DAY')}
           >
             <svg width="25" height="25" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="8" y="12" width="48" height="44" rx="4" />
@@ -254,7 +259,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             title="Year View"
             aria-label="Year View"
             type="button"
-            onClick={() => { onViewModeChange('YEAR'); onListViewToggle && isListView && onListViewToggle(); }}
+            onClick={() => onViewModeChange('YEAR')}
           >
             <svg width="25" height="25" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="4" y="4" width="24" height="24" rx="3" />

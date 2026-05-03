@@ -1,4 +1,15 @@
-﻿:host .seamless-user-dashboard {
+﻿@keyframes seamless-slide-up-fade {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 12px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+:host .seamless-user-dashboard {
     display: flex !important;
     gap: 20px !important;
     padding: 0px !important;
@@ -4458,7 +4469,16 @@
     display: flex !important;
     flex-direction: column !important;
     transition: transform 0.2s, box-shadow 0.2s !important;
+    opacity: 0 !important;
+    animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
 }
+
+:host .seamless-course-grid > .seamless-course-card-n:nth-child(1) { animation-delay: 0.02s !important; }
+:host .seamless-course-grid > .seamless-course-card-n:nth-child(2) { animation-delay: 0.05s !important; }
+:host .seamless-course-grid > .seamless-course-card-n:nth-child(3) { animation-delay: 0.08s !important; }
+:host .seamless-course-grid > .seamless-course-card-n:nth-child(4) { animation-delay: 0.11s !important; }
+:host .seamless-course-grid > .seamless-course-card-n:nth-child(5) { animation-delay: 0.14s !important; }
+:host .seamless-course-grid > .seamless-course-card-n:nth-child(6) { animation-delay: 0.17s !important; }
 
 :host .seamless-course-card-n:hover {
     transform: translateY(-2px) !important;
@@ -5136,7 +5156,18 @@
     gap: 16px !important;
     padding: 18px 20px !important;
     border-bottom: 1px solid #eef2f7 !important;
+    opacity: 0 !important;
+    animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
 }
+
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(1) { animation-delay: 0.02s !important; }
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(2) { animation-delay: 0.05s !important; }
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(3) { animation-delay: 0.08s !important; }
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(4) { animation-delay: 0.11s !important; }
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(5) { animation-delay: 0.14s !important; }
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(6) { animation-delay: 0.17s !important; }
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(7) { animation-delay: 0.2s !important; }
+:host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(8) { animation-delay: 0.23s !important; }
 
 :host .seamless-user-dashboard-org-member-row:last-child {
     border-bottom: none !important;

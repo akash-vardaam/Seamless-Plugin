@@ -3,6 +3,8 @@ import { useCourses } from '../hooks/useCourses';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { SearchInput } from './SearchInput';
 import { Pagination } from './Pagination';
+import { SeamlessInitialLoader } from './ui/SeamlessInitialLoader';
+import { useInitialLoading } from '../hooks/useInitialLoading';
 
 const accessOptions = [
     { value: '', label: 'All Courses' },
@@ -79,6 +81,7 @@ export const CoursesView: React.FC = () => {
     }, []);
 
     const activeFilterCount = (filters.access ? 1 : 0) + (filters.year ? 1 : 0) + (filters.sort && filters.sort !== 'newest' ? 1 : 0);
+    const showInitialLoader = useInitialLoading(loading);
 
     const checkIcon = (
         <span className="seamless-filter-check-icon" aria-hidden="true">
@@ -102,6 +105,10 @@ export const CoursesView: React.FC = () => {
                 </div>
             </div>
         );
+    }
+
+    if (showInitialLoader) {
+        return <SeamlessInitialLoader message="Loading courses..." />;
     }
 
     return (

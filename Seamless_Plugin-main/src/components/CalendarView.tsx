@@ -6,6 +6,7 @@ import { WeekView } from './calendar/WeekView';
 import { DayView } from './calendar/DayView';
 import { YearView } from './calendar/YearView';
 import { navigateToEvent, createEventSlug } from '../utils/urlHelper';
+import { SearchInput } from './SearchInput';
 
 type ViewMode = 'MONTH' | 'WEEK' | 'DAY' | 'YEAR';
 
@@ -42,9 +43,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     else setInternalViewMode(m);
   };
 
+  const exitListView = () => {
+    if (!isListView) return;
+    if (propOnListViewToggle) propOnListViewToggle();
+    else setInternalIsListView(false);
+  };
+
   const toggleListView = () => {
     if (propOnListViewToggle) propOnListViewToggle();
     else setInternalIsListView(prev => !prev);
+  };
+
+  const handleHeaderViewChange = (mode: ViewMode) => {
+    if (isListView) {
+      exitListView();
+    }
+    setViewMode(mode);
   };
 
   const updateDate = (d: Date) => {
@@ -88,7 +102,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     <div className="seamless-calendar-container">
       <CalendarHeader
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleHeaderViewChange}
         activeDate={activeDate}
         onDateChange={updateDate}
         onPrev={handlePrev}
@@ -129,21 +143,11 @@ const SeamlessListView: React.FC<{ events: Event[] }> = ({ events }) => {
   return (
     <div className="seamless-list-view-container">
       <div className="seamless-list-view-search" style={{ padding: '16px' }}>
-        <input
-          type="text"
-          className="seamless-search-input"
-          placeholder="Search events..."
+        <SearchInput
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px 14px',
-            borderRadius: '6px',
-            fontSize: '14px',
-            outline: 'none',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0 !important'
-          }}
+          onChange={setSearchQuery}
+          placeholder="Search events..."
+          delay={0}
         />
       </div>
 
