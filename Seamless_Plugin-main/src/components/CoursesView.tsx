@@ -30,6 +30,25 @@ export const CoursesView: React.FC = () => {
         resetFilters
     } = useCourses();
 
+    const [hasHydrated, setHasHydrated] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            setHasHydrated(true);
+            return;
+        }
+
+        let frame: number | null = window.requestAnimationFrame(() => {
+            setHasHydrated(true);
+        });
+
+        return () => {
+            if (frame !== null) {
+                window.cancelAnimationFrame(frame);
+            }
+        };
+    }, []);
+
     const getCourseUrl = (slug: string) => {
         // Course detail pages should open on Seamless client domain from settings.
         const cfg = (window as any).seamlessReactConfig;
@@ -81,7 +100,7 @@ export const CoursesView: React.FC = () => {
     }, []);
 
     const activeFilterCount = (filters.access ? 1 : 0) + (filters.year ? 1 : 0) + (filters.sort && filters.sort !== 'newest' ? 1 : 0);
-    const showInitialLoader = useInitialLoading(loading);
+    const showInitialLoader = useInitialLoading(loading || !hasHydrated);
 
     const checkIcon = (
         <span className="seamless-filter-check-icon" aria-hidden="true">

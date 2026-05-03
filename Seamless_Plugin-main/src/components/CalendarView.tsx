@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Event } from '../types/event';
 import { CalendarHeader } from './calendar/CalendarHeader';
 import { MonthView } from './calendar/MonthView';
@@ -7,6 +7,8 @@ import { DayView } from './calendar/DayView';
 import { YearView } from './calendar/YearView';
 import { navigateToEvent, createEventSlug } from '../utils/urlHelper';
 import { SearchInput } from './SearchInput';
+import { SeamlessInitialLoader } from './ui/SeamlessInitialLoader';
+import { useInitialLoading } from '../hooks/useInitialLoading';
 
 type ViewMode = 'MONTH' | 'WEEK' | 'DAY' | 'YEAR';
 
@@ -37,6 +39,27 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const [internalIsListView, setInternalIsListView] = useState(false);
   const isListView = propIsListView ?? internalIsListView;
+
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      setHasHydrated(true);
+      return;
+    }
+
+    let frame: number | null = window.requestAnimationFrame(() => {
+      setHasHydrated(true);
+    });
+
+    return () => {
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
+  }, []);
+
+  const showInitialLoader = useInitialLoading(!hasHydrated);
 
   const setViewMode = (m: ViewMode) => {
     if (onViewModeChange) onViewModeChange(m);
@@ -97,6 +120,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const handleListViewToggle = () => {
     toggleListView();
   };
+
+  if (showInitialLoader) {
+    return <SeamlessInitialLoader message="Loading calendar view..." />;
+  }
 
   return (
     <div className="seamless-calendar-container">

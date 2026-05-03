@@ -214,7 +214,7 @@ export const ShopCartView: React.FC = () => {
           <h2 className="seamless-shop__title-lg">Your cart is currently empty.</h2>
           <button onClick={() => window.location.href = buildShopUrl()} className="seamless-shop__button-link seamless-shop__mt-5 seamless_shop__primary-button">
             Return to Shop
-          </button> 
+          </button>
         </div>
       ) : (
         <>
@@ -243,17 +243,23 @@ export const ShopCartView: React.FC = () => {
                   (item.maxQuantity > 0 && displayedQuantity >= item.maxQuantity) ||
                   !item.canIncrement;
                 const decrementDisabled = saving || removingKey === itemIdentifier || displayedQuantity <= 1;
+                const isItemMutating = saving || removingKey === itemIdentifier;
+
+                const copyClassName = `seamless-shop__cart-copy${isItemMutating ? ' seamless-shop__cart-copy--skeleton' : ''}`;
+                const quantityClassName = `seamless-shop__quantity${isItemMutating ? ' seamless-shop__quantity--skeleton' : ''}`;
+                const priceClassName = `seamless-shop__cart-price${isItemMutating ? ' seamless-shop__cart-price--skeleton' : ''}`;
+
                 return (
                   <article key={itemIdentifier || item.productId} className="seamless-shop__cart-item">
                     <div className="seamless-shop__cart-item-main">
                       <a
                         href={buildProductUrl({ id: item.productId, slug: '', title: item.productName })}
-                        className="seamless-shop__cart-image"
+                        className={`seamless-shop__cart-image${isItemMutating ? ' seamless-shop__cart-image--skeleton' : ''}`}
                       >
                         <img src={item.imageUrl} alt={item.productName} className="seamless-shop__image" loading="lazy" />
                       </a>
                       <div className="seamless-shop__cart-details">
-                        <div className="seamless-shop__cart-copy">
+                        <div className={copyClassName}>
                           <h3 className="seamless-shop__title-lg">
                             <a href={buildProductUrl({ id: item.productId, slug: '', title: item.productName })}>
                               {item.productName}
@@ -272,7 +278,7 @@ export const ShopCartView: React.FC = () => {
                           ) : null}
                         </div>
 
-                        <div className="seamless-shop__quantity">
+                        <div className={quantityClassName}>
                           <button
                             type="button"
                             className="seamless-shop__quantity-button"
@@ -295,7 +301,7 @@ export const ShopCartView: React.FC = () => {
                     </div>
 
                     <div className="seamless-shop__cart-actions">
-                      <div className="seamless-shop__cart-price">
+                      <div className={priceClassName}>
                         <strong className="seamless-shop__price">
                           {formatCurrency(item.unitPrice * displayedQuantity)}
                         </strong>
@@ -360,4 +366,4 @@ export const ShopCartView: React.FC = () => {
       )}
     </div>
   );
-};
+}

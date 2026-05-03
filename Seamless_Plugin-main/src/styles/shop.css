@@ -333,7 +333,6 @@
   border-radius: 12px !important;
   overflow: hidden !important;
   background: #ffffff !important;
-  opacity: 0 !important;
   animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
 }
 
@@ -475,6 +474,7 @@
   display: -webkit-box !important;
   -webkit-box-orient: vertical !important;
   -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
 }
 
 :host .seamless-shop__price {
@@ -1595,6 +1595,49 @@
   background: #ffffff !important;
   padding: 28px 30px !important;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04) !important;
+}
+
+:host .seamless-shop__cart-image--skeleton {
+  position: relative !important;
+  overflow: hidden !important;
+  background: #eff4fb !important;
+}
+
+:host .seamless-shop__cart-image--skeleton::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background: linear-gradient(120deg, #e3eaf5 20%, #f8fafc 50%, #e3eaf5 80%) !important;
+  background-size: 200% 100% !important;
+  animation: seamlessShopVariantImageShimmer 1.4s ease-in-out infinite !important;
+}
+
+:host .seamless-shop__cart-copy--skeleton,
+:host .seamless-shop__quantity--skeleton,
+:host .seamless-shop__cart-price--skeleton {
+  position: relative !important;
+  overflow: hidden !important;
+  border: none !important;
+}
+
+:host .seamless-shop__cart-copy--skeleton::after,
+:host .seamless-shop__quantity--skeleton::after,
+:host .seamless-shop__cart-price--skeleton::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(120deg, rgba(227, 234, 245, 0.8) 20%, rgba(248, 250, 252, 0.9) 50%, rgba(227, 234, 245, 0.8) 80%) !important;
+  background-size: 200% 100% !important;
+  animation: seamlessShopVariantImageShimmer 1.4s ease-in-out infinite !important;
+  z-index: 1 !important;
+}
+
+:host .seamless-shop__cart-copy--skeleton > *,
+:host .seamless-shop__quantity--skeleton > *,
+:host .seamless-shop__cart-price--skeleton > * {
+  visibility: hidden !important;
 }
 
 :host .seamless-shop__cart-item-main {

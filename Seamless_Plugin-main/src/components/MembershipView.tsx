@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useMembershipPlans } from '../hooks/useMembershipPlans';
 import { getWordPressSiteUrl } from '../utils/urlHelper';
 import { SeamlessInitialLoader } from './ui/SeamlessInitialLoader';
@@ -18,7 +18,26 @@ const getSafeDescriptionText = (description?: string) => {
 
 export const MembershipListView: React.FC = () => {
     const { plans, loading, error } = useMembershipPlans();
-    const showInitialLoader = useInitialLoading(loading);
+    const [hasHydrated, setHasHydrated] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            setHasHydrated(true);
+            return;
+        }
+
+        let frame: number | null = window.requestAnimationFrame(() => {
+            setHasHydrated(true);
+        });
+
+        return () => {
+            if (frame !== null) {
+                window.cancelAnimationFrame(frame);
+            }
+        };
+    }, []);
+
+    const showInitialLoader = useInitialLoading(loading || !hasHydrated);
 
     const comparisonKeys = useMemo(() => {
         const keys = new Set<string>();
@@ -135,7 +154,10 @@ export const MembershipListView: React.FC = () => {
             )}
 
             {!loading && comparisonKeys.length > 0 && (
-                <div className="seamless-comparison-section">
+                <div
+                    className="seamless-comparison-section"
+                    style={{ animation: 'seamless-slide-up-fade 0.46s ease-out forwards' }}
+                >
                     <div className="seamless-compare-container">
                     <h2 className="seamless-comparison-title">Compare Plans</h2>
                     <span className="seamless-comparison-description">See what's included before you decide.</span>

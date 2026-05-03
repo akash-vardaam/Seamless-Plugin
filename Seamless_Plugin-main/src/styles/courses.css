@@ -76,7 +76,6 @@
     flex-direction: column !important;
     border: 1px solid #f1f5f9 !important;
     overflow: hidden !important;
-    opacity: 0 !important;
     animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
 }
 
