@@ -943,7 +943,7 @@ class SettingsPage
 								<p class="description">Color for links, buttons, and accents.</p>
 							</td>
 						</tr>
-						<tr valign="top">
+						<tr valign="top" class="seamless-list-view-layout" style="display: none;">
 							<th scope="row">List View Layout</th>
 							<td>
 								<fieldset>
@@ -1736,9 +1736,9 @@ class SettingsPage
 					window.__seamlessAdvancedInitialized = true;
 				}
 
-				if (activeTab === 'advanced') {
-					initAdvancedTabOnce();
-				}
+				// Always initialize once so radio toggle works even if Advanced tab
+				// is opened after navigating from another tab.
+				initAdvancedTabOnce();
 
 				function initAddonsTabRows() {
 					var $table = $('#seamless-addon-event-templates-table');
