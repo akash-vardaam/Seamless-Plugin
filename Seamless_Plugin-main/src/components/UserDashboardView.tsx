@@ -2,8 +2,10 @@ import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { useShadowRoot } from './ShadowRoot';
 import api, { requestWithCache } from '../services/api';
 import { COUNTRIES_STATES } from '../utils/countriesStates';
+import { buildBrowserCacheKey, getBrowserCache, setBrowserCache } from '../utils/browserCache';
 import { ArrowDownRight, ArrowUpRight, Check, ChevronDown, CircleCheckBig, CircleX, Clock3, Download, Plus, Send, Trash2, User, UserPlus, Users, X } from 'lucide-react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import { SeamlessInitialLoader } from './ui/SeamlessInitialLoader';
 
 const CACHE_KEY_PREFIX = 'seamless_browser_cache_v1:';
 const CACHE_NAMESPACE = 'api';
@@ -55,6 +57,40 @@ const applyArrayPayload = (payload: any, setter: React.Dispatch<React.SetStateAc
     setter([]);
 };
 
+const buildProfileEditCacheKey = () => buildBrowserCacheKey('api', {
+    method: 'PUT',
+    url: '/dashboard/profile/edit',
+    params: null,
+    data: {},
+});
+const buildProfileCacheKey = () => buildBrowserCacheKey('api', {
+    method: 'GET',
+    url: '/dashboard/profile',
+    params: null,
+    data: null,
+});
+
+const notifyCacheUpdate = (cacheKey: string, data: unknown): void => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('seamless:cache-updated', {
+        detail: { key: cacheKey, data },
+    }));
+};
+
+const normalizeProfilePayloadShape = (payload: any) => {
+    const source = normalizeApiPayload(payload) || {};
+    const user = source?.user && typeof source.user === 'object' ? source.user : {};
+    const profileMeta = source?.profile && typeof source.profile === 'object' ? source.profile : {};
+    const address = source?.address && typeof source.address === 'object' ? source.address : {};
+
+    return {
+        ...user,
+        ...profileMeta,
+        ...address,
+        ...source,
+    };
+};
+
 // Type definitions for our dashboard data
 interface UserProfile {
     first_name: string;
@@ -73,6 +109,7 @@ interface UserProfile {
 
 type MembershipAction = 'upgrade' | 'downgrade' | 'cancel';
 type DashboardView = 'profile' | 'memberships' | 'organization' | 'courses' | 'orders';
+type OrganizationMembershipTab = 'my_memberships' | 'shared_with_me';
 
 const PREFETCH_SEQUENCE: DashboardView[] = ['memberships', 'organization', 'courses', 'orders'];
 
@@ -158,40 +195,40 @@ const MembershipSectionSkeleton = () => (
 const CoursesSectionSkeleton = () => (
     <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
         <div className="seamless-section-skeleton seamless-section-skeleton-courses" aria-live="polite" aria-busy="true">
-            <div className="seamless-courses-skeleton-stats">
-                <Skeleton height={92} />
-                <Skeleton height={92} />
-                <Skeleton height={92} />
-            </div>
-            <div className="seamless-courses-skeleton-tabs">
-                <Skeleton height={34} width={290} />
-            </div>
-            <div className="seamless-courses-skeleton-cards">
-                {Array.from({ length: 3 }).map((_, index) => (
-                    <div key={index} className="seamless-courses-skeleton-card">
-                        <Skeleton height={132} />
-                        <div className="seamless-courses-skeleton-card-body">
-                            <Skeleton height={26} width="78%" />
-                            <Skeleton height={16} width="55%" />
-                            <Skeleton height={38} width={140} />
-                        </div>
+            <div className="seamless-course-grid">
+                <div className="seamless-course-card-n">
+                    <div className="seamless-course-card-img-wrapper">
+                        <Skeleton height={160} />
                     </div>
-                ))}
+                    <div className="seamless-course-card-body">
+                        <Skeleton height={28} width="78%" />
+                        <div className="seamless-course-card-meta">
+                            <Skeleton height={16} width={120} />
+                            <Skeleton height={16} width={110} />
+                        </div>
+                        <Skeleton height={34} width={150} />
+                    </div>
+                </div>
             </div>
         </div>
     </SkeletonTheme>
 );
 
-const OrdersSectionSkeleton = () => (
+const OrdersSectionSkeletonRows = ({ rows = 5 }: { rows?: number }) => (
     <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
-        <div className="seamless-section-skeleton seamless-section-skeleton-orders" aria-live="polite" aria-busy="true">
-            <Skeleton height={22} width="28%" />
-            <Skeleton height={50} />
-            <Skeleton height={50} />
-            <Skeleton height={50} />
-            <Skeleton height={50} />
-            <Skeleton height={50} />
-        </div>
+        <>
+            {Array.from({ length: rows }).map((_, index) => (
+                <tr key={`orders-skeleton-row-${index}`} className="seamless-styled-tr" aria-live="polite" aria-busy="true">
+                    <td><Skeleton height={18} width="82%" /></td>
+                    <td className="seamless-text-center"><Skeleton height={18} width={24} /></td>
+                    <td><Skeleton height={18} width="78%" /></td>
+                    <td><Skeleton height={28} width={96} borderRadius={999} /></td>
+                    <td><Skeleton height={18} width={74} /></td>
+                    <td><Skeleton height={18} width={96} /></td>
+                    <td><Skeleton height={34} width={86} borderRadius={8} /></td>
+                </tr>
+            ))}
+        </>
     </SkeletonTheme>
 );
 
@@ -233,8 +270,46 @@ const CoursesShellSkeleton = () => (
 );
 
 // Reusable Modal Component
+const extractModalFooters = (node: React.ReactNode): { content: React.ReactNode; footers: React.ReactNode[] } => {
+    const footers: React.ReactNode[] = [];
+
+    const walk = (current: React.ReactNode): React.ReactNode => {
+        if (current === null || current === undefined || typeof current === 'boolean') {
+            return current;
+        }
+
+        if (Array.isArray(current)) {
+            return current.map((child) => walk(child)).filter((child) => child !== null && child !== false);
+        }
+
+        if (!React.isValidElement(current)) {
+            return current;
+        }
+
+        const className = String((current.props as any)?.className || '');
+        if (className.includes('seamless-modal-footer')) {
+            footers.push(current);
+            return null;
+        }
+
+        const originalChildren = (current.props as any)?.children;
+        if (originalChildren === undefined) {
+            return current;
+        }
+
+        const nextChildren = React.Children.toArray(originalChildren).map((child) => walk(child)).filter((child) => child !== null && child !== false);
+        return React.cloneElement(current, { ...(current.props as any) }, nextChildren);
+    };
+
+    return {
+        content: walk(node),
+        footers,
+    };
+};
+
 const Modal = ({ isOpen, onClose, title, children, className }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode, className?: string }) => {
     if (!isOpen) return null;
+    const { content, footers } = extractModalFooters(children);
     return (
         <div className="seamless-modal-overlay" onClick={onClose}>
             <div className={`seamless-modal-content ${className || ''}`} onClick={e => e.stopPropagation()}>
@@ -243,8 +318,9 @@ const Modal = ({ isOpen, onClose, title, children, className }: { isOpen: boolea
                     <button onClick={onClose} className="seamless-modal-close">&times;</button>
                 </div>
                 <div className="seamless-modal-body">
-                    {children}
+                    {content}
                 </div>
+                {footers.length > 0 ? footers : null}
             </div>
         </div>
     );
@@ -355,6 +431,7 @@ export const UserDashboardView: React.FC = () => {
     const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
     const [activeMembershipTab, setActiveMembershipTab] = useState<'active' | 'history'>('active');
     const [activeCourseTab, setActiveCourseTab] = useState<'enrolled' | 'included'>('enrolled');
+    const [activeOrganizationTab, setActiveOrganizationTab] = useState<OrganizationMembershipTab>('my_memberships');
     const [openDropdownId, setOpenDropdownId] = useState<string | number | null>(null);
     const [expandedOrgPlans, setExpandedOrgPlans] = useState<Record<string, boolean>>({});
     const [selectedOrgMembership, setSelectedOrgMembership] = useState<any | null>(null);
@@ -364,14 +441,22 @@ export const UserDashboardView: React.FC = () => {
     const [pendingOrgActionKey, setPendingOrgActionKey] = useState<string | null>(null);
     const [memberRoleDrafts, setMemberRoleDrafts] = useState<Record<string, string>>({});
     const [orgInlineNotice, setOrgInlineNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-    const [hasHydratedProfileDetails, setHasHydratedProfileDetails] = useState<boolean>(false);
+    const [, setHasHydratedProfileDetails] = useState<boolean>(false);
     const [hasPrefetchedViews, setHasPrefetchedViews] = useState<boolean>(false);
+    const [cachedProfileSnapshot, setCachedProfileSnapshot] = useState<any | null>(null);
+    const [hasHydrated, setHasHydrated] = useState<boolean>(false);
+    const [hasShownInitialLoader, setHasShownInitialLoader] = useState<boolean>(false);
+    const [hasReceivedInitialApiResponse, setHasReceivedInitialApiResponse] = useState<boolean>(false);
     const prefetchedViewsRef = useRef<Set<DashboardView>>(new Set());
+    const profileRefreshInFlightRef = useRef<boolean>(false);
+    const profileSectionVisitTokenRef = useRef<number>(0);
 
     // Action States
     const [actionModal, setActionModal] = useState<MembershipAction | null>(null);
     const [selectedMembershipId, setSelectedMembershipId] = useState<string | null>(null);
     const [selectedPlanForSwap, setSelectedPlanForSwap] = useState<any | null>(null);
+    const [renewModalMembership, setRenewModalMembership] = useState<any | null>(null);
+    const [renewModalPlan, setRenewModalPlan] = useState<any | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [renewingPlanId, setRenewingPlanId] = useState<string | null>(null);
     const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -396,6 +481,17 @@ export const UserDashboardView: React.FC = () => {
     const isCoursesShellLoading = sectionLoading.courses && courses === null && includedCourses === null;
     const isProfileBootstrapping = sectionLoading.profile && profile === null;
 
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            setHasHydrated(true);
+            return;
+        }
+        let frame: number | null = window.requestAnimationFrame(() => setHasHydrated(true));
+        return () => {
+            if (frame !== null) window.cancelAnimationFrame(frame);
+        };
+    }, []);
+
     const beginSectionLoading = useCallback((section: DashboardView) => {
         setSectionLoadingCounts((prev) => ({ ...prev, [section]: prev[section] + 1 }));
     }, []);
@@ -411,6 +507,12 @@ export const UserDashboardView: React.FC = () => {
     };
 
     const getDashboardEmail = useCallback((): string => profile?.email || '', [profile?.email]);
+    const organizationHeaderInitials = useMemo(() => {
+        const source = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || profile?.email || 'U';
+        const parts = source.split(/\s+/).filter(Boolean);
+        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+        return `${parts[0][0] || ''}${parts[parts.length - 1][0] || ''}`.toUpperCase();
+    }, [profile?.first_name, profile?.last_name, profile?.email]);
 
     const getMembershipById = (membershipId?: string | null) =>
         memberships?.find((membership) => String(membership.id) === String(membershipId)) || null;
@@ -435,6 +537,16 @@ export const UserDashboardView: React.FC = () => {
 
         return () => window.clearTimeout(timer);
     }, [orgInlineNotice]);
+
+    useEffect(() => {
+        if (!toast) return;
+
+        const timer = window.setTimeout(() => {
+            setToast(null);
+        }, 4000);
+
+        return () => window.clearTimeout(timer);
+    }, [toast]);
 
     const reloadOrganizationData = useCallback(async (preferCache: boolean = true) => {
         const email = getDashboardEmail();
@@ -492,6 +604,54 @@ export const UserDashboardView: React.FC = () => {
         index === allMemberships.findIndex((candidate) => String(candidate?.id) === String(membership?.id))
     );
 
+    const currentUserId = useMemo(() => String(
+        profile?.id
+        || profile?.user_id
+        || profile?.wp_user_id
+        || profile?.member_id
+        || ''
+    ), [profile]);
+
+    const wasAssignedByOwner = (membership: any) => {
+        const ownerRoleValues = [
+            membership?.added_by_role,
+            membership?.invited_by_role,
+            membership?.assigned_by_role,
+            membership?.created_by_role,
+            membership?.meta?.added_by_role,
+            membership?.metadata?.added_by_role,
+            membership?.meta?.invited_by_role,
+            membership?.metadata?.invited_by_role,
+        ].map((value) => String(value || '').toLowerCase());
+
+        if (ownerRoleValues.includes('owner')) {
+            return true;
+        }
+
+        // Fallback: when explicit added-by role is unavailable, treat admin memberships as shared.
+        return true;
+    };
+
+    const isMemberManagedByCurrentUser = (member: any) => {
+        if (!currentUserId) return false;
+        const addedByCandidates = [
+            member?.added_by,
+            member?.added_by_user_id,
+            member?.invited_by,
+            member?.invited_by_user_id,
+            member?.created_by,
+            member?.created_by_user_id,
+            member?.meta?.added_by,
+            member?.meta?.invited_by,
+            member?.metadata?.added_by,
+            member?.metadata?.invited_by,
+            member?.inviter_id,
+            member?.sender_id,
+        ].map((value) => String(value || '')).filter(Boolean);
+
+        return addedByCandidates.includes(currentUserId);
+    };
+
     const organizationSummary = useMemo(() => {
         const plans = Array.isArray(groupMemberships) ? groupMemberships : [];
         const roleCounts = { owner: 0, admin: 0, member: 0 };
@@ -509,13 +669,22 @@ export const UserDashboardView: React.FC = () => {
         const orgEmail = organization?.email || '';
         const hasMultipleMemberships = plans.length > 1;
         const hasMixedRoles = uniqueRoles.size > 1;
+        const myPlans = plans.filter((membership) => String(membership?.role || '').toLowerCase() === 'owner');
+        const sharedPlans = plans.filter((membership) => {
+            const role = String(membership?.role || '').toLowerCase();
+            return role === 'admin' && wasAssignedByOwner(membership);
+        });
 
         return {
             plans,
+            myPlans,
+            sharedPlans,
             roleCounts,
             hasMultipleMemberships,
             hasMixedRoles,
-            eyebrow: hasMultipleMemberships ? 'Organization Memberships' : 'My Organization',
+            totalPlansCount: plans.length,
+            ownedPlansCount: myPlans.length,
+            managedPlansCount: sharedPlans.length,
             title: !hasMultipleMemberships && orgName ? orgName : 'Your Organization Access',
             description: hasMultipleMemberships
                 ? `${plans.length} active group membership${plans.length === 1 ? '' : 's'}. Permissions below are shown per membership.`
@@ -559,12 +728,13 @@ export const UserDashboardView: React.FC = () => {
 
     const normalizeProfileForForm = (profileData: any) => {
         if (!profileData || typeof profileData !== 'object') return profileData;
-        const countryCode = getCountryCode(profileData.country);
-        const stateCode = getStateCode(countryCode, profileData.state);
+        const flattened = normalizeProfilePayloadShape(profileData);
+        const countryCode = getCountryCode(flattened.country);
+        const stateCode = getStateCode(countryCode, flattened.state);
         return {
-            ...profileData,
-            country: countryCode || profileData.country || '',
-            state: stateCode || profileData.state || '',
+            ...flattened,
+            country: countryCode || flattened.country || '',
+            state: stateCode || flattened.state || '',
         };
     };
 
@@ -595,6 +765,17 @@ export const UserDashboardView: React.FC = () => {
         return matchedCode || '';
     };
 
+    const loadCachedProfileSnapshot = useCallback(() => {
+        const cachedProfileRaw = getBrowserCache<any>(buildProfileCacheKey());
+        const cachedEditRaw = getBrowserCache<any>(buildProfileEditCacheKey());
+        const cachedProfile = cachedProfileRaw ? normalizeProfileForForm(cachedProfileRaw) : null;
+        const cachedEdit = cachedEditRaw ? normalizeProfileForForm(cachedEditRaw) : null;
+
+        if (!cachedProfile && !cachedEdit) return null;
+        if (cachedProfile && cachedEdit) return mergeProfilePreservingLocation(cachedProfile, cachedEdit);
+        return cachedEdit || cachedProfile;
+    }, [normalizeProfileForForm, mergeProfilePreservingLocation]);
+
     const fetchApiEndpoint = useCallback(async (
         endpoint: string,
         stateSetter: React.Dispatch<React.SetStateAction<any>>,
@@ -621,6 +802,10 @@ export const UserDashboardView: React.FC = () => {
                 });
 
             const data = response.data;
+            if (endpoint === '/dashboard/profile') {
+                setBrowserCache(buildProfileCacheKey(), data);
+                notifyCacheUpdate(buildProfileCacheKey(), data);
+            }
 
             if (data && data.message && !data.data && isArray) {
                 stateSetter([]);
@@ -630,6 +815,7 @@ export const UserDashboardView: React.FC = () => {
             const parsedData = data?.data || data;
             const isProfileEndpoint = endpoint.includes('/dashboard/profile');
             const normalizedData = !isArray && isProfileEndpoint ? normalizeProfileForForm(parsedData) : parsedData;
+            setHasReceivedInitialApiResponse(true);
 
             stateSetter((prev: any) => {
                 if (!isArray && prev && typeof prev === 'object') {
@@ -731,6 +917,7 @@ export const UserDashboardView: React.FC = () => {
         const payload = detail.data;
         switch (endpoint) {
             case '/dashboard/profile':
+            case '/dashboard/profile/edit':
                 hydrateProfileFromPayload(payload);
                 break;
             case '/dashboard/memberships':
@@ -766,7 +953,63 @@ export const UserDashboardView: React.FC = () => {
     }, [handleCacheUpdated]);
 
     useEffect(() => {
-        if (hasPrefetchedViews || !profile) {
+        const cachedSnapshot = loadCachedProfileSnapshot();
+        if (cachedSnapshot) {
+            setCachedProfileSnapshot(cachedSnapshot);
+            setProfile((prev) => prev ? mergeProfilePreservingLocation(cachedSnapshot, prev) : cachedSnapshot);
+        }
+    }, [loadCachedProfileSnapshot, mergeProfilePreservingLocation]);
+
+    const refreshProfileDetailsFromApi = useCallback(async () => {
+        if (profileRefreshInFlightRef.current) {
+            return;
+        }
+
+        profileRefreshInFlightRef.current = true;
+        const profileEditCacheKey = buildProfileEditCacheKey();
+        const profileCacheKey = buildProfileCacheKey();
+        try {
+            const profileResponse = await requestWithCache<any>({
+                method: 'GET',
+                url: '/dashboard/profile'
+            }, { preferCache: false });
+            setHasReceivedInitialApiResponse(true);
+            hydrateProfileFromPayload(profileResponse.data);
+            setBrowserCache(profileCacheKey, profileResponse.data);
+            notifyCacheUpdate(profileCacheKey, profileResponse.data);
+
+            // PUT endpoint is source of richer profile details on this install.
+            const response = await api.request<any>({
+                method: 'PUT',
+                url: '/dashboard/profile/edit',
+                data: {}
+            });
+            setHasReceivedInitialApiResponse(true);
+            hydrateProfileFromPayload(response.data);
+            setBrowserCache(profileEditCacheKey, response.data);
+            notifyCacheUpdate(profileEditCacheKey, response.data);
+            const cachedSnapshot = loadCachedProfileSnapshot();
+            if (cachedSnapshot) {
+                setCachedProfileSnapshot(cachedSnapshot);
+            }
+        } catch (err) {
+            console.error('[Dashboard] Failed to refresh profile details from API:', err);
+        } finally {
+            profileRefreshInFlightRef.current = false;
+        }
+    }, [hydrateProfileFromPayload, loadCachedProfileSnapshot]);
+
+    const hasActiveViewLoadedData = useMemo(() => {
+        if (activeView === 'profile') return Boolean(profile || cachedProfileSnapshot);
+        if (activeView === 'memberships') return memberships !== null && expiredMemberships !== null;
+        if (activeView === 'courses') return courses !== null && includedCourses !== null;
+        if (activeView === 'orders') return orders !== null;
+        if (activeView === 'organization') return groupMemberships !== null;
+        return false;
+    }, [activeView, profile, cachedProfileSnapshot, memberships, expiredMemberships, courses, includedCourses, orders, groupMemberships]);
+
+    useEffect(() => {
+        if (hasPrefetchedViews || !hasActiveViewLoadedData) {
             return;
         }
 
@@ -799,7 +1042,7 @@ export const UserDashboardView: React.FC = () => {
             cancelled = true;
             timerIds.forEach((id) => window.clearTimeout(id));
         };
-    }, [activeView, profile, hasPrefetchedViews, prefetchViewData]);
+    }, [activeView, hasActiveViewLoadedData, hasPrefetchedViews, prefetchViewData]);
 
 
     useEffect(() => {
@@ -809,16 +1052,10 @@ export const UserDashboardView: React.FC = () => {
         } else {
             savedView = 'profile';
         }
-        // Load profile first to stabilize dashboard hydration.
-        if (!profile) fetchApiEndpoint('/dashboard/profile', setProfile, false, 'GET', undefined, true, 'profile');
     }, []);
 
     useEffect(() => {
-        if (activeView === 'profile') {
-            if (profile === null) {
-                fetchApiEndpoint('/dashboard/profile', setProfile, false, 'GET', undefined, true, 'profile');
-            }
-        } else if (activeView === 'orders' && orders === null) {
+        if (activeView === 'orders' && orders === null) {
             fetchApiEndpoint('/dashboard/orders', setOrders, true, 'GET', undefined, true, 'orders');
         } else if (activeView === 'courses') {
             if (courses === null) fetchApiEndpoint('/dashboard/courses/enrolled', setCourses, true, 'GET', undefined, true, 'courses');
@@ -838,12 +1075,28 @@ export const UserDashboardView: React.FC = () => {
     }, [activeView, activeCourseTab, activeMembershipTab, profile?.email]);
 
     useEffect(() => {
-        if (activeView !== 'profile' || !profile || hasHydratedProfileDetails) return;
+        if (activeView !== 'profile') return;
 
-        // Some installs return richer profile data from this endpoint.
-        fetchApiEndpoint('/dashboard/profile/edit', setProfile, false, 'PUT', {}, false, 'profile');
-        setHasHydratedProfileDetails(true);
-    }, [activeView, profile, hasHydratedProfileDetails]);
+        const visitToken = Date.now();
+        profileSectionVisitTokenRef.current = visitToken;
+        setHasHydratedProfileDetails(false);
+
+        const profileEditCacheKey = buildProfileEditCacheKey();
+        const cachedProfileEdit = getBrowserCache<any>(profileEditCacheKey);
+        if (cachedProfileEdit) {
+            hydrateProfileFromPayload(cachedProfileEdit);
+        }
+
+        const runProfileSectionHydration = async () => {
+            // One consolidated refresh per user visit to Profile section.
+            await refreshProfileDetailsFromApi();
+            if (profileSectionVisitTokenRef.current === visitToken) {
+                setHasHydratedProfileDetails(true);
+            }
+        };
+
+        runProfileSectionHydration();
+    }, [activeView]);
 
     useEffect(() => {
         if (activeView === 'orders') {
@@ -931,7 +1184,14 @@ export const UserDashboardView: React.FC = () => {
 
             // Switch to proxied api call
             console.log("Submitting payload to /dashboard/profile/edit:", payload);
-            await api.put('/dashboard/profile/edit', payload);
+            const updateResponse = await api.put('/dashboard/profile/edit', payload);
+            const profileEditCacheKey = buildProfileEditCacheKey();
+            setBrowserCache(profileEditCacheKey, updateResponse.data);
+            notifyCacheUpdate(profileEditCacheKey, updateResponse.data);
+            const cachedSnapshot = loadCachedProfileSnapshot();
+            if (cachedSnapshot) {
+                setCachedProfileSnapshot(cachedSnapshot);
+            }
 
             setToast({ type: 'success', message: 'Profile updated successfully!' });
             setIsEditingProfile(false);
@@ -1122,6 +1382,7 @@ export const UserDashboardView: React.FC = () => {
             const checkoutUrl = data?.data?.stripe_checkout_url || data?.data?.checkout_url || data?.checkout_url || data?.data?.url;
 
             if (checkoutUrl) {
+                closeRenewModal();
                 window.location.href = checkoutUrl;
                 return;
             }
@@ -1129,6 +1390,7 @@ export const UserDashboardView: React.FC = () => {
             if (data?.success || response.status === 200) {
                 setToast({ type: 'success', message: data?.message || 'Membership renewal started successfully.' });
                 reloadMembershipData(false);
+                closeRenewModal();
             } else {
                 setToast({ type: 'error', message: data?.message || 'Failed to renew membership.' });
             }
@@ -1137,6 +1399,30 @@ export const UserDashboardView: React.FC = () => {
         } finally {
             setRenewingPlanId(null);
         }
+    };
+
+    const openRenewModal = (membership: any) => {
+        const selectedPlan = membership?.plan || null;
+        if (!selectedPlan?.id) {
+            setToast({ type: 'error', message: 'Renewal details are missing. Please refresh and try again.' });
+            return;
+        }
+        setRenewModalMembership(membership || null);
+        setRenewModalPlan(selectedPlan);
+    };
+
+    const closeRenewModal = () => {
+        setRenewModalMembership(null);
+        setRenewModalPlan(null);
+        setRenewingPlanId(null);
+    };
+
+    const handleConfirmRenewMembership = async () => {
+        if (!renewModalPlan?.id) {
+            setToast({ type: 'error', message: 'Renewal details are missing. Please refresh and try again.' });
+            return;
+        }
+        await handleRenewMembership(String(renewModalPlan.id));
     };
 
     const openModalFor = (type: MembershipAction, id: string) => {
@@ -1441,6 +1727,31 @@ export const UserDashboardView: React.FC = () => {
 
     // --- Renderers ---
 
+    const profileDisplayData = useMemo(() => profile || cachedProfileSnapshot || null, [profile, cachedProfileSnapshot]);
+    const showInitialLoader = useMemo(() => {
+        if (hasShownInitialLoader) return false;
+        if (!hasHydrated) return true;
+        if (!hasReceivedInitialApiResponse) return true;
+        if (activeView === 'profile') return !hasActiveViewLoadedData && sectionLoading.profile;
+        if (activeView === 'memberships') return !hasActiveViewLoadedData && sectionLoading.memberships;
+        if (activeView === 'courses') return !hasActiveViewLoadedData && sectionLoading.courses;
+        if (activeView === 'orders') return !hasActiveViewLoadedData && sectionLoading.orders;
+        if (activeView === 'organization') return !hasActiveViewLoadedData && sectionLoading.organization;
+        return false;
+    }, [hasHydrated, hasShownInitialLoader, hasReceivedInitialApiResponse, activeView, hasActiveViewLoadedData, sectionLoading]);
+
+    useEffect(() => {
+        if (!hasShownInitialLoader && hasHydrated && hasReceivedInitialApiResponse && hasActiveViewLoadedData) {
+            setHasShownInitialLoader(true);
+        }
+    }, [hasShownInitialLoader, hasHydrated, hasReceivedInitialApiResponse, hasActiveViewLoadedData]);
+    const shouldShowProfileSkeleton = !profileDisplayData && isProfileBootstrapping;
+    const renderProfileValue = (value: any) => {
+        const text = String(value ?? '').trim();
+        if (text) return text;
+        return '-';
+    };
+
     const renderPlanList = (plans: any[] | null, type: 'upgrade' | 'downgrade') => {
         const availablePlans = plans || [];
         if (availablePlans.length === 0) {
@@ -1623,36 +1934,180 @@ export const UserDashboardView: React.FC = () => {
         );
     };
 
-    return (
-        <div className="seamless-user-dashboard-section">
-            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    const renderRenewPlanModal = () => {
+        const plan = renewModalPlan;
+        if (!plan) {
+            return <div className="seamless-empty-card">No renewal details available.</div>;
+        }
 
-            {/* Modals */}
-            <Modal isOpen={actionModal === 'upgrade'} onClose={() => setActionModal(null)} title="Upgrade Membership" className="seamless-modal-lg">
-                {renderPlanList(getAvailablePlansForMembership(selectedMembershipId, 'upgrade'), 'upgrade')}
-            </Modal>
+        const periodText = plan?.period ? `/${plan.period}` : '';
+        const planPrice = parseFloat(plan?.price || 0);
 
-            <Modal isOpen={actionModal === 'downgrade'} onClose={() => setActionModal(null)} title="Downgrade Membership" className="seamless-modal-lg">
-                {renderPlanList(getAvailablePlansForMembership(selectedMembershipId, 'downgrade'), 'downgrade')}
-            </Modal>
-
-            <Modal isOpen={actionModal === 'cancel'} onClose={() => setActionModal(null)} title="Cancel Membership">
-                <div className="seamless-cancel-modal-body">
-                    <div className="seamless-cancel-modal-icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                    </div>
-                    <h4 className="seamless-cancel-modal-title">Are you sure you want to cancel?</h4>
-                    <p className="seamless-cancel-modal-text">
-                        You will immediately terminate the auto-renewal on your billing portal. You may still retain access through the end of your current billing or grace period.
-                    </p>
-                    <div className="seamless-cancel-actions">
-                        <button onClick={() => setActionModal(null)} className="seamless-btn-keep">Keep Membership</button>
-                        <button disabled={isSubmitting} onClick={handleCancelMembership} className="seamless-btn-cancel-now">
-                            {isSubmitting ? 'Canceling...' : 'Yes, Cancel Now'}
-                        </button>
+        return (
+            <div className="seamless-modal-body-split">
+                <div className="seamless-user-dashboard-scheduled-info">
+                    <div className="seamless-user-dashboard-info-message">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <div>
+                            <p>You are about to renew <strong>{plan?.label || 'this plan'}</strong>. Click confirm to continue with renewal and payment.</p>
+                        </div>
                     </div>
                 </div>
-            </Modal>
+
+                <div className="seamless-user-dashboard-modal-columns">
+                    <div>
+                        <h4 className="seamless-modal-subheader">Selected Plan</h4>
+                        <div className="seamless-plan-list">
+                            <div className="seamless-plan-select-item selected">
+                                <span className="seamless-plan-select-name">{plan?.label || 'Plan'}</span>
+                                <span className="seamless-plan-select-price">${planPrice.toFixed(2)}<span>{periodText}</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 className="seamless-modal-subheader">{plan?.label || 'Plan'} - Offerings</h4>
+                        <div className="seamless-offerings-box seamless-bg-offerings-active">
+                            {plan?.content_rules && Object.keys(plan.content_rules).length > 0 ? (
+                                <ul className="seamless-offerings-list">
+                                    {Object.entries(plan.content_rules).map(([key, val]: any) => (
+                                        <li key={key}><CircleCheckBig color="green" size={16} />: {val}</li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <span className="seamless-offerings-empty">No offerings listed for this plan</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="seamless-modal-footer seamless-col-span-full seamless-modal-footer">
+                    <button type="button" onClick={closeRenewModal} className="seamless-user-dashboard-btn-secondary">Cancel</button>
+                    <button
+                        type="button"
+                        disabled={isSubmitting || renewingPlanId === String(plan?.id)}
+                        onClick={handleConfirmRenewMembership}
+                        className="seamless-user-dashboard-btn-primary"
+                    >
+                        {isSubmitting || renewingPlanId === String(plan?.id) ? 'Processing...' : 'Renew Plan'}
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const renderCancelModalContent = () => {
+        const membership = getMembershipById(selectedMembershipId);
+        const plan = membership?.plan || {};
+        const planLabel = plan?.label || membership?.title || membership?.name || 'this membership';
+        const isRefundable = normalizeBool(plan?.refundable);
+        const prorateOnRefund = normalizeBool(plan?.prorate_on_refund);
+        const prorateByRefund = String(plan?.prorate_by_refund || '').toLowerCase();
+        const remainingDays = Math.max(0, Math.floor(parseFloat(membership?.remaining_days || 0)));
+        const planPrice = parseFloat(plan?.price || 0);
+        const startDate = membership?.start_date ? new Date(membership.start_date) : null;
+        const expiryDate = membership?.expiry_date ? new Date(membership.expiry_date) : null;
+
+        let cancelDetailMessage = 'You may still retain access through the end of your current billing or grace period.';
+        let confirmLabel = 'Cancel Membership';
+        let refundAmountText = '';
+        let usedDurationText = '';
+
+        if (isRefundable) {
+            confirmLabel = 'Request Refund';
+            if (prorateOnRefund && remainingDays > 0 && startDate && expiryDate && !Number.isNaN(startDate.getTime()) && !Number.isNaN(expiryDate.getTime())) {
+                if (prorateByRefund === 'day') {
+                    const totalDays = Math.max(1, Math.ceil((expiryDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+                    const dailyRate = planPrice / totalDays;
+                    const refundAmount = dailyRate * remainingDays;
+                    const usedDays = Math.max(0, totalDays - remainingDays);
+                    usedDurationText = `Used ${usedDays} full day${usedDays === 1 ? '' : 's'} (including today), ${remainingDays} day${remainingDays === 1 ? '' : 's'} remaining.`;
+                    refundAmountText = `$${refundAmount.toFixed(2)}`;
+                    cancelDetailMessage = `Prorated refund calculated. ${usedDurationText}`;
+                } else if (prorateByRefund === 'month') {
+                    const totalMonths = plan?.period === 'year' ? 12 * (parseInt(plan?.period_number || 1, 10) || 1) : (parseInt(plan?.period_number || 1, 10) || 1);
+                    const remainingMonths = Math.floor(remainingDays / 30);
+                    const monthlyRate = totalMonths > 0 ? planPrice / totalMonths : 0;
+                    const refundAmount = monthlyRate * remainingMonths;
+                    usedDurationText = `Used ${Math.max(0, totalMonths - remainingMonths)} full month${Math.max(0, totalMonths - remainingMonths) === 1 ? '' : 's'} (including current), ${remainingMonths} month${remainingMonths === 1 ? '' : 's'} remaining.`;
+                    refundAmountText = `$${refundAmount.toFixed(2)}`;
+                    cancelDetailMessage = `Prorated refund calculated. ${usedDurationText}`;
+                } else {
+                    cancelDetailMessage = `Refund policy applies. You have ${remainingDays} day${remainingDays === 1 ? '' : 's'} remaining in your current cycle.`;
+                }
+            } else {
+                cancelDetailMessage = 'Refund is available as per this plan policy.';
+            }
+        } else if (expiryDate && !Number.isNaN(expiryDate.getTime())) {
+            const formatted = expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            cancelDetailMessage = `Your membership will be canceled at the end of your current billing cycle on ${formatted}.`;
+        }
+
+        return (
+            <div className="seamless-cancel-modal-body">
+                <h4 className="seamless-cancel-modal-title">Are you sure you want to cancel your <strong>{planLabel}</strong> membership?</h4>
+                <p className="seamless-cancel-modal-text">
+                    {isRefundable ? 'Refund Policy:' : 'Cancellation Policy:'}
+                </p>
+                <div className="seamless-user-dashboard-cancel-policy">
+                    <span>!</span>
+                    <div>
+                        <h4>{isRefundable ? 'Refund Policy:' : 'Cancellation Policy:'}</h4>
+                        <p>{cancelDetailMessage}</p>
+                        {isRefundable && refundAmountText && (
+                            <p>You are eligible for a refund of <strong>{refundAmountText}</strong> for the unused portion of your plan.</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="seamless-user-dashboard-cancel-warnings">
+                    <div className="seamless-user-dashboard-cancel-warning">
+                        <span>!</span>
+                        <span>You will lose access to all features and content.</span>
+                    </div>
+                    <div className="seamless-user-dashboard-cancel-warning">
+                        <span>!</span>
+                        <span>This action cannot be undone.</span>
+                    </div>
+                </div>
+
+                <div className="seamless-cancel-actions seamless-modal-footer seamless-col-span-full">
+                    <button disabled={isSubmitting} onClick={handleCancelMembership} className="seamless-btn-cancel-now">
+                        {isSubmitting ? 'Canceling...' : confirmLabel}
+                    </button>
+                    <button onClick={() => setActionModal(null)} className="seamless-btn-keep">Keep Membership</button>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="seamless-user-dashboard-section">
+            {showInitialLoader ? (
+                <SeamlessInitialLoader message="Loading dashboard..." />
+            ) : (
+                <>
+                    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+                    {/* Modals */}
+                    <Modal isOpen={actionModal === 'upgrade'} onClose={() => setActionModal(null)} title="Upgrade Membership" className="seamless-modal-lg">
+                        {renderPlanList(getAvailablePlansForMembership(selectedMembershipId, 'upgrade'), 'upgrade')}
+                    </Modal>
+
+                    <Modal isOpen={actionModal === 'downgrade'} onClose={() => setActionModal(null)} title="Downgrade Membership" className="seamless-modal-lg">
+                        {renderPlanList(getAvailablePlansForMembership(selectedMembershipId, 'downgrade'), 'downgrade')}
+                    </Modal>
+
+                    <Modal isOpen={Boolean(renewModalMembership)} onClose={closeRenewModal} title="Renew Membership" className="seamless-modal-lg">
+                        {renderRenewPlanModal()}
+                    </Modal>
+
+                    <Modal isOpen={actionModal === 'cancel'} onClose={() => setActionModal(null)} title="Cancel Your Membership">
+                        {renderCancelModalContent()}
+                    </Modal>
 
             <Modal isOpen={Boolean(selectedOrgMembership)} onClose={closeAddMembersModal} title="Organization Members Management" className="seamless-modal-lg">
                 {selectedOrgMembership && (
@@ -1724,7 +2179,11 @@ export const UserDashboardView: React.FC = () => {
                                     <div className="seamless-user-dashboard-org-add-field seamless-user-dashboard-org-add-field-role">
                                         <label>Role</label>
                                         <div className="seamless-user-dashboard-org-role-wrap">
-                                            <select value={row.role} onChange={(e) => updateGroupMemberRow(index, 'role', e.target.value as 'member' | 'admin')}>
+                                            <select
+                                                className="seamless-user-dashboard-input"
+                                                value={row.role}
+                                                onChange={(e) => updateGroupMemberRow(index, 'role', e.target.value as 'member' | 'admin')}
+                                            >
                                                 <option value="member">Member</option>
                                                 <option value="admin">Admin</option>
                                             </select>
@@ -1785,7 +2244,7 @@ export const UserDashboardView: React.FC = () => {
                 )}
             </Modal>
 
-            <div className="seamless-user-dashboard seamless-user-dashboard-react-layout" data-widget-id="react">
+                    <div className="seamless-user-dashboard seamless-user-dashboard-react-layout" data-widget-id="react">
                 <aside className="seamless-user-dashboard-sidebar">
                     <div className="seamless-user-dashboard-profile-card">
                         <div className="seamless-user-dashboard-profile-name">{profile?.first_name} {profile?.last_name}</div>
@@ -1835,34 +2294,34 @@ export const UserDashboardView: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {isProfileBootstrapping ? (
+                                    {shouldShowProfileSkeleton ? (
                                         <ProfileSectionSkeleton />
                                     ) : !isEditingProfile ? (
                                         <div className="seamless-user-dashboard-profile-view-mode">
                                             <div className="seamless-grid-3-col">
-                                                <div><label className="seamless-value-label">First Name</label><div className="seamless-value-text">{profile?.first_name || '—'}</div></div>
-                                                <div><label className="seamless-value-label">Last Name</label><div className="seamless-value-text">{profile?.last_name || '—'}</div></div>
-                                                <div><label className="seamless-value-label">Email</label><div className="seamless-value-text">{profile?.email || '—'}</div></div>
-                                                <div><label className="seamless-value-label">Phone</label><div className="seamless-value-text">{profile?.phone || '—'} {profile?.phone_type ? `(${profile.phone_type})` : ''}</div></div>
+                                                <div><label className="seamless-value-label">First Name</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.first_name)}</div></div>
+                                                <div><label className="seamless-value-label">Last Name</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.last_name)}</div></div>
+                                                <div><label className="seamless-value-label">Email</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.email)}</div></div>
+                                                <div><label className="seamless-value-label">Phone</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.phone)} {profileDisplayData?.phone_type ? `(${profileDisplayData.phone_type})` : ''}</div></div>
                                             </div>
 
                                             <h4 className="seamless-section-title">Address Details</h4>
                                             <div className="seamless-grid-3-col">
-                                                <div className="seamless-grid-span-2"><label className="seamless-value-label">Address Line 1</label><div className="seamless-value-text">{profile?.address_line_1 || '—'}</div></div>
-                                                <div className="seamless-grid-span-2"><label className="seamless-value-label">Address Line 2</label><div className="seamless-value-text">{profile?.address_line_2 || '—'}</div></div>
-                                                <div><label className="seamless-value-label">Country</label><div className="seamless-value-text">{profile?.country ? (COUNTRIES_STATES.countries[profile?.country as keyof typeof COUNTRIES_STATES.countries] || profile?.country) : '—'}</div></div>
-                                                <div><label className="seamless-value-label">State</label><div className="seamless-value-text">{profile?.state ? ((COUNTRIES_STATES.states[profile?.country as keyof typeof COUNTRIES_STATES.states] as any)?.[profile?.state] || profile?.state) : '—'}</div></div>
-                                                <div><label className="seamless-value-label">City</label><div className="seamless-value-text">{profile?.city || '—'}</div></div>
-                                                <div><label className="seamless-value-label">Zip Code</label><div className="seamless-value-text">{profile?.zip_code || '—'}</div></div>
+                                                <div className="seamless-grid-span-2"><label className="seamless-value-label">Address Line 1</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.address_line_1)}</div></div>
+                                                <div className="seamless-grid-span-2"><label className="seamless-value-label">Address Line 2</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.address_line_2)}</div></div>
+                                                <div><label className="seamless-value-label">Country</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.country ? (COUNTRIES_STATES.countries[profileDisplayData?.country as keyof typeof COUNTRIES_STATES.countries] || profileDisplayData?.country) : '')}</div></div>
+                                                <div><label className="seamless-value-label">State</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.state ? ((COUNTRIES_STATES.states[profileDisplayData?.country as keyof typeof COUNTRIES_STATES.states] as any)?.[profileDisplayData?.state] || profileDisplayData?.state) : '')}</div></div>
+                                                <div><label className="seamless-value-label">City</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.city)}</div></div>
+                                                <div><label className="seamless-value-label">Zip Code</label><div className="seamless-value-text">{renderProfileValue(profileDisplayData?.zip_code)}</div></div>
                                             </div>
                                         </div>
                                     ) : (
                                         <form onSubmit={handleProfileSubmit}>
                                             <div className="seamless-grid-3-col">
-                                                <div><label className="seamless-user-dashboard-label-text">First Name</label><input required name="first_name" value={profile?.first_name || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
-                                                <div><label className="seamless-user-dashboard-label-text">Last Name</label><input required name="last_name" value={profile?.last_name || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
-                                                <div className="seamless-grid-span-2"><label className="seamless-user-dashboard-label-text">Email</label><input required type="email" name="email" value={profile?.email || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
-                                                <div><label className="seamless-user-dashboard-label-text">Phone</label><input name="phone" value={profile?.phone || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div><label className="seamless-user-dashboard-label-text">First Name</label><input required name="first_name" value={profileDisplayData?.first_name || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div><label className="seamless-user-dashboard-label-text">Last Name</label><input required name="last_name" value={profileDisplayData?.last_name || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div className="seamless-grid-span-2"><label className="seamless-user-dashboard-label-text">Email</label><input required type="email" name="email" value={profileDisplayData?.email || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div><label className="seamless-user-dashboard-label-text">Phone</label><input name="phone" value={profileDisplayData?.phone || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
                                                 <div>
                                                     <label className="seamless-user-dashboard-label-text">Phone Type</label>
                                                     <select name="phone_type" value={profile?.phone_type || 'mobile'} onChange={handleProfileChange} className="seamless-user-dashboard-input">
@@ -1873,8 +2332,8 @@ export const UserDashboardView: React.FC = () => {
 
                                             <h4 className="seamless-section-title">Address Details</h4>
                                             <div className="seamless-grid-3-col">
-                                                <div className="seamless-grid-span-2"><label className="seamless-user-dashboard-label-text">Address Line 1</label><input name="address_line_1" value={profile?.address_line_1 || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
-                                                <div className="seamless-grid-span-2"><label className="seamless-user-dashboard-label-text">Address Line 2</label><input name="address_line_2" value={profile?.address_line_2 || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div className="seamless-grid-span-2"><label className="seamless-user-dashboard-label-text">Address Line 1</label><input name="address_line_1" value={profileDisplayData?.address_line_1 || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div className="seamless-grid-span-2"><label className="seamless-user-dashboard-label-text">Address Line 2</label><input name="address_line_2" value={profileDisplayData?.address_line_2 || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
                                                 <div>
                                                     <label className="seamless-user-dashboard-label-text">Country</label>
                                                     <select name="country" value={profile?.country || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input">
@@ -1916,8 +2375,8 @@ export const UserDashboardView: React.FC = () => {
                                                         </select>
                                                     </div>
                                                 )}
-                                                <div><label className="seamless-user-dashboard-label-text">City</label><input name="city" value={profile?.city || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
-                                                <div><label className="seamless-user-dashboard-label-text">Zip</label><input name="zip_code" value={profile?.zip_code || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div><label className="seamless-user-dashboard-label-text">City</label><input name="city" value={profileDisplayData?.city || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
+                                                <div><label className="seamless-user-dashboard-label-text">Zip</label><input name="zip_code" value={profileDisplayData?.zip_code || ''} onChange={handleProfileChange} className="seamless-user-dashboard-input" /></div>
                                             </div>
 
                                             <div className="seamless-form-actions">
@@ -2077,6 +2536,11 @@ export const UserDashboardView: React.FC = () => {
                                                 <div className="seamless-grid-gap-16">
                                                     {historyMemberships.map((mem) => {
                                                         const isGroupMembership = Boolean(mem?.plan?.is_group_membership || mem?.is_group_membership);
+                                                        const hasActiveRepurchase = activeMemberships.some((activeMem) =>
+                                                            String(activeMem?.plan?.id || '') === String(mem?.plan?.id || '') &&
+                                                            isMembershipCurrentlyActive(activeMem)
+                                                        );
+                                                        const canRenewPlan = isMembershipExpired(mem) && !isMembershipCurrentlyActive(mem) && !hasActiveRepurchase;
                                                         return (
                                                         <div key={mem.id} className="seamless-membership-card-box seamless-items-start">
                                                             <div className="seamless-flex-col-gap-16-full">
@@ -2089,19 +2553,19 @@ export const UserDashboardView: React.FC = () => {
                                                                             Group
                                                                         </span>
                                                                     )}
-                                                                    {mem?.plan?.id && (
-                                                                        <div className="seamless-status-tag">
-                                                                            <span className="seamless-expired-badge seamless-capitalize">Expired</span>
+                                                                    <div className="seamless-status-tag">
+                                                                        <span className="seamless-expired-badge seamless-capitalize">Expired</span>
+                                                                        {mem?.plan?.id && canRenewPlan && (
                                                                             <button
                                                                                 type="button"
                                                                                 disabled={renewingPlanId === String(mem.plan.id)}
-                                                                                onClick={() => handleRenewMembership(String(mem.plan.id))}
+                                                                                onClick={() => openRenewModal(mem)}
                                                                                 className="seamless-user-dashboard-btn-renew"
                                                                             >
                                                                                 {renewingPlanId === String(mem.plan.id) ? 'Processing...' : 'Renew'}
                                                                             </button>
-                                                                        </div>
-                                                                    )}
+                                                                        )}
+                                                                    </div>
                                                                     </div>
                                                                 </div>
                                                                 <div className="seamless-flex-gap-24-slate">
@@ -2141,181 +2605,204 @@ export const UserDashboardView: React.FC = () => {
                                     <div className="seamless-user-dashboard-org-wrapper">
                                         <div className="seamless-user-dashboard-org-header">
                                             <div className="seamless-user-dashboard-org-header-info">
-                                                <p className="seamless-user-dashboard-org-name">{organizationSummary.eyebrow}</p>
-                                                <h2 className="seamless-user-dashboard-org-title">{organizationSummary.title}</h2>
-                                                <p className="seamless-user-dashboard-org-description">{organizationSummary.description}</p>
-                                            </div>
-                                            <div className="seamless-user-dashboard-org-summary">
-                                                <span className="seamless-user-dashboard-org-plan-count">{organizationSummary.plans.length} {organizationSummary.plans.length === 1 ? 'Plan' : 'Plans'}</span>
-                                                {organizationSummary.roleCounts.owner > 0 && <span className="seamless-user-dashboard-org-summary-pill seamless-org-role-owner">{organizationSummary.roleCounts.owner} {organizationSummary.roleCounts.owner === 1 ? 'Owner Role' : 'Owner Roles'}</span>}
-                                                {organizationSummary.roleCounts.admin > 0 && <span className="seamless-user-dashboard-org-summary-pill seamless-org-role-admin">{organizationSummary.roleCounts.admin} {organizationSummary.roleCounts.admin === 1 ? 'Admin Role' : 'Admin Roles'}</span>}
-                                                {organizationSummary.roleCounts.member > 0 && <span className="seamless-user-dashboard-org-summary-pill seamless-org-role-member">{organizationSummary.roleCounts.member} {organizationSummary.roleCounts.member === 1 ? 'Member Role' : 'Member Roles'}</span>}
+                                                <div className="seamless-user-dashboard-org-member-avatar seamless-org-avatar-initials">{organizationHeaderInitials}</div>
+                                                <div className="seamless-user-dashboard-details">
+                                                    <h2 className="seamless-user-dashboard-org-title">{organizationSummary.title}</h2>
+                                                    <p className="seamless-user-dashboard-org-description">
+                                                        <strong>{organizationSummary.plans.length}</strong> active membership{organizationSummary.plans.length === 1 ? '' : 's'}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        {orgInlineNotice && (
-                                            <div className={`seamless-org-inline-notice seamless-org-inline-notice-${orgInlineNotice.type}`}>
-                                                {orgInlineNotice.message}
+                                        <div className="seamless-user-dashboard-tabs-wrapper">
+                                            <div className="seamless-user-dashboard-tabs-header">
+                                                <button
+                                                    className={`seamless-user-dashboard-tab ${activeOrganizationTab === 'my_memberships' ? 'active' : ''}`}
+                                                    onClick={() => setActiveOrganizationTab('my_memberships')}
+                                                >
+                                                    My Memberships <span className="seamless-tab-count"><span>{organizationSummary.myPlans.length}</span></span>
+                                                </button>
+                                                <button
+                                                    className={`seamless-user-dashboard-tab ${activeOrganizationTab === 'shared_with_me' ? 'active' : ''}`}
+                                                    onClick={() => setActiveOrganizationTab('shared_with_me')}
+                                                >
+                                                    Shared With Me <span className="seamless-tab-count"><span>{organizationSummary.sharedPlans.length}</span></span>
+                                                </button>
                                             </div>
-                                        )}
+                                            <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
+                                                {orgInlineNotice && (
+                                                    <div className={`seamless-org-inline-notice seamless-org-inline-notice-${orgInlineNotice.type}`}>
+                                                        {orgInlineNotice.message}
+                                                    </div>
+                                                )}
 
-                                        {organizationSummary.plans.map((membership) => {
-                                            const membershipId = String(membership?.id);
-                                            const members = Array.isArray(membership?.group_members) ? membership.group_members : [];
-                                            const roleKey = String(membership?.role || 'member').toLowerCase();
-                                            const isOwner = roleKey === 'owner';
-                                            const isAdmin = roleKey === 'admin';
-                                            const acceptedCount = members.filter((member: any) => String(member?.status || '').toLowerCase() === 'accepted').length;
-                                            const pendingCount = members.filter((member: any) => String(member?.status || '').toLowerCase() === 'pending').length;
-                                            const memberCount = Number(membership?.member_count || members.length);
-                                            const groupSeats = Number(membership?.plan?.group_seats || 0);
-                                            const remainingSeats = Math.max(0, groupSeats - memberCount);
-                                            const additionalSeatsEnabled = normalizeBool(membership?.plan?.additional_seats_enabled);
-                                            const currentAdminCount = members.filter((member: any) => ['accepted', 'pending'].includes(String(member?.status || '').toLowerCase()) && ['admin', 'owner'].includes(String(member?.role || '').toLowerCase())).length;
-                                            const isExpanded = Boolean(expandedOrgPlans[membershipId]);
+                                                {(activeOrganizationTab === 'shared_with_me' ? organizationSummary.sharedPlans : organizationSummary.myPlans).map((membership) => {
+                                                    const membershipId = String(membership?.id);
+                                                    const members = Array.isArray(membership?.group_members) ? membership.group_members : [];
+                                                    const roleKey = String(membership?.role || 'member').toLowerCase();
+                                                    const isOwner = roleKey === 'owner';
+                                                    const isAdmin = roleKey === 'admin';
+                                                    const isSharedContext = activeOrganizationTab === 'shared_with_me';
+                                                    const acceptedCount = members.filter((member: any) => String(member?.status || '').toLowerCase() === 'accepted').length;
+                                                    const pendingCount = members.filter((member: any) => String(member?.status || '').toLowerCase() === 'pending').length;
+                                                    const memberCount = Number(membership?.member_count || members.length);
+                                                    const groupSeats = Number(membership?.plan?.group_seats || 0);
+                                                    const remainingSeats = Math.max(0, groupSeats - memberCount);
+                                                    const additionalSeatsEnabled = normalizeBool(membership?.plan?.additional_seats_enabled);
+                                                    const currentAdminCount = members.filter((member: any) => ['accepted', 'pending'].includes(String(member?.status || '').toLowerCase()) && ['admin', 'owner'].includes(String(member?.role || '').toLowerCase())).length;
+                                                    const isExpanded = Boolean(expandedOrgPlans[membershipId]);
 
-                                            return (
-                                                <div key={membershipId} className={`seamless-user-dashboard-org-plan ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
-                                                    <button type="button" className="seamless-user-dashboard-org-plan-header" onClick={() => toggleOrganizationPlan(membershipId)}>
-                                                        <div className="seamless-user-dashboard-org-plan-info">
-                                                            <h3 className="seamless-user-dashboard-org-plan-title">{membership?.plan?.label || 'Group Plan'}</h3>
-                                                            <div className="seamless-user-dashboard-org-plan-meta">
-                                                                <span className={`seamless-user-dashboard-org-role-badge seamless-org-role-${roleKey}`}>Your role: {roleKey.charAt(0).toUpperCase() + roleKey.slice(1)}</span>
-                                                                {organizationSummary.hasMultipleMemberships && organizationSummary.hasMixedRoles && (
-                                                                    <span className="seamless-user-dashboard-org-plan-scope">Permissions apply only to this membership</span>
-                                                                )}
-                                                            </div>
-                                                            <div className="seamless-user-dashboard-org-plan-stats">
-                                                                <span className="seamless-user-dashboard-org-stat-active"><Users size={14} /> {acceptedCount} active / {groupSeats} seats</span>
-                                                                {pendingCount > 0 && <span className="seamless-user-dashboard-org-stat-pending"><Clock3 size={14} /> {pendingCount} pending</span>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="seamless-user-dashboard-org-plan-toggle">
-                                                            <span className="seamless-user-dashboard-badge seamless-user-dashboard-badge-active">Active</span>
-                                                            <ChevronDown size={20} className={isExpanded ? 'open' : ''} />
-                                                        </div>
-                                                    </button>
-
-                                                    {isExpanded && (
-                                                        <div className="seamless-user-dashboard-org-plan-body">
-                                                            <div className="seamless-user-dashboard-org-capacity">
-                                                                <div className="seamless-user-dashboard-org-capacity-item seamless-org-capacity">
-                                                                    <div className="seamless-user-dashboard-org-content-icon"><Users size={16} /><span className="seamless-user-dashboard-org-capacity-label">Capacity</span></div>
-                                                                    <strong className="seamless-user-dashboard-org-capacity-value">{groupSeats}</strong>
+                                                    return (
+                                                        <div key={membershipId} className={`seamless-user-dashboard-org-plan ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
+                                                            <button type="button" className="seamless-user-dashboard-org-plan-header" onClick={() => toggleOrganizationPlan(membershipId)}>
+                                                                <div className="seamless-user-dashboard-org-plan-info">
+                                                                    <h3 className="seamless-user-dashboard-org-plan-title">{membership?.plan?.label || 'Group Plan'}</h3>
+                                                                    <div className="seamless-user-dashboard-org-plan-meta">
+                                                                        <span className={`seamless-user-dashboard-org-role-badge seamless-org-role-${roleKey}`}>Your role: {roleKey.charAt(0).toUpperCase() + roleKey.slice(1)}</span>
+                                                                        {organizationSummary.hasMultipleMemberships && organizationSummary.hasMixedRoles && (
+                                                                            <span className="seamless-user-dashboard-org-plan-scope">Permissions apply only to this membership</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="seamless-user-dashboard-org-plan-stats">
+                                                                        <span className="seamless-user-dashboard-org-stat-active"><Users size={14} /> {acceptedCount} active / {groupSeats} seats</span>
+                                                                        {pendingCount > 0 && <span className="seamless-user-dashboard-org-stat-pending"><Clock3 size={14} /> {pendingCount} pending</span>}
+                                                                    </div>
                                                                 </div>
-                                                                <div className="seamless-user-dashboard-org-capacity-item seamless-org-current">
-                                                                    <div className="seamless-user-dashboard-org-content-icon"><User size={16} /><span className="seamless-user-dashboard-org-capacity-label">Current</span></div>
-                                                                    <strong className="seamless-user-dashboard-org-capacity-value">{acceptedCount}</strong>
+                                                                <div className="seamless-user-dashboard-org-plan-toggle">
+                                                                    <span className="seamless-user-dashboard-badge seamless-user-dashboard-badge-active">Active</span>
+                                                                    <ChevronDown size={20} className={isExpanded ? 'open' : ''} />
                                                                 </div>
-                                                                <div className="seamless-user-dashboard-org-capacity-item seamless-org-remaining">
-                                                                    <div className="seamless-user-dashboard-org-content-icon"><Plus size={16} /><span className="seamless-user-dashboard-org-capacity-label">Remaining</span></div>
-                                                                    <strong className="seamless-user-dashboard-org-capacity-value">{remainingSeats}</strong>
-                                                                </div>
-                                                                <div className="seamless-user-dashboard-org-capacity-item seamless-org-additional">
-                                                                    <div className="seamless-user-dashboard-org-content-icon"><UserPlus size={16} /><span className="seamless-user-dashboard-org-capacity-label">Additional</span></div>
-                                                                    <strong className="seamless-user-dashboard-org-capacity-value">{Math.max(0, acceptedCount - groupSeats)}</strong>
-                                                                </div>
-                                                            </div>
+                                                            </button>
 
-                                                            <div className="seamless-user-dashboard-org-members-section">
-                                                                <div className="seamless-user-dashboard-org-members-header">
-                                                                    <h4>Members <span className="seamless-user-dashboard-org-members-count">{memberCount}</span></h4>
-                                                                    {(isOwner || isAdmin) && (remainingSeats > 0 || additionalSeatsEnabled) && (
-                                                                        <button type="button" className="seamless-user-dashboard-org-add-member-btn" onClick={() => openAddMembersModal({ ...membership, currentAdminCount, member_count: memberCount })}>
-                                                                            <UserPlus size={16} />
-                                                                            Add Members
-                                                                        </button>
-                                                                    )}
-                                                                </div>
+                                                            {isExpanded && (
+                                                                <div className="seamless-user-dashboard-org-plan-body">
+                                                                    <div className="seamless-user-dashboard-org-capacity">
+                                                                        <div className="seamless-user-dashboard-org-capacity-item seamless-org-capacity">
+                                                                            <div className="seamless-user-dashboard-org-content-icon"><Users size={16} /><span className="seamless-user-dashboard-org-capacity-label">Capacity</span></div>
+                                                                            <strong className="seamless-user-dashboard-org-capacity-value">{groupSeats}</strong>
+                                                                        </div>
+                                                                        <div className="seamless-user-dashboard-org-capacity-item seamless-org-current">
+                                                                            <div className="seamless-user-dashboard-org-content-icon"><User size={16} /><span className="seamless-user-dashboard-org-capacity-label">Current</span></div>
+                                                                            <strong className="seamless-user-dashboard-org-capacity-value">{acceptedCount}</strong>
+                                                                        </div>
+                                                                        <div className="seamless-user-dashboard-org-capacity-item seamless-org-remaining">
+                                                                            <div className="seamless-user-dashboard-org-content-icon"><Plus size={16} /><span className="seamless-user-dashboard-org-capacity-label">Remaining</span></div>
+                                                                            <strong className="seamless-user-dashboard-org-capacity-value">{remainingSeats}</strong>
+                                                                        </div>
+                                                                        <div className="seamless-user-dashboard-org-capacity-item seamless-org-additional">
+                                                                            <div className="seamless-user-dashboard-org-content-icon"><UserPlus size={16} /><span className="seamless-user-dashboard-org-capacity-label">Additional</span></div>
+                                                                            <strong className="seamless-user-dashboard-org-capacity-value">{Math.max(0, acceptedCount - groupSeats)}</strong>
+                                                                        </div>
+                                                                    </div>
 
-                                                                <div className="seamless-user-dashboard-org-members-list">
-                                                                    {members.map((member: any) => {
-                                                                        const memberDisplay = getMemberDisplay(member);
-                                                                        const memberRole = String(member?.role || 'member').toLowerCase();
-                                                                        const memberStatus = String(member?.status || 'pending').toLowerCase();
-                                                                        const memberStatusMeta = getMemberStatusMeta(memberStatus);
-                                                                        const roleDraftKey = `${membershipId}-${member?.id}`;
-                                                                        const selectedRole = memberRoleDrafts[roleDraftKey] || memberRole;
-                                                                        const roleChanged = selectedRole !== memberRole;
-                                                                        const actionKeyBase = `${membershipId}-${member?.id}`;
+                                                                    <div className="seamless-user-dashboard-org-members-section">
+                                                                        <div className="seamless-user-dashboard-org-members-header">
+                                                                            <h4>Members <span className="seamless-user-dashboard-org-members-count">{memberCount}</span></h4>
+                                                                            {(isOwner || isAdmin) && (remainingSeats > 0 || additionalSeatsEnabled) && (
+                                                                                <button type="button" className="seamless-user-dashboard-org-add-member-btn" onClick={() => openAddMembersModal({ ...membership, currentAdminCount, member_count: memberCount })}>
+                                                                                    <UserPlus size={16} />
+                                                                                    Add Members
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
 
-                                                                        return (
-                                                                            <div key={member?.id || roleDraftKey} className="seamless-user-dashboard-org-member-row">
-                                                                                <div className="seamless-user-dashboard-org-member-info">
-                                                                                    <div className="seamless-user-dashboard-org-member-avatar seamless-org-avatar-initials">{getMemberInitials(member)}</div>
-                                                                                    <div className="seamless-user-dashboard-org-member-details">
-                                                                                        <span className="seamless-user-dashboard-org-member-name">
-                                                                                            {memberDisplay.name}
-                                                                                            <span className={`seamless-user-dashboard-org-role-badge ${getRoleTagClassName(memberRole)}`}>
-                                                                                                {getRoleDisplayLabel(memberRole)}
+                                                                        <div className="seamless-user-dashboard-org-members-list">
+                                                                            {members.map((member: any) => {
+                                                                                const memberDisplay = getMemberDisplay(member);
+                                                                                const memberRole = String(member?.role || 'member').toLowerCase();
+                                                                                const memberStatus = String(member?.status || 'pending').toLowerCase();
+                                                                                const memberStatusMeta = getMemberStatusMeta(memberStatus);
+                                                                                const roleDraftKey = `${membershipId}-${member?.id}`;
+                                                                                const selectedRole = memberRoleDrafts[roleDraftKey] || memberRole;
+                                                                                const roleChanged = selectedRole !== memberRole;
+                                                                                const actionKeyBase = `${membershipId}-${member?.id}`;
+                                                                                const canManageMember = isOwner || (isSharedContext && isAdmin && isMemberManagedByCurrentUser(member));
+
+                                                                                return (
+                                                                                    <div key={member?.id || roleDraftKey} className="seamless-user-dashboard-org-member-row">
+                                                                                        <div className="seamless-user-dashboard-org-member-info">
+                                                                                            <div className="seamless-user-dashboard-org-member-avatar seamless-org-avatar-initials">{getMemberInitials(member)}</div>
+                                                                                            <div className="seamless-user-dashboard-org-member-details">
+                                                                                                <span className="seamless-user-dashboard-org-member-name">
+                                                                                                    {memberDisplay.name}
+                                                                                                    <span className={`seamless-user-dashboard-org-role-badge ${getRoleTagClassName(memberRole)}`}>
+                                                                                                        {getRoleDisplayLabel(memberRole)}
+                                                                                                    </span>
+                                                                                                </span>
+                                                                                                <span className="seamless-user-dashboard-org-member-email">{memberDisplay.email}</span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="seamless-user-dashboard-org-member-actions">
+                                                                                            <span className={`seamless-user-dashboard-org-status-badge ${memberStatusMeta.className}`}>
+                                                                                                {memberStatusMeta.icon}
+                                                                                                {memberStatusMeta.label}
                                                                                             </span>
-                                                                                        </span>
-                                                                                        <span className="seamless-user-dashboard-org-member-email">{memberDisplay.email}</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="seamless-user-dashboard-org-member-actions">
-                                                                                    <span className={`seamless-user-dashboard-org-status-badge ${memberStatusMeta.className}`}>
-                                                                                        {memberStatusMeta.icon}
-                                                                                        {memberStatusMeta.label}
-                                                                                    </span>
 
-                                                                                    {(isOwner || isAdmin) && memberRole !== 'owner' && memberStatus === 'accepted' && (
-                                                                                        <div className="seamless-user-dashboard-org-role-change-wrap" data-current-role={memberRole}>
-                                                                                            <select
-                                                                                                className="seamless-user-dashboard-org-role-change-select"
-                                                                                                value={selectedRole}
-                                                                                                onChange={(e) => setMemberRoleDrafts((prev) => ({ ...prev, [roleDraftKey]: e.target.value }))}
-                                                                                            >
-                                                                                                <option value="member">User</option>
-                                                                                                <option value="admin">Admin</option>
-                                                                                            </select>
-                                                                                            {roleChanged && (
+                                                                                            {canManageMember && memberRole !== 'owner' && memberStatus === 'accepted' && (
+                                                                                                <div className="seamless-user-dashboard-org-role-change-wrap" data-current-role={memberRole}>
+                                                                                                    <select
+                                                                                                        className="seamless-user-dashboard-org-role-change-select"
+                                                                                                        value={selectedRole}
+                                                                                                        onChange={(e) => setMemberRoleDrafts((prev) => ({ ...prev, [roleDraftKey]: e.target.value }))}
+                                                                                                    >
+                                                                                                        <option value="member">User</option>
+                                                                                                        <option value="admin">Admin</option>
+                                                                                                    </select>
+                                                                                                    {roleChanged && (
+                                                                                                        <button
+                                                                                                            type="button"
+                                                                                                            className="seamless-user-dashboard-org-role-save-btn"
+                                                                                                            disabled={pendingOrgActionKey === `role-${actionKeyBase}`}
+                                                                                                            onClick={() => handleSaveGroupRole(membership, member, selectedRole)}
+                                                                                                        >
+                                                                                                            <Check size={14} />
+                                                                                                        </button>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            )}
+
+                                                                                            {memberStatus === 'pending' && canManageMember && (
                                                                                                 <button
                                                                                                     type="button"
-                                                                                                    className="seamless-user-dashboard-org-role-save-btn"
-                                                                                                    disabled={pendingOrgActionKey === `role-${actionKeyBase}`}
-                                                                                                    onClick={() => handleSaveGroupRole(membership, member, selectedRole)}
+                                                                                                    className="seamless-user-dashboard-org-resend-btn"
+                                                                                                    disabled={pendingOrgActionKey === `resend-${actionKeyBase}`}
+                                                                                                    onClick={() => handleResendGroupInvite(membershipId, member?.id)}
+                                                                                                    title="Send Invite Link"
                                                                                                 >
-                                                                                                    <Check size={14} />
+                                                                                                    <Send size={14} />
+                                                                                                </button>
+                                                                                            )}
+
+                                                                                            {canManageMember && memberRole !== 'owner' && (
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    className="seamless-user-dashboard-org-remove-btn"
+                                                                                                    disabled={pendingOrgActionKey === `remove-${actionKeyBase}`}
+                                                                                                    onClick={() => handleRemoveGroupMember(membershipId, member?.id)}
+                                                                                                    title="Remove Member"
+                                                                                                >
+                                                                                                    <Trash2 size={14} />
                                                                                                 </button>
                                                                                             )}
                                                                                         </div>
-                                                                                    )}
-
-                                                                                    {memberStatus === 'pending' && (isOwner || isAdmin) && (
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            className="seamless-user-dashboard-org-resend-btn"
-                                                                                            disabled={pendingOrgActionKey === `resend-${actionKeyBase}`}
-                                                                                            onClick={() => handleResendGroupInvite(membershipId, member?.id)}
-                                                                                            title="Send Invite Link"
-                                                                                        >
-                                                                                            <Send size={14} />
-                                                                                        </button>
-                                                                                    )}
-
-                                                                                    {(isOwner || isAdmin) && memberRole !== 'owner' && (
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            className="seamless-user-dashboard-org-remove-btn"
-                                                                                            disabled={pendingOrgActionKey === `remove-${actionKeyBase}`}
-                                                                                            onClick={() => handleRemoveGroupMember(membershipId, member?.id)}
-                                                                                            title="Remove Member"
-                                                                                        >
-                                                                                            <Trash2 size={14} />
-                                                                                        </button>
-                                                                                    )}
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    })}
+                                                                                    </div>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            )}
                                                         </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
+                                                    );
+                                                })}
+                                                {(activeOrganizationTab === 'shared_with_me' ? organizationSummary.sharedPlans : organizationSummary.myPlans).length === 0 && (
+                                                    <div className="seamless-empty-card">
+                                                        <p>{activeOrganizationTab === 'shared_with_me' ? 'No memberships shared with you yet.' : 'You do not own any organization memberships yet.'}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -2458,7 +2945,7 @@ export const UserDashboardView: React.FC = () => {
                                         </thead>
                                         <tbody>
                                             {orders === null ? (
-                                                <tr><td colSpan={7} className="seamless-p-24-center-slate"><OrdersSectionSkeleton /></td></tr>
+                                                <OrdersSectionSkeletonRows rows={5} />
                                             ) : orders.length === 0 ? (
                                                 <tr><td colSpan={7} className="seamless-p-24-center-slate">No orders found.</td></tr>
                                             ) : (
@@ -2478,6 +2965,12 @@ export const UserDashboardView: React.FC = () => {
                                                         order?.metadata?.helper_text ||
                                                         order?.metadata?.status_message ||
                                                         '';
+                                                    const orderNotes =
+                                                        order?.notes ||
+                                                        order?.note ||
+                                                        order?.meta?.notes ||
+                                                        order?.metadata?.notes ||
+                                                        '';
                                                     const unpaidInvoiceText =
                                                         order?.unpaid_invoice ||
                                                         order?.unpaid_invoice_text ||
@@ -2485,6 +2978,14 @@ export const UserDashboardView: React.FC = () => {
                                                         order?.payment_status_text ||
                                                         (String(order?.payment_status || '').toLowerCase() === 'unpaid' ? 'Unpaid Invoice' : '') ||
                                                         (statusLower === 'processing' ? helperText : '');
+                                                    const invoiceUrl =
+                                                        order?.invoice_url ||
+                                                        order?.unpaid_invoice_url ||
+                                                        order?.invoice_link ||
+                                                        order?.unpaid_invoice_link ||
+                                                        order?.meta?.invoice_url ||
+                                                        order?.metadata?.invoice_url ||
+                                                        '';
 
                                                     const fmtDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
 
@@ -2503,13 +3004,26 @@ export const UserDashboardView: React.FC = () => {
                                                                 </div>
                                                             </td>
                                                             <td><span className={`seamless-badge ${badgeClass}`}>{order.status || 'Status'}</span></td>
-                                                            <td className="seamless-total-amount">${parseFloat(order.total || 0).toFixed(2)}</td>
+                                                            <td className="seamless-total-amount">
+                                                                ${parseFloat(order.total || 0).toFixed(2)}
+                                                                {orderNotes ? (
+                                                                    <span className="seamless-order-total-note-tooltip" title={String(orderNotes)} aria-label={`Order note: ${String(orderNotes)}`}>
+                                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                            <circle cx="12" cy="12" r="10"></circle>
+                                                                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                                                                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                                                        </svg>
+                                                                    </span>
+                                                                ) : null}
+                                                            </td>
                                                             <td className="seamless-text-slate-600">{fmtDate}</td>
                                                             <td>
-                                                                {statusLower === 'processing' && unpaidInvoiceText ? (
+                                                                {invoiceUrl ? (
+                                                                    <button onClick={() => window.open(invoiceUrl, '_blank', 'noopener,noreferrer')} className="seamless-btn-invoice">
+                                                                        {String(order?.payment_status || '').toLowerCase() === 'unpaid' ? 'Unpaid Invoice' : 'Invoice'}
+                                                                    </button>
+                                                                ) : statusLower === 'processing' && unpaidInvoiceText ? (
                                                                     <span className="seamless-invoice-unpaid">{String(unpaidInvoiceText)}</span>
-                                                                ) : order.invoice_url ? (
-                                                                    <button onClick={() => window.open(order.invoice_url, '_blank', 'noopener,noreferrer')} className="seamless-btn-invoice">Invoice</button>
                                                                 ) : '-'}
                                                             </td>
                                                         </tr>
@@ -2544,7 +3058,10 @@ export const UserDashboardView: React.FC = () => {
                         </div>
                     )}
                 </main>
-            </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
+
