@@ -1,9 +1,60 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useShadowRoot } from './ShadowRoot';
 import api, { requestWithCache } from '../services/api';
 import { COUNTRIES_STATES } from '../utils/countriesStates';
 import { ArrowDownRight, ArrowUpRight, Check, ChevronDown, CircleCheckBig, CircleX, Clock3, Download, Plus, Send, Trash2, User, UserPlus, Users, X } from 'lucide-react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+
+const CACHE_KEY_PREFIX = 'seamless_browser_cache_v1:';
+const CACHE_NAMESPACE = 'api';
+
+const extractEndpointFromCacheKey = (cacheKey?: string): string | null => {
+    if (!cacheKey || !cacheKey.startsWith(CACHE_KEY_PREFIX)) {
+        return null;
+    }
+
+    const remainder = cacheKey.slice(CACHE_KEY_PREFIX.length);
+    const namespaceSeparatorIndex = remainder.indexOf(':');
+    if (namespaceSeparatorIndex === -1) {
+        return null;
+    }
+
+    const namespace = remainder.slice(0, namespaceSeparatorIndex);
+    if (namespace !== CACHE_NAMESPACE) {
+        return null;
+    }
+
+    const jsonPayload = remainder.slice(namespaceSeparatorIndex + 1);
+    try {
+        const parsed = JSON.parse(jsonPayload);
+        return typeof parsed?.url === 'string' ? parsed.url : null;
+    } catch {
+        return null;
+    }
+};
+
+const normalizeApiPayload = <T,>(payload: T): any => {
+    if (payload && typeof payload === 'object' && 'data' in (payload as any)) {
+        return (payload as any).data;
+    }
+    return payload;
+};
+
+const applyArrayPayload = (payload: any, setter: React.Dispatch<React.SetStateAction<any[] | null>>): void => {
+    const parsed = normalizeApiPayload(payload);
+    if (Array.isArray(parsed)) {
+        setter(parsed);
+        return;
+    }
+
+    if (parsed && Array.isArray(parsed.data)) {
+        setter(parsed.data);
+        return;
+    }
+
+    setter([]);
+};
+
 // Type definitions for our dashboard data
 interface UserProfile {
     first_name: string;
@@ -138,6 +189,43 @@ const OrdersSectionSkeleton = () => (
             <Skeleton height={50} />
             <Skeleton height={50} />
             <Skeleton height={50} />
+        </div>
+    </SkeletonTheme>
+);
+
+const MembershipShellSkeleton = () => (
+    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-summary-row seamless-mb-32">
+            <Skeleton height={96} width={160} />
+            <Skeleton height={120} className="seamless-flex-1" />
+        </div>
+        <div className="seamless-user-dashboard-tabs-wrapper">
+            <div className="seamless-user-dashboard-tabs-header">
+                <Skeleton height={36} width={220} />
+                <Skeleton height={36} width={240} />
+            </div>
+            <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
+                <MembershipSectionSkeleton />
+            </div>
+        </div>
+    </SkeletonTheme>
+);
+
+const CoursesShellSkeleton = () => (
+    <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f8fafc">
+        <div className="seamless-course-summary-grid">
+            <Skeleton height={120} />
+            <Skeleton height={120} />
+            <Skeleton height={120} />
+        </div>
+        <div className="seamless-user-dashboard-tabs-wrapper">
+            <div className="seamless-user-dashboard-tabs-header">
+                <Skeleton height={34} width={240} />
+                <Skeleton height={34} width={280} />
+            </div>
+            <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
+                <CoursesSectionSkeleton />
+            </div>
         </div>
     </SkeletonTheme>
 );
@@ -285,13 +373,32 @@ export const UserDashboardView: React.FC = () => {
     const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
     const [ordersPage, setOrdersPage] = useState<number>(1);
     const navigationViews: DashboardView[] = ['memberships', 'organization', 'courses', 'orders', 'profile'];
-    const [sectionLoading, setSectionLoading] = useState<Record<DashboardView, boolean>>({
-        profile: false,
-        memberships: false,
-        organization: false,
-        courses: false,
-        orders: false,
+    const [sectionLoadingCounts, setSectionLoadingCounts] = useState<Record<DashboardView, number>>({
+        profile: 0,
+        memberships: 0,
+        organization: 0,
+        courses: 0,
+        orders: 0,
     });
+    const sectionLoading = useMemo(() => ({
+        profile: sectionLoadingCounts.profile > 0,
+        memberships: sectionLoadingCounts.memberships > 0,
+        organization: sectionLoadingCounts.organization > 0,
+        courses: sectionLoadingCounts.courses > 0,
+        orders: sectionLoadingCounts.orders > 0,
+    }), [sectionLoadingCounts]);
+
+    const isMembershipShellLoading = sectionLoading.memberships && memberships === null && expiredMemberships === null;
+    const isCoursesShellLoading = sectionLoading.courses && courses === null && includedCourses === null;
+    const isProfileBootstrapping = sectionLoading.profile && profile === null;
+
+    const beginSectionLoading = useCallback((section: DashboardView) => {
+        setSectionLoadingCounts((prev) => ({ ...prev, [section]: prev[section] + 1 }));
+    }, []);
+
+    const endSectionLoading = useCallback((section: DashboardView) => {
+        setSectionLoadingCounts((prev) => ({ ...prev, [section]: Math.max(0, prev[section] - 1) }));
+    }, []);
 
 
     const getAuthenticatedCourseBaseUrl = (): string => {
@@ -329,7 +436,7 @@ export const UserDashboardView: React.FC = () => {
         const email = getDashboardEmail();
         if (!email) return;
 
-        setSectionLoading((prev) => ({ ...prev, organization: true }));
+        beginSectionLoading('organization');
         try {
             const response = await requestWithCache<any>({
                 method: 'GET',
@@ -344,7 +451,7 @@ export const UserDashboardView: React.FC = () => {
             setOrganization((prev) => prev || {});
             setGroupMemberships((prev) => prev || []);
         } finally {
-            setSectionLoading((prev) => ({ ...prev, organization: false }));
+            endSectionLoading('organization');
         }
     };
 
@@ -494,7 +601,7 @@ export const UserDashboardView: React.FC = () => {
         section?: DashboardView
     ) => {
         if (section) {
-            setSectionLoading((prev) => ({ ...prev, [section]: true }));
+            beginSectionLoading(section);
         }
         try {
             const isGet = method.toUpperCase() === 'GET';
@@ -539,42 +646,59 @@ export const UserDashboardView: React.FC = () => {
             stateSetter((prev: any) => prev || (isArray ? [] : null));
         } finally {
             if (section) {
-                setSectionLoading((prev) => ({ ...prev, [section]: false }));
+                endSectionLoading(section);
             }
         }
     };
 
-    useEffect(() => {
-        const handleCacheUpdated = (event: Event) => {
-            const customEvent = event as CustomEvent<{ key?: string; data?: any }>;
-            const payload = customEvent.detail?.data;
-            if (!payload) return;
-            if (activeView === 'orders') {
-                const ordersData = payload?.data || payload;
-                const isOrderLikeArray =
-                    Array.isArray(ordersData)
-                    && (ordersData.length === 0
-                        || ordersData.some((item: any) =>
-                            item
-                            && typeof item === 'object'
-                            && (
-                                'invoice_url' in item
-                                || 'ordered_product' in item
-                                || 'products_count' in item
-                                || 'customer_name' in item
-                                || 'total' in item
-                            )
-                        ));
+    const hydrateProfileFromPayload = useCallback((payload: any) => {
+        const parsed = normalizeApiPayload(payload) || {};
+        const normalized = normalizeProfileForForm(parsed);
+        setProfile((prev) => prev ? mergeProfilePreservingLocation(prev, normalized) : normalized);
+    }, [setProfile]);
 
-                if (isOrderLikeArray) {
-                    setOrders(ordersData);
+    const handleCacheUpdated = useCallback((event: Event) => {
+        const detail = (event as CustomEvent<{ key?: string; data?: any }>).detail;
+        if (!detail?.key) return;
+        const endpoint = extractEndpointFromCacheKey(detail.key);
+        if (!endpoint) return;
+
+        const payload = detail.data;
+        switch (endpoint) {
+            case '/dashboard/profile':
+                hydrateProfileFromPayload(payload);
+                break;
+            case '/dashboard/memberships':
+                applyArrayPayload(payload, setMemberships);
+                break;
+            case '/dashboard/memberships/history':
+                applyArrayPayload(payload, setExpiredMemberships);
+                break;
+            case '/dashboard/orders':
+                applyArrayPayload(payload, setOrders);
+                break;
+            case '/dashboard/courses/enrolled':
+                applyArrayPayload(payload, setCourses);
+                break;
+            case '/dashboard/courses/included':
+                applyArrayPayload(payload, setIncludedCourses);
+                break;
+            case '/dashboard/organization':
+                {
+                    const parsed = normalizeApiPayload(payload) || {};
+                    setOrganization(parsed?.organization || {});
+                    setGroupMemberships(Array.isArray(parsed?.group_memberships) ? parsed.group_memberships : []);
                 }
-            }
-        };
+                break;
+            default:
+                break;
+        }
+    }, [hydrateProfileFromPayload, setMemberships, setExpiredMemberships, setOrders, setCourses, setIncludedCourses, setOrganization, setGroupMemberships]);
 
+    useEffect(() => {
         window.addEventListener('seamless:cache-updated', handleCacheUpdated);
         return () => window.removeEventListener('seamless:cache-updated', handleCacheUpdated);
-    }, [activeView]);
+    }, [handleCacheUpdated]);
 
 
     useEffect(() => {
@@ -1610,7 +1734,7 @@ export const UserDashboardView: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {sectionLoading.profile ? (
+                                    {isProfileBootstrapping ? (
                                         <ProfileSectionSkeleton />
                                     ) : !isEditingProfile ? (
                                         <div className="seamless-user-dashboard-profile-view-mode">
@@ -1710,56 +1834,59 @@ export const UserDashboardView: React.FC = () => {
                     {activeView === 'memberships' && (
                         <div className="seamless-user-dashboard-view active">
                             <div className="seamless-dashboard-content-container">
-
-                                {/* TOP SUMMARY SECTION */}
-                                <div className="seamless-summary-row seamless-mb-32">
-                                    <div className="seamless-count-card">
-                                        <h2 className="seamless-count-card-number">{activeMemberships.length}</h2>
-                                        <p className="seamless-count-card-label">Total Active Memberships</p>
-                                    </div>
-
-                                    <div className="seamless-flex-col-gap-24">
-                                        {activeMemberships.length > 0 ? (
-                                            <div className="seamless-blue-card seamless-padding-24-full-center">
-                                                <div className="seamless-blue-card-content seamless-justify-center">
-                                                    <h3 className="seamless-blue-card-title">{activeMemberships[0].plan?.label || activeMemberships[0].title || activeMemberships[0].name || 'Membership'}</h3>
-                                                    <p className="seamless-blue-card-expiry seamless-mt-8">
-                                                        Expires on: <strong>{activeMemberships[0].expiry_date ? new Date(activeMemberships[0].expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</strong>
-                                                    </p>
-                                                </div>
-                                                <div className="seamless-blue-badge seamless-capitalize">{(activeMemberships[0].status || 'Active')}</div>
+                                {isMembershipShellLoading ? (
+                                    <MembershipShellSkeleton />
+                                ) : (
+                                    <>
+                                        {/* TOP SUMMARY SECTION */}
+                                        <div className="seamless-summary-row seamless-mb-32">
+                                            <div className="seamless-count-card">
+                                                <h2 className="seamless-count-card-number">{activeMemberships.length}</h2>
+                                                <p className="seamless-count-card-label">Total Active Memberships</p>
                                             </div>
-                                        ) : (
-                                            <div className="seamless-blue-card seamless-opacity-bg-card">
-                                                <div className="seamless-blue-card-content seamless-justify-center">
-                                                    <h3 className="seamless-blue-card-title">No Active Membership</h3>
-                                                </div>
+
+                                            <div className="seamless-flex-col-gap-24">
+                                                {activeMemberships.length > 0 ? (
+                                                    <div className="seamless-blue-card seamless-padding-24-full-center">
+                                                        <div className="seamless-blue-card-content seamless-justify-center">
+                                                            <h3 className="seamless-blue-card-title">{activeMemberships[0].plan?.label || activeMemberships[0].title || activeMemberships[0].name || 'Membership'}</h3>
+                                                            <p className="seamless-blue-card-expiry seamless-mt-8">
+                                                                Expires on: <strong>{activeMemberships[0].expiry_date ? new Date(activeMemberships[0].expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</strong>
+                                                            </p>
+                                                        </div>
+                                                        <div className="seamless-blue-badge seamless-capitalize">{(activeMemberships[0].status || 'Active')}</div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="seamless-blue-card seamless-opacity-bg-card">
+                                                        <div className="seamless-blue-card-content seamless-justify-center">
+                                                            <h3 className="seamless-blue-card-title">No Active Membership</h3>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
+                                        </div>
 
-                                <div className="seamless-user-dashboard-tabs-wrapper">
-                                    <div className="seamless-user-dashboard-tabs-header">
-                                        <button className={`seamless-user-dashboard-tab ${activeMembershipTab === 'active' ? 'active' : ''}`} onClick={() => setActiveMembershipTab('active')}>
-                                            Active Memberships <span className="seamless-tab-count"><span>{activeMemberships.length}</span></span>
-                                        </button>
-                                        <button className={`seamless-user-dashboard-tab ${activeMembershipTab === 'history' ? 'active' : ''}`} onClick={() => setActiveMembershipTab('history')}>
-                                            Expired Memberships <span className="seamless-tab-count"><span>{historyMemberships.length}</span></span>
-                                        </button>
-                                    </div>
+                                        <div className="seamless-user-dashboard-tabs-wrapper">
+                                            <div className="seamless-user-dashboard-tabs-header">
+                                                <button className={`seamless-user-dashboard-tab ${activeMembershipTab === 'active' ? 'active' : ''}`} onClick={() => setActiveMembershipTab('active')}>
+                                                    Active Memberships <span className="seamless-tab-count"><span>{activeMemberships.length}</span></span>
+                                                </button>
+                                                <button className={`seamless-user-dashboard-tab ${activeMembershipTab === 'history' ? 'active' : ''}`} onClick={() => setActiveMembershipTab('history')}>
+                                                    Expired Memberships <span className="seamless-tab-count"><span>{historyMemberships.length}</span></span>
+                                                </button>
+                                            </div>
 
-                                    <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
-                                        {activeMembershipTab === 'active' ? (
-                                            memberships === null && sectionLoading.memberships ? (
-                                                <MembershipSectionSkeleton />
-                                            ) : activeMemberships.length === 0 ? (
-                                                <div className="seamless-empty-card">
-                                                    <p>You do not have any active memberships.</p>
-                                                </div>
-                                            ) : (
-                                                <div className="seamless-grid-gap-16">
-                                                    {activeMemberships.map((mem) => {
+                                            <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
+                                                {activeMembershipTab === 'active' ? (
+                                                    memberships === null && sectionLoading.memberships ? (
+                                                        <MembershipSectionSkeleton />
+                                                    ) : activeMemberships.length === 0 ? (
+                                                        <div className="seamless-empty-card">
+                                                            <p>You do not have any active memberships.</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="seamless-grid-gap-16">
+                                                            {activeMemberships.map((mem) => {
                                                         const membershipId = String(mem.id);
                                                         const status = String(mem.status || '').toLowerCase();
                                                         const isCancelled = status === 'cancelled';
@@ -1886,9 +2013,11 @@ export const UserDashboardView: React.FC = () => {
                                                     })}
                                                 </div>
                                             )
-                                        )}
-                                    </div>
-                                </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}
@@ -2096,38 +2225,72 @@ export const UserDashboardView: React.FC = () => {
                     {activeView === 'courses' && (
                         <div className="seamless-user-dashboard-view active">
                             <div className="seamless-dashboard-content-container">
-                                <div className="seamless-course-summary-grid">
-                                    <div className="seamless-course-stat-card">
-                                        <div className="seamless-course-stat-number">{(courses?.length || 0) + (includedCourses?.length || 0)}</div>
-                                        <div className="seamless-course-stat-label">Total Courses</div>
-                                    </div>
-                                    <div className="seamless-course-stat-card">
-                                        <div className="seamless-course-stat-number">{Object.values(courseProgressMap).filter(p => p.progress === 100).length}</div>
-                                        <div className="seamless-course-stat-label">Completed</div>
-                                    </div>
-                                    <div className="seamless-course-progress-card">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>
-                                        No courses in progress
-                                    </div>
-                                </div>
-                                <div className="seamless-user-dashboard-tabs-wrapper">
-                                    <div className="seamless-user-dashboard-tabs-header">
-                                        <button className={`seamless-user-dashboard-tab ${activeCourseTab === 'enrolled' ? 'active' : ''}`} onClick={() => setActiveCourseTab('enrolled')}>
-                                            Enrolled Courses <span className="seamless-tab-count"><span>{courses?.length || 0}</span></span>
-                                        </button>
-                                        <button className={`seamless-user-dashboard-tab ${activeCourseTab === 'included' ? 'active' : ''}`} onClick={() => setActiveCourseTab('included')}>
-                                            Included in Membership <span className="seamless-tab-count"><span>{includedCourses?.length || 0}</span></span>
-                                        </button>
-                                    </div>
-                                    <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
-                                        {activeCourseTab === 'enrolled' && (
-                                            courses === null ? (
-                                                <CoursesSectionSkeleton />
-                                            ) : courses.length === 0 ? (
-                                                <div className="seamless-empty-card"><p>You have not enrolled in any courses yet.</p></div>
-                                            ) : (
-                                                <div className="seamless-course-grid">
-                                                    {courses.map((course: any, i: number) => {
+                                {isCoursesShellLoading ? (
+                                    <CoursesShellSkeleton />
+                                ) : (
+                                    <>
+                                        <div className="seamless-course-summary-grid">
+                                            <div className="seamless-course-stat-card">
+                                                <div className="seamless-course-stat-number">{(courses?.length || 0) + (includedCourses?.length || 0)}</div>
+                                                <div className="seamless-course-stat-label">Total Courses</div>
+                                            </div>
+                                            <div className="seamless-course-stat-card">
+                                                <div className="seamless-course-stat-number">{Object.values(courseProgressMap).filter(p => p.progress === 100).length}</div>
+                                                <div className="seamless-course-stat-label">Completed</div>
+                                            </div>
+                                            <div className="seamless-course-progress-card">
+                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>
+                                                No courses in progress
+                                            </div>
+                                        </div>
+                                        <div className="seamless-user-dashboard-tabs-wrapper">
+                                            <div className="seamless-user-dashboard-tabs-header">
+                                                <button className={`seamless-user-dashboard-tab ${activeCourseTab === 'enrolled' ? 'active' : ''}`} onClick={() => setActiveCourseTab('enrolled')}>
+                                                    Enrolled Courses <span className="seamless-tab-count"><span>{courses?.length || 0}</span></span>
+                                                </button>
+                                                <button className={`seamless-user-dashboard-tab ${activeCourseTab === 'included' ? 'active' : ''}`} onClick={() => setActiveCourseTab('included')}>
+                                                    Included in Membership <span className="seamless-tab-count"><span>{includedCourses?.length || 0}</span></span>
+                                                </button>
+                                            </div>
+                                            <div className="seamless-user-dashboard-tab-content active seamless-transparent-mt-24">
+                                                {activeCourseTab === 'enrolled' && (
+                                                    courses === null ? (
+                                                        <CoursesSectionSkeleton />
+                                                    ) : courses.length === 0 ? (
+                                                        <div className="seamless-empty-card"><p>You have not enrolled in any courses yet.</p></div>
+                                                    ) : (
+                                                        <div className="seamless-course-grid">
+                                                            {courses.map((course: any, i: number) => {
+                                                        const p = courseProgressMap[course?.id];
+                                                        return (
+                                                            <div key={course?.id || i} className="seamless-course-card-n">
+                                                                <div className="seamless-course-card-img-wrapper">
+                                                                    <img src={course?.image || 'https://via.placeholder.com/400x200?text=Course'} alt={course?.title} />
+                                                                </div>
+                                                                <div className="seamless-course-card-body">
+                                                                    <h4 className="seamless-course-card-title">{course?.title || course?.name}</h4>
+                                                                    <div className="seamless-course-card-meta">
+                                                                        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg> {p?.total_lessons || course?.lessons_count || 0} lessons</span>
+                                                                        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg> {course?.duration_minutes || 0} minutes</span>
+                                                                    </div>
+                                                                    <a href={`${getAuthenticatedCourseBaseUrl().replace(/\/$/, '')}/courses/${course?.slug || course?.id}`} className="seamless-course-card-action">
+                                                                        Start Course <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )
+                                                )}
+                                                {activeCourseTab === 'included' && (
+                                                    includedCourses === null ? (
+                                                        <CoursesSectionSkeleton />
+                                                    ) : includedCourses.length === 0 ? (
+                                                        <div className="seamless-empty-card"><p>You do not have any courses included in your membership.</p></div>
+                                                    ) : (
+                                                        <div className="seamless-course-grid">
+                                                            {includedCourses.map((course: any, i: number) => {
                                                         const p = courseProgressMap[course?.id];
                                                         return (
                                                             <div key={course?.id || i} className="seamless-course-card-n">
@@ -2150,38 +2313,10 @@ export const UserDashboardView: React.FC = () => {
                                                 </div>
                                             )
                                         )}
-                                        {activeCourseTab === 'included' && (
-                                            includedCourses === null ? (
-                                                <CoursesSectionSkeleton />
-                                            ) : includedCourses.length === 0 ? (
-                                                <div className="seamless-empty-card"><p>You do not have any courses included in your membership.</p></div>
-                                            ) : (
-                                                <div className="seamless-course-grid">
-                                                    {includedCourses.map((course: any, i: number) => {
-                                                        const p = courseProgressMap[course?.id];
-                                                        return (
-                                                            <div key={course?.id || i} className="seamless-course-card-n">
-                                                                <div className="seamless-course-card-img-wrapper">
-                                                                    <img src={course?.image || 'https://via.placeholder.com/400x200?text=Course'} alt={course?.title} />
-                                                                </div>
-                                                                <div className="seamless-course-card-body">
-                                                                    <h4 className="seamless-course-card-title">{course?.title || course?.name}</h4>
-                                                                    <div className="seamless-course-card-meta">
-                                                                        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg> {p?.total_lessons || course?.lessons_count || 0} lessons</span>
-                                                                        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg> {course?.duration_minutes || 0} minutes</span>
-                                                                    </div>
-                                                                    <a href={`${getAuthenticatedCourseBaseUrl().replace(/\/$/, '')}/courses/${course?.slug || course?.id}`} className="seamless-course-card-action">
-                                                                        Start Course <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}

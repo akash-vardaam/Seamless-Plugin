@@ -4469,8 +4469,7 @@
     display: flex !important;
     flex-direction: column !important;
     transition: transform 0.2s, box-shadow 0.2s !important;
-    opacity: 0 !important;
-    animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
+    animation: seamless-slide-up-fade 0.46s ease-out both !important;
 }
 
 :host .seamless-course-grid > .seamless-course-card-n:nth-child(1) { animation-delay: 0.02s !important; }
@@ -4826,7 +4825,7 @@
 
 :host .seamless-user-dashboard-org-plan.is-collapsed .seamless-user-dashboard-org-plan-title {
     font-size: var(--seamless-font-size-22) !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
     color: #0f2742 !important;
 }
 
@@ -5029,7 +5028,7 @@
 :host .seamless-modal-footer-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 18px !important;
     flex-wrap: wrap !important;
 }
 
@@ -5156,8 +5155,7 @@
     gap: 16px !important;
     padding: 18px 20px !important;
     border-bottom: 1px solid #eef2f7 !important;
-    opacity: 0 !important;
-    animation: seamless-slide-up-fade 0.46s ease-out forwards !important;
+    animation: seamless-slide-up-fade 0.46s ease-out both !important;
 }
 
 :host .seamless-user-dashboard-org-members-list > .seamless-user-dashboard-org-member-row:nth-child(1) { animation-delay: 0.02s !important; }
