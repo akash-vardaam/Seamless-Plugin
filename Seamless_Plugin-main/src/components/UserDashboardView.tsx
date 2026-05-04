@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useShadowRoot } from './ShadowRoot';
 import api, { requestWithCache } from '../services/api';
 import { COUNTRIES_STATES } from '../utils/countriesStates';
@@ -73,6 +73,8 @@ interface UserProfile {
 
 type MembershipAction = 'upgrade' | 'downgrade' | 'cancel';
 type DashboardView = 'profile' | 'memberships' | 'organization' | 'courses' | 'orders';
+
+const PREFETCH_SEQUENCE: DashboardView[] = ['memberships', 'organization', 'courses', 'orders'];
 
 interface OrganizationInfo {
     id?: string | number;
@@ -363,6 +365,8 @@ export const UserDashboardView: React.FC = () => {
     const [memberRoleDrafts, setMemberRoleDrafts] = useState<Record<string, string>>({});
     const [orgInlineNotice, setOrgInlineNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [hasHydratedProfileDetails, setHasHydratedProfileDetails] = useState<boolean>(false);
+    const [hasPrefetchedViews, setHasPrefetchedViews] = useState<boolean>(false);
+    const prefetchedViewsRef = useRef<Set<DashboardView>>(new Set());
 
     // Action States
     const [actionModal, setActionModal] = useState<MembershipAction | null>(null);
@@ -406,7 +410,7 @@ export const UserDashboardView: React.FC = () => {
         return cfg?.clientDomain || cfg?.siteUrl || window.location.origin;
     };
 
-    const getDashboardEmail = (): string => profile?.email || '';
+    const getDashboardEmail = useCallback((): string => profile?.email || '', [profile?.email]);
 
     const getMembershipById = (membershipId?: string | null) =>
         memberships?.find((membership) => String(membership.id) === String(membershipId)) || null;
@@ -432,7 +436,7 @@ export const UserDashboardView: React.FC = () => {
         return () => window.clearTimeout(timer);
     }, [orgInlineNotice]);
 
-    const reloadOrganizationData = async (preferCache: boolean = true) => {
+    const reloadOrganizationData = useCallback(async (preferCache: boolean = true) => {
         const email = getDashboardEmail();
         if (!email) return;
 
@@ -453,7 +457,7 @@ export const UserDashboardView: React.FC = () => {
         } finally {
             endSectionLoading('organization');
         }
-    };
+    }, [getDashboardEmail, beginSectionLoading, endSectionLoading]);
 
     const isMembershipCurrentlyActive = (membership: any) => {
         const status = String(membership?.status || '').toLowerCase();
@@ -591,7 +595,7 @@ export const UserDashboardView: React.FC = () => {
         return matchedCode || '';
     };
 
-    const fetchApiEndpoint = async (
+    const fetchApiEndpoint = useCallback(async (
         endpoint: string,
         stateSetter: React.Dispatch<React.SetStateAction<any>>,
         isArray: boolean = true,
@@ -649,7 +653,68 @@ export const UserDashboardView: React.FC = () => {
                 endSectionLoading(section);
             }
         }
-    };
+    }, [beginSectionLoading, endSectionLoading, normalizeProfileForForm, mergeProfilePreservingLocation]);
+
+    const prefetchViewData = useCallback((view: DashboardView) => {
+        if (prefetchedViewsRef.current.has(view)) {
+            return;
+        }
+
+        let triggered = false;
+        let hasDataAlready = false;
+
+        switch (view) {
+            case 'memberships':
+                hasDataAlready = Array.isArray(memberships) && Array.isArray(expiredMemberships);
+                if (memberships === null) {
+                    triggered = true;
+                    fetchApiEndpoint('/dashboard/memberships', setMemberships, true, 'GET', undefined, true, 'memberships');
+                }
+                if (expiredMemberships === null) {
+                    triggered = true;
+                    fetchApiEndpoint('/dashboard/memberships/history', setExpiredMemberships, true, 'GET', undefined, true, 'memberships');
+                }
+                break;
+            case 'courses':
+                hasDataAlready = Array.isArray(courses) && Array.isArray(includedCourses);
+                if (courses === null) {
+                    triggered = true;
+                    fetchApiEndpoint('/dashboard/courses/enrolled', setCourses, true, 'GET', undefined, true, 'courses');
+                }
+                if (includedCourses === null) {
+                    triggered = true;
+                    fetchApiEndpoint('/dashboard/courses/included', setIncludedCourses, true, 'GET', undefined, true, 'courses');
+                }
+                break;
+            case 'orders':
+                hasDataAlready = Array.isArray(orders);
+                if (orders === null) {
+                    triggered = true;
+                    fetchApiEndpoint('/dashboard/orders', setOrders, true, 'GET', undefined, true, 'orders');
+                }
+                break;
+            case 'organization':
+                hasDataAlready = Array.isArray(groupMemberships);
+                if (!hasDataAlready && getDashboardEmail()) {
+                    triggered = true;
+                    reloadOrganizationData();
+                }
+                break;
+            case 'profile':
+                hasDataAlready = Boolean(profile);
+                if (profile === null) {
+                    triggered = true;
+                    fetchApiEndpoint('/dashboard/profile', setProfile, false, 'GET', undefined, true, 'profile');
+                }
+                break;
+            default:
+                break;
+        }
+
+        if (triggered || hasDataAlready) {
+            prefetchedViewsRef.current.add(view);
+        }
+    }, [memberships, expiredMemberships, courses, includedCourses, orders, groupMemberships, profile, fetchApiEndpoint, reloadOrganizationData, getDashboardEmail]);
 
     const hydrateProfileFromPayload = useCallback((payload: any) => {
         const parsed = normalizeApiPayload(payload) || {};
@@ -699,6 +764,42 @@ export const UserDashboardView: React.FC = () => {
         window.addEventListener('seamless:cache-updated', handleCacheUpdated);
         return () => window.removeEventListener('seamless:cache-updated', handleCacheUpdated);
     }, [handleCacheUpdated]);
+
+    useEffect(() => {
+        if (hasPrefetchedViews || !profile) {
+            return;
+        }
+
+        const viewsToPrefetch = PREFETCH_SEQUENCE.filter((view) => view !== activeView);
+        if (viewsToPrefetch.length === 0) {
+            setHasPrefetchedViews(true);
+            return;
+        }
+
+        let cancelled = false;
+        const timerIds: number[] = [];
+
+        const schedulePrefetch = (index: number) => {
+            if (cancelled || index >= viewsToPrefetch.length) {
+                setHasPrefetchedViews(true);
+                return;
+            }
+
+            const timeoutId = window.setTimeout(() => {
+                prefetchViewData(viewsToPrefetch[index]);
+                schedulePrefetch(index + 1);
+            }, index === 0 ? 0 : 250);
+
+            timerIds.push(timeoutId);
+        };
+
+        schedulePrefetch(0);
+
+        return () => {
+            cancelled = true;
+            timerIds.forEach((id) => window.clearTimeout(id));
+        };
+    }, [activeView, profile, hasPrefetchedViews, prefetchViewData]);
 
 
     useEffect(() => {
